@@ -1,0 +1,33 @@
+/* SEARCH */
+.search-box input {
+    padding: 7px 12px;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    font-size: 14px;
+}
+
+/* TABLE */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.data-table th,
+.data-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: middle;
+}
+
+/* TABLE HEADER */
+.data-table th {
+    background: #ffd700;
+    color: #3b1f1f;
+    font-weight: 600;
+}
+
+/* ZEBRA */
+.data-table tr:nth-child(even) td {
+    background: #f9fafb;
+}

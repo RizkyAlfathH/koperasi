@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% load static %}
+{% load widget_tweaks %}
+{% block title %}Tambah Simpanan{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <div class="form-card">
+        <h1>Tambah Simpanan</h1>
+
+        <form method="post">
+            {% csrf_token %}
+
+            {% if form.errors %}
+            <div class="alert alert-danger">
+                {{ form.errors }}
+            </div>
+            {% endif %}
+
+            <div class="form-grid">
+
+                <!-- ANGGOTA -->
+                <div class="form-group">
+                    <label for="id_anggota">Nama Anggota</label>
+                    <select id="id_anggota" name="anggota" class="form-control" required></select>
+                </div>
+
+                <!-- TANGGAL -->
+                <div class="form-group">
+                    <label for="id_tanggal">Tanggal Menyimpan</label>
+                    {{ form.tanggal|add_class:"form-control" }}
+                </div>
+
+                <!-- JENIS SIMPANAN -->
+                <div class="form-group">
+                    <label for="id_jenis_simpanan">Jenis Simpanan</label>
+                    {{ form.jenis_simpanan|add_class:"form-control" }}
+                </div>
+
+                <div class="form-group">
+                    <label for="id_jumlah">Jumlah Menyimpan</label>
+                    {{ form.jumlah|add_class:"form-control rupiah-input" }}
+                </div>
+
+
+                <!-- DANA SOSIAL -->
+                <div class="form-group" id="field-dana-sosial" style="display:none;">
+                    <label for="id_dana_sosial">Dana Sosial</label>
+                    {{ form.dana_sosial|add_class:"form-control rupiah-input" }}
+                </div>
+
+                <!-- BUTTON -->
+                <div class="form-actions" style="text-align:right;">
+                    <a href="{% url 'simpanan:daftar_simpanan' %}" class="btn-outline">Batal</a>
+                    <button type="submit" class="btn-simpan">Simpan</button>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+$(function () {
+
+    // SELECT2 ANGGOTA
+    $('#id_anggota').select2({
+        placeholder: 'Cari nama anggota...',
+        minimumInputLength: 1,
+        ajax: {
+            url: "{% url 'simpanan:autocomplete_anggota' %}",
+            dataType: 'json',
+            delay: 250,
+            data: params => ({ term: params.term }),
+            processResults: data => ({ results: data.results })
+        },
+        width: '100%'
+    });
+
+     function cekDanaSosial() {
+        const anggota = $('#id_anggota').val();
+        const jenis = $('#id_jenis_simpanan').val();
+        const tanggal = $('#id_tanggal').val();
+
+        // SELALU sembunyikan dulu
+        $('#field-dana-sosial').hide();
+
+        // ❌ kalau belum lengkap → stop
+        if (!anggota || !jenis || !tanggal) return;
+
+        // ❌ kalau BUKAN simpanan wajib (id = 2) → STOP TOTAL
+        if (jenis !== '2') return;
+
+        // ✅ baru cek ke backend
+        $.getJSON(
+            "{% url 'simpanan:cek_dana_sosial' %}",
+            { anggota, jenis, tanggal },
+            function (res) {
+                if (res.wajib === true) {
+                    $('#field-dana-sosial').slideDown();
+                }
+            }
+        );
+    }
+
+    $('#id_anggota, #id_jenis_simpanan, #id_tanggal')
+        .on('change', cekDanaSosial);
+
+});
+</script>
+{% endblock %}

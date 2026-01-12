@@ -1,0 +1,19 @@
+/* SAMAIN SELECT2 DENGAN FORM CONTROL */
+.select2-container .select2-selection--single {
+    height: 40px;
+    padding: 6px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+}
+
+.select2-selection__rendered {
+    line-height: normal !important;
+    padding-left: 0 !important;
+}
+
+.select2-selection__arrow {
+    height: 40px;
+}

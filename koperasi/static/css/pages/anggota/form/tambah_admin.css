@@ -1,0 +1,81 @@
+/* ===============================
+   PAGE WRAPPER
+================================ */
+.page-tambah-admin {
+    padding: 24px;
+}
+
+/* ===============================
+   FORM CARD
+================================ */
+.page-tambah-admin .form-card {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 28px 32px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+}
+
+/* ===============================
+   TITLE
+================================ */
+.page-tambah-admin h2 {
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 24px;
+    color: #4a2c1d;
+}
+
+/* ===============================
+   LABEL
+================================ */
+.page-tambah-admin label {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    display: inline-block;
+}
+
+/* ===============================
+   INPUT
+================================ */
+.page-tambah-admin .form-control {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid #d0d0d0;
+    font-size: 14px;
+}
+
+.page-tambah-admin .form-control:focus {
+    outline: none;
+    border-color: #facc15;
+    box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.25);
+}
+
+/* ===============================
+   PASSWORD
+================================ */
+.page-tambah-admin .input-wrapper {
+    position: relative;
+}
+
+.page-tambah-admin .input-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    cursor: pointer;
+    color: #888;
+}
+
+/* ===============================
+   ERROR
+================================ */
+.page-tambah-admin .alert {
+    background: #fff4f4;
+    border: 1px solid #f5c2c2;
+    color: #b42318;
+    padding: 14px 18px;
+    border-radius: 10px;
+}

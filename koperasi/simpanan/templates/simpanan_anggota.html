@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Simpanan Anggota{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/simpanan/simpanan_anggota.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="content-card">
+  <h1>Simpanan {{ anggota.nama }}</h1>
+
+  <div class="section-header">
+    <h2 class="section-title">Riwayat Transaksi Simpanan</h2>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>No. Anggota</th>
+        <th>Nama</th>
+        <th>Jenis Simpanan</th>
+        <th>Total Saldo</th>
+        <th style="text-align:center;">Aksi</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in data_saldo %}
+      <tr>
+        <td>{{ anggota.nomor_anggota }}</td>
+        <td>{{ anggota.nama }}</td>
+        <td>{{ item.jenis }}</td>
+        <td class="rupiah-text" data-value="{{ item.saldo }}">
+            Rp {{ item.saldo|floatformat:0 }}
+        </td>
+        <td style="text-align:center;">
+          <div class="action-group">
+            <a href="{% url 'simpanan:tambah_penarikan' anggota.nomor_anggota item.jenis_id %}"
+               class="action-tarik btn-penarikan"
+               data-saldo="{{ item.saldo }}">
+              <i class="ph-bold ph-wallet"></i>
+            </a>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="5" class="empty-state">Belum ada simpanan</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="btn-back-container">
+    <a href="{% url 'simpanan:daftar_simpanan' %}" class="btn btn-gold">Kembali</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/simpanan/simpanan_anggota.js' %}"></script>
+{% endblock %}

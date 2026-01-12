@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}Manajemen Simpanan{% endblock %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/simpanan/daftar_simpanan.css' %}">
+{% endblock %}
+
+{% block content %}
+<h1>Manajemen Simpanan</h1>
+
+<div class="content-card">
+
+    <div class="section-header">
+        <h2 class="section-title">Daftar Simpanan Anggota</h2>
+        <div class="header-right">
+            <form method="get" class="search-box">
+                <input type="text"
+                    name="search"
+                    placeholder="Cari nama / nomor anggota"
+                    value="{{ search_query }}">
+
+                <select name="sort" onchange="this.form.submit()">
+                    <option value="nomor" {% if sort_by == 'nomor' %}selected{% endif %}>
+                        Urutkan Nomor
+                    </option>
+                    <option value="nama" {% if sort_by == 'nama' %}selected{% endif %}>
+                        Urutkan Nama
+                    </option>
+                </select>
+            </form>
+
+            <a href="{% url 'simpanan:simpanan_form' %}" class="add-button">
+                <i class="ph-bold ph-plus"></i> Tambah Simpanan
+            </a>
+        </div>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>No Anggota</th>
+                <th>Nama Anggota</th>
+                <th>Simpanan Pokok</th>
+                <th>Simpanan Wajib</th>
+                <th>Simpanan Sukarela</th>
+                <th>Dana Sosial</th>
+                <th style="text-align:center;">Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in data %}
+                <tr>
+                    <td>{{ item.nomor_anggota }}</td>
+                    <td>{{ item.nama_anggota }}</td>
+                    <td class="rupiah-text">{{ item.total_pokok|floatformat:0 }}</td>
+                    <td class="rupiah-text">{{ item.total_wajib|floatformat:0 }}</td>
+                    <td class="rupiah-text">{{ item.total_sukarela|floatformat:0 }}</td>
+                    <td class="rupiah-text">{{ item.total_dana_sosial|floatformat:0 }}</td>
+                    <td class="action-group">
+                        <a href="{% url 'simpanan:simpanan_anggota' item.nomor_anggota %}"class="action-view"><i class="ph-bold ph-eye"></i></a>
+                        {% comment %} <a href="#" class="btn-edit"><i class="ph-bold ph-pencil-simple"></i></a> {% endcomment %}
+                        <a href="#" class="action-delete"><i class="ph-bold ph-trash"></i></a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="empty-state">Tidak ada data simpanan</td>
+                </tr>
+                {% endfor %}
+
+        </tbody>
+    </table>
+
+    <!-- PAGINATION -->
+    <div class="pagination-container">
+        <div class="pagination-info">
+            Menampilkan
+            <strong>{{ page_obj.start_index }}</strong> –
+            <strong>{{ page_obj.end_index }}</strong>
+            dari
+            <strong>{{ page_obj.paginator.count }}</strong>
+            data
+        </div>
+
+        <div class="pagination-modern">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}&searchSimpanan={{ searchSimpanan }}"
+                   class="page-btn prev">←</a>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if num >= page_obj.number|add:'-2' and num <= page_obj.number|add:'2' %}
+                    {% if page_obj.number == num %}
+                        <span class="page-btn active">{{ num }}</span>
+                    {% else %}
+                        <a href="?page={{ num }}&searchSimpanan={{ searchSimpanan }}"
+                           class="page-btn">{{ num }}</a>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}&searchSimpanan={{ searchSimpanan }}"
+                   class="page-btn next">→</a>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% load static %}
+{% load widget_tweaks %}
+{% block title %}Tambah Pinjaman{% endblock %}
+
+
+
+{% block content %}
+<div class="content-card">
+
+    <div class="section-header">
+        <h2 class="section-title">Form Tambah Pinjaman</h2>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+
+        {% if form.errors %}
+        <div class="alert alert-danger">
+            {{ form.errors }}
+        </div>
+        {% endif %}
+
+        <!-- ROW 1 -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label>Nama Anggota</label>
+                <select id="id_nomor_anggota" name="nomor_anggota" class="form-control" required></select>
+            </div>
+
+            <div class="col-md-6">
+                <label>Jenis Pinjaman</label>
+                {{ form.id_jenis_pinjaman|add_class:"form-control" }}
+            </div>
+        </div>
+
+        <!-- ROW 2 -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label>Admin</label>
+                <input type="text" class="form-control" value="{{ username }}" disabled>
+                {{ form.id_admin }}
+            </div>
+
+            <div class="col-md-6">
+                <label>Tanggal Pinjam</label>
+                {{ form.tanggal_meminjam|add_class:"form-control"|attr:"autocomplete:off" }}
+            </div>
+        </div>
+
+        <!-- ROW 3 -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label>Lama Pinjaman (bulan)</label>
+                {{ form.jatuh_tempo|add_class:"form-control" }}
+            </div>
+
+            <div class="col-md-6">
+                <label>Jumlah Pinjaman</label>
+                <input type="text"
+                       id="id_jumlah_pinjaman"
+                       name="jumlah_pinjaman"
+                       class="form-control rupiah-input"
+                       placeholder="Masukkan jumlah pinjaman"
+                       required>
+            </div>
+        </div>
+
+        <!-- ROW 4 -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label>Angsuran per Bulan</label>
+                {{ form.angsuran_per_bulan|add_class:"form-control rupiah-input" }}
+            </div>
+
+            <div class="col-md-6">
+                <label>Kategori Jasa</label>
+                {{ form.id_kategori_jasa|add_class:"form-control" }}
+            </div>
+        </div>
+
+        <!-- ROW 5 -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <label>Persentase Jasa (%)</label>
+                <input type="number"
+                       id="id_jasa_persen"
+                       name="jasa_persen"
+                       class="form-control"
+                       step="0.01"
+                       min="0"
+                       max="100"
+                       required>
+            </div>
+
+            <div class="col-md-6">
+                <label>Jumlah Jasa (Rp)</label>
+                <input type="text"
+                       id="id_jasa_rupiah"
+                       name="jasa_rupiah"
+                       class="form-control rupiah-input"
+                       readonly>
+            </div>
+        </div>
+
+        <!-- BUTTON -->
+        <div class="form-actions" style="text-align:right;">
+            <a href="{% url 'pinjaman:pinjaman_list' %}" class="btn-outline">Batal</a>
+            <button type="submit" class="btn-simpan">Simpan</button>
+        </div>
+
+    </form>
+</div>
+
+<script>
+$(function () {
+
+    // SELECT2 ANGGOTA (DISAMAIN DENGAN SIMPANAN)
+    $('#id_nomor_anggota').select2({
+        placeholder: 'Cari nama anggota...',
+        minimumInputLength: 1,
+        ajax: {
+            url: "{% url 'pinjaman:autocomplete_anggota' %}",
+            dataType: 'json',
+            delay: 250,
+            data: params => ({ term: params.term }),
+            processResults: data => ({ results: data.results })
+        },
+        width: '100%'
+    });
+
+});
+</script>
+{% endblock %}

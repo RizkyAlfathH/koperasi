@@ -1,0 +1,9 @@
+<div class="navbar">
+    <div class="title">KOPASMEN</div>
+    <div class="user-info">
+        <div class="user-avatar">
+            {{ request.user.username|slice:":2"|upper }}
+        </div>
+        <span>{{ request.user.username|upper }}</span>
+    </div>
+</div>

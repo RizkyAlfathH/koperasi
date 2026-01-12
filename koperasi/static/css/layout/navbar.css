@@ -1,0 +1,42 @@
+/* Navbar Styling */
+    .navbar {
+        position: fixed;
+        top: 0;
+        left: 280px;
+        right: 0;
+        height: 60px;
+        background: linear-gradient(90deg, #FFD700 0%, #FFA500 100%);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 30px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        z-index: 999;
+    }
+
+    .navbar .title {
+        font-size: 18px;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .navbar .user-info {
+        display: flex;
+        align-items: center;
+        color: #333;
+        font-weight: 500;
+    }
+
+    .navbar .user-info .user-avatar {
+        width: 35px;
+        height: 35px;
+        background-color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 10px;
+        font-size: 14px;
+        font-weight: bold;
+        color: #FFD700;
+    }

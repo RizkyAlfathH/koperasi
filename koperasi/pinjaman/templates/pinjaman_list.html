@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Manajemen Pinjaman{% endblock %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/pinjaman/pinjaman_list.css' %}">
+{% endblock %}
+
+{% block content %}
+<h1>Manajemen Pinjaman</h1>
+<div class="content-card">
+    <div class="section-header">
+        <h2 class="section-title">Daftar Pinjaman Anggota</h2>
+        <div class="header-right">
+        <!-- SEARCH BOX (WAJIB class search-box) -->
+        <form method="get" class="search-box">
+            <input type="text"
+                   name="search"
+                   placeholder="Cari nama / nomor anggota"
+                   value="{{ search_query }}">
+
+            <select name="sort" onchange="this.form.submit()">
+                <option value="nomor" {% if sort_by == 'nomor' %}selected{% endif %}>
+                    Urutkan Nomor
+                </option>
+                <option value="nama" {% if sort_by == 'nama' %}selected{% endif %}>
+                    Urutkan Nama
+                </option>
+            </select>
+        </form>
+        <a href="{% url 'pinjaman:pinjaman_form' %}" class="add-button">
+            <i class="ph-bold ph-plus"></i> Tambah Pinjaman
+        </a>
+        </div>
+    </div>
+
+    <!-- TABLE (WAJIB class data-table) -->
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Nomor Anggota</th>
+                <th>Nama</th>
+                <th>Reguler</th>
+                <th>Khusus</th>
+                <th>Barang</th>
+                <th>Total</th>
+                <th style="text-align:center;">Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for a in page_obj %}
+            <tr>
+                <td>{{ a.nomor_anggota }}</td>
+                <td>{{ a.nama }}</td>
+                <td class="rupiah-text">{{ a.reguler|floatformat:0 }}</td>
+                <td class="rupiah-text">{{ a.khusus|floatformat:0 }}</td>
+                <td class="rupiah-text">{{ a.barang|floatformat:0 }}</td>
+                <td class="rupiah-text"><strong>{{ a.total|floatformat:0 }}</strong></td>
+                <td style="text-align:center;">
+                    —
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="empty-state">
+                    Belum ada data pinjaman
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

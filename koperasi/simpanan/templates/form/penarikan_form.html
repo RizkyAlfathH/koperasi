@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Penarikan Simpanan{% endblock %}
+
+{% block content %}
+<div class="form-card">
+    <h1>Penarikan Simpanan</h1>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="form-grid">
+            <div>
+                <label>Nama Anggota</label>
+                <input type="text"
+                       value="{{ anggota.nama }}"
+                       class="form-control"
+                       disabled>
+            </div>
+
+            <div>
+                <label>Nomor Anggota</label>
+                <input type="text"
+                       value="{{ anggota.nomor_anggota }}"
+                       class="form-control"
+                       disabled>
+            </div>
+
+            <div>
+                <label for="id_tanggal">Tanggal Penarikan</label>
+                {{ form.tanggal|add_class:"form-control" }}
+            </div>
+
+            <div>
+                <label>Jumlah Penarikan</label>
+                <input type="text"
+                       id="id_jumlah"
+                       name="jumlah"
+                       class="form-control rupiah-input"
+                       required>
+            </div>
+        </div>
+
+        <!-- BUTTON -->
+        <div class="form-actions" style="text-align:right;">
+            <a href="{% url 'simpanan:simpanan_anggota' anggota.nomor_anggota %}" class="btn-outline">Batal</a>
+            <button type="submit" class="btn-simpan">Simpan</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

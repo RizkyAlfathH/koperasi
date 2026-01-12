@@ -1,0 +1,54 @@
+<div class="sidebar">
+    <div class="profile">
+        <div class="avatar">
+            {{ request.user.username|slice:":2"|upper }}
+        </div>
+        <div class="username">
+            {{ request.user.username|upper }}
+        </div>
+        <div class="role">
+            {{ request.user.role|capfirst }}
+        </div>
+    </div>
+
+    <ul>
+        <!-- Dashboard -->
+        <li>
+            <a href="{% url 'dashboard' %}"
+               class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+               Dashboard
+            </a>
+        </li>
+
+        <!-- Kelola Akun -->
+        <li>
+            <a href="{% url 'kelola_akun' %}"
+               class="{% if request.resolver_match.url_name in menu_akun_urls %}active{% endif %}">
+               Kelola Akun
+            </a>
+        </li>
+        <!-- Manajemen Simpanan -->
+        <li>
+            <a href="{% url 'simpanan:daftar_simpanan' %}"
+            class="{% if request.resolver_match.app_name == 'simpanan' %}
+                    active
+                    {% endif %}">
+            Manajemen Simpanan
+            </a>
+        </li>
+
+        <!-- Manajemen Pinjaman -->
+        <li>
+            <a href="{% url 'pinjaman:pinjaman_list' %}"
+            class="{% if request.resolver_match.url_name in menu_pinjaman_urls %}
+                    active
+                    {% endif %}">
+            Manajemen Pinjaman
+            </a>
+        </li>
+    </ul>
+
+    <div class="logout-btn">
+        <a href="{% url 'admin_koperasi:admin_logout' %}">Logout</a>
+    </div>
+</div>

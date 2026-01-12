@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Kelola Akun{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/pages/anggota/kelola_akun.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="page-kelola-akun">
+
+    <h1>Manajemen Akun</h1>
+
+    <!-- ================= ADMIN ================= -->
+    <div class="content-card">
+
+        <div class="section-header">
+            <h2 class="section-title">Daftar Admin</h2>
+
+            <div class="header-right">
+                <form method="get" class="search-box">
+                    <input type="text"
+                           name="searchAdmin"
+                           placeholder="Cari Nama Admin"
+                           value="{{ searchAdmin }}">
+                </form>
+
+                {% if request.user.role in ROLE_ADMIN %}
+                <a href="{% url 'tambah_admin' %}" class="btn btn-primary">
+                    <i class="ph-bold ph-user-plus"></i> Tambah Admin
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th style="width:40%">Username</th>
+                    <th style="width:40%">Role</th>
+                    <th style="width:20%; text-align:center;">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for admin in admins %}
+                <tr>
+                    <td>{{ admin.username }}</td>
+                    <td>{{ admin.role }}</td>
+                    <td>
+                        <div class="action-group">
+                            <a href="{% url 'detail_admin' admin.id %}" class="action-view" title="Lihat">
+                                <i class="ph-bold ph-eye"></i>
+                            </a>
+                            <a href="{% url 'edit_admin' admin.id %}" class="action-edit" title="Edit">
+                                <i class="ph-bold ph-pencil-simple"></i>
+                            </a>
+                            <a href="{% url 'hapus_admin' admin.id %}"
+                               class="action-delete"
+                               data-type="admin"
+                               data-name="{{ admin.username }}">
+                                <i class="ph-bold ph-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="empty-state">Tidak ada admin</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% comment %} {% include "includes/pagination_admin.html" %} {% endcomment %}
+    </div>
+
+    <!-- ================= ANGGOTA ================= -->
+    <div class="content-card">
+
+        <div class="section-header">
+            <h2 class="section-title">Daftar Anggota</h2>
+
+            <div class="header-right">
+                <form method="get" class="search-box">
+                    <input type="text"
+                           name="searchAnggota"
+                           placeholder="Cari Nama Anggota"
+                           value="{{ searchAnggota }}">
+                </form>
+
+                <a href="{% url 'tambah_anggota' %}" class="btn btn-primary">
+                    <i class="ph-bold ph-user-plus"></i> Tambah Anggota
+                </a>
+
+                <form action="{% url 'import_excel_anggota' %}"
+                    method="post"
+                    enctype="multipart/form-data"
+                    style="display:inline;">
+                    {% csrf_token %}
+
+                    <input type="file"
+                        name="excel_file"
+                        id="excelInput"
+                        accept=".xlsx,.xls"
+                        hidden
+                        required>
+
+                    <button type="button"
+                            class="btn btn-secondary"
+                            onclick="document.getElementById('excelInput').click();">
+                        <i class="ph-bold ph-file-csv"></i> Import Excel
+                    </button>
+
+                    <button type="submit"
+                            id="submitExcel"
+                            hidden></button>
+                </form>
+
+                <a href="{% url 'export_excel_anggota' %}" class="btn btn-success">
+                    <i class="ph-bold ph-file-xls"></i> EXPORT Excel
+                </a>
+
+                <a href="{% url 'export_pdf_anggota' %}" class="btn btn-danger">
+                    <i class="ph-bold ph-file-pdf"></i> EXPORT PDF
+                </a>
+            </div>
+        </div>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>No. Anggota</th>
+                    <th>Nama</th>
+                    <th>Umur</th>
+                    <th>NIP</th>
+                    <th>Jenis Kelamin</th>
+                    <th>Tanggal Daftar</th>
+                    <th>Status</th>
+                    <th>Alasan Tidak Aktif</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for anggota in anggotas %}
+                <tr>
+                    <td>{{ anggota.nomor_anggota|default:"-" }}</td>
+                    <td>{{ anggota.nama|default:"-" }}</td>
+                    <td>{{ anggota.umur|default:"-" }}</td>
+                    <td>{{ anggota.nip|default:"-" }}</td>
+                    <td>{{ anggota.jenis_kelamin|default:"-" }}</td>
+                    <td>{{ anggota.tanggal_daftar|date:"d M Y"|default:"-" }}</td>
+                    <td>{{ anggota.status|default:"-" }}</td>
+                    <td title="{{ anggota.alasan_tidak_aktif }}">
+                        {{ anggota.alasan_tidak_aktif|default:"-" }}
+                    </td>
+                    <td>
+                        <div class="action-group">
+                            <a href="{% url 'detail_anggota' anggota.nomor_anggota %}" class="action-view">
+                                <i class="ph-bold ph-eye"></i>
+                            </a>
+                            <a href="{% url 'edit_anggota' anggota.nomor_anggota %}" class="action-edit">
+                                <i class="ph-bold ph-pencil-simple"></i>
+                            </a>
+                            <a href="{% url 'hapus_anggota' anggota.nomor_anggota %}"
+                               class="action-delete"
+                               data-type="anggota"
+                               data-name="{{ anggota.nama }}">
+                                <i class="ph-bold ph-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="empty-state">Tidak ada anggota</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% comment %} {% include "includes/pagination_anggota.html" %} {% endcomment %}
+    </div>
+
+</div>
+{% endblock %}
+{% block extra_js %}
+
+<script>
+document.getElementById("excelInput").addEventListener("change", function () {
+    if (this.files.length > 0) {
+        document.getElementById("submitExcel").click();
+    }
+});
+</script>
+{% endblock %}

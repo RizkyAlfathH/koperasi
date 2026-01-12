@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Detail Anggota{% endblock %}
+
+{% block content %}
+<div class="main-content">
+
+  <div class="content-card detail-card">
+    <h1>👥 Detail Anggota</h1>
+
+    <div class="row">
+      <div class="col">
+        <label>No Anggota</label>
+        <div class="field-box">{{ anggota.nomor_anggota }}</div>
+      </div>
+      <div class="col">
+        <label>Nama</label>
+        <div class="field-box">{{ anggota.nama }}</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <label>Umur</label>
+        <div class="field-box">{{ anggota.umur }}</div>
+      </div>
+      <div class="col">
+        <label>No. Telepon</label>
+        <div class="field-box">{{ anggota.no_telp }}</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <label>Pekerjaan</label>
+        <div class="field-box">{{ anggota.pekerjaan }}</div>
+      </div>
+      <div class="col">
+        <label>Alamat</label>
+        <div class="field-box">{{ anggota.alamat }}</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <label>Email</label>
+        <div class="field-box">{{ anggota.email }}</div>
+      </div>
+      <div class="col">
+        <label>Jenis Kelamin</label>
+        <div class="field-box">{{ anggota.get_jenis_kelamin_display }}</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <label>Tanggal Daftar</label>
+        <div class="field-box">{{ anggota.tanggal_daftar|date:"d F Y" }}</div>
+      </div>
+      <div class="col">
+        <label>Status</label>
+        <div class="field-box">
+          <span class="status {{ anggota.status }}">
+            {{ anggota.get_status_display }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    {% if anggota.status == 'nonaktif' %}
+    <div class="row">
+      <div class="col">
+        <label>Tanggal Nonaktif</label>
+        <div class="field-box">
+          {{ anggota.tanggal_nonaktif|date:"d F Y"|default:"-" }}
+        </div>
+      </div>
+      <div class="col">
+        <label>Alasan Nonaktif</label>
+        <div class="field-box">
+          {{ anggota.alasan_nonaktif|default:"-" }}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="btn-back-container">
+    <a href="{% url 'kelola_akun' %}">⬅ Kembali</a>
+  </div>
+
+</div>
+{% endblock %}

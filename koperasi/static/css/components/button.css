@@ -1,0 +1,168 @@
+/* ===============================
+   BASE BUTTON
+================================ */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.btn i {
+    font-size: 16px;
+}
+
+/* ===============================
+   VARIANTS
+================================ */
+.btn-primary {
+    background: #ffd700;
+    color: #3b1f1f;
+}
+
+.btn-success {
+    background: #22c55e;
+    color: #ffffff;
+}
+
+.btn-danger {
+    background: #ef4444;
+    color: #ffffff;
+}
+
+.btn-warning {
+    background: #f59e0b;
+    color: #ffffff;
+}
+
+/* Hover */
+.btn:hover {
+    transform: translateY(-1px);
+    opacity: 0.9;
+}
+
+/* ===============================
+   ADD BUTTON (LEGACY / KHUSUS)
+================================ */
+.add-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #ffd700;
+    color: #3b1f1f;
+    font-weight: 600;
+    padding: 8px 14px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 14px;
+    transition: 0.2s;
+}
+
+.add-button:hover {
+    background: #e6c200;
+    transform: translateY(-1px);
+}
+
+/* ===============================
+   TABLE ACTIONS
+================================ */
+.action-group {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+}
+
+.action-group a {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 14px;
+    transition: 0.2s;
+    text-decoration: none;
+}
+
+.action-view {
+    background: #0d6efd;
+}
+
+.action-edit {
+    background: #f59e0b;
+}
+
+.action-delete {
+    background: #ef4444;
+}
+
+.action-tarik {
+    background: #22c55e;
+}
+
+/* Hover */
+.action-group a:hover,
+.action-tarik:hover {
+    transform: scale(1.1);
+    opacity: 0.9;
+}
+
+/* ===============================
+   SPECIAL BUTTONS
+================================ */
+.btn-penarikan {
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    color: #fff;
+    background: #16a34a;
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+.btn-penarikan:hover {
+    transform: scale(1.1);
+    opacity: 0.9;
+}
+
+.btn-simpan {
+    background: #FFD700;
+    color: #4A2C2A;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: none;
+    font-size: 13px;
+    transition: 0.2s;
+}
+
+.btn-simpan:hover {
+    background: #e6c200;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid #ccc;
+    color: #4A2C2A;
+    font-weight: 500;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 13px;
+    text-decoration: none;
+    margin-right: 8px;
+}
+
+.btn-outline:hover {
+    background: #fff9d4;
+}

@@ -1,0 +1,34 @@
+h1 {
+    color: #3b1f1f;
+    margin-bottom: 20px;
+}
+
+/* CARD */
+.content-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 25px;
+    margin-bottom: 35px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+}
+
+/* HEADER SECTION */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.section-title {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.header-right {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}

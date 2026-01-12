@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}{{ judul }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/anggota/form/tambah_anggota.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="page-tambah-anggota">
+
+    <div class="form-card">
+        <h2>{{ judul }}</h2>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="row g-2">
+                {% for field in form %}
+                    <div class="col-12 col-md-6 field-{{ field.name }}">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+
+                        {% if "password" in field.name %}
+                            <div class="input-wrapper">
+                                {{ field|add_class:"form-control" }}
+                                <i class="bi bi-eye-slash-fill input-icon toggle-password"></i>
+                            </div>
+                        {% else %}
+                            {{ field|add_class:"form-control" }}
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="text-end mt-4">
+                <a href="{% url 'kelola_akun' %}" class="btn-outline">Batal</a>
+                <button type="submit" class="btn-simpan">Simpan</button>
+            </div>
+
+            {% if form.errors %}
+            <div class="alert mt-4">
+                <ul class="mb-0">
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* ===============================
+   TOGGLE PASSWORD
+================================ */
+$(document).on('click', '.toggle-password', function () {
+    const input = $(this).siblings('input');
+    const icon = $(this);
+
+    if (input.attr('type') === 'password') {
+        input.attr('type', 'text');
+        icon.removeClass('bi-eye-slash-fill')
+            .addClass('bi-eye-fill');
+    } else {
+        input.attr('type', 'password');
+        icon.removeClass('bi-eye-fill')
+            .addClass('bi-eye-slash-fill');
+    }
+});
+
+/* ===============================
+   TOGGLE NONAKTIF FIELD
+================================ */
+function toggleNonaktifField() {
+    const status = $('[name="status"]').val();
+    const alasan = $('.field-alasan_nonaktif');
+    const tanggal = $('.field-tanggal_nonaktif');
+
+    if (status && status.toLowerCase() === 'nonaktif') {
+        alasan.show();
+        tanggal.show();
+    } else {
+        alasan.hide();
+        tanggal.hide();
+    }
+}
+
+$(document).ready(function () {
+    toggleNonaktifField();
+    $(document).on('change', '[name="status"]', toggleNonaktifField);
+});
+</script>
+{% endblock %}

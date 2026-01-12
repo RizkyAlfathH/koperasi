@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tambah Pengurus</title>
+</head>
+<body>
+
+<h2>Tambah Akun Pengurus</h2>
+
+{% for message in messages %}
+    <p style="color:green">{{ message }}</p>
+{% endfor %}
+
+<form method="post">
+    {% csrf_token %}
+
+    <label>Username</label><br>
+    <input type="text" name="username" required><br><br>
+
+    <label>Password</label><br>
+    <input type="password" name="password" required><br><br>
+
+    <label>Role</label><br>
+    <select name="role" required>
+        <option value="ketua">Ketua</option>
+        <option value="sekretaris">Sekretaris</option>
+        <option value="bendahara">Bendahara</option>
+    </select><br><br>
+
+    <button type="submit">Simpan</button>
+</form>
+
+<a href="{% url 'admin_dashboard' %}">Kembali</a>
+
+</body>
+</html>

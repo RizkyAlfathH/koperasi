@@ -1,0 +1,13 @@
+@import url("core/reset.css");
+@import url("core/variables.css");
+@import url("core/utilities.css");
+
+@import url("layout/sidebar.css");
+@import url("layout/navbar.css");
+@import url("layout/main.css");
+
+@import url("components/card.css");
+@import url("components/table.css");
+@import url("components/button.css");
+@import url("components/select2.css");
+@import url("components/pagination.css");

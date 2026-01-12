@@ -1,0 +1,34 @@
+/* ===============================
+   PINJAMAN LIST PAGE (PAGE ONLY)
+   =============================== */
+
+/* SEARCH FORM */
+.search-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.search-form input,
+.search-form select {
+    padding: 7px 12px;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    font-size: 14px;
+}
+
+.search-form input {
+    width: 260px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .search-form {
+        width: 100%;
+    }
+
+    .search-form input {
+        width: 100%;
+    }
+}

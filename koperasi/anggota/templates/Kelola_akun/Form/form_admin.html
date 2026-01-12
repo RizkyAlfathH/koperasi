@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}{{ judul }}{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/pages/anggota/form/tambah_admin.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="page-tambah-admin">
+        <div class="form-card">
+
+            <h2>{{ judul }}</h2>
+
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="row g-2">
+                    {% for field in form %}
+                        {% if "password" in field.name %}
+                            <div class="col-12 col-md-6">
+                                <label>{{ field.label }}</label>
+                                <div class="input-wrapper">
+                                    {{ field|add_class:"form-control" }}
+                                    <i class="bi bi-eye-slash-fill input-icon toggle-password"></i>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="col-12 col-md-6">
+                                <label>{{ field.label }}</label>
+                                {{ field|add_class:"form-control" }}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+
+                <div class="text-end mt-4">
+                    <a href="{% url 'kelola_akun' %}" class="btn-outline">Batal</a>
+                    <button type="submit" class="btn-simpan">Simpan</button>
+                </div>
+
+                {% if form.errors %}
+                <div class="alert mt-4">
+                    <ul class="mb-0">
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </form>
+
+        </div>
+
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+$(document).on('click', '.toggle-password', function () {
+    const input = $(this).siblings('input');
+    const icon = $(this);
+
+    if (input.attr('type') === 'password') {
+        input.attr('type', 'text');
+        icon.removeClass('bi-eye-slash-fill')
+            .addClass('bi-eye-fill');
+    } else {
+        input.attr('type', 'password');
+        icon.removeClass('bi-eye-fill')
+            .addClass('bi-eye-slash-fill');
+    }
+});
+</script>
+{% endblock %}

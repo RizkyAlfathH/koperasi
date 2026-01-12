@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard Administrator</title>
+</head>
+<body>
+
+<h2>Dashboard Administrator Sistem</h2>
+
+<p>Selamat datang, {{ request.user.username }}</p>
+
+<ul>
+    <li>
+        <a href="{% url 'createpengurus' %}">
+            ➕ Tambah Ketua / Sekretaris / Bendahara
+        </a>
+    </li>
+    <li>
+        <a href="{% url 'admin_logout' %}">Logout</a>
+    </li>
+</ul>
+
+</body>
+</html>
