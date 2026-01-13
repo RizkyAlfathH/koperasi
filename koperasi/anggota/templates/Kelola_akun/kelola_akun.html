@@ -98,7 +98,6 @@
                     enctype="multipart/form-data"
                     style="display:inline;">
                     {% csrf_token %}
-
                     <input type="file"
                         name="excel_file"
                         id="excelInput"
@@ -178,7 +177,6 @@
                 {% endfor %}
             </tbody>
         </table>
-
         {% comment %} {% include "includes/pagination_anggota.html" %} {% endcomment %}
     </div>
 
