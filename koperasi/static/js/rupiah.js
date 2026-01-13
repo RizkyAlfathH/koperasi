@@ -1,57 +1,49 @@
-// ===== FORMAT RUPIAH =====
-function formatRupiah(angka) {
-    if (!angka) return '';
+// ================= RUPIAH UTIL =================
 
-    let number_string = angka.replace(/[^,\d]/g, '');
-    let split = number_string.split(',');
-    let sisa = split[0].length % 3;
-    let rupiah = split[0].substr(0, sisa);
-    let ribuan = split[0].substr(sisa).match(/\d{3}/gi);
-
-    if (ribuan) {
-        let separator = sisa ? '.' : '';
-        rupiah += separator + ribuan.join('.');
-    }
-
-    return rupiah;
+// Ambil angka murni (untuk submit & hitung)
+function getRawNumber(value) {
+    if (!value) return 0;
+    return parseInt(value.replace(/\D/g, '')) || 0;
 }
 
-// ===== AMBIL ANGKA MURNI =====
-function getRawNumber(rupiah) {
-    return rupiah.replace(/\D/g, '');
+// Format angka jadi Rupiah TANPA dobel Rp
+function formatRupiahNumber(number) {
+    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 
-// ===== FORMAT RUPIAH DISPLAY =====
-function formatRupiahDisplay(number) {
-    number = number.toString().replace(/\D/g, '');
-    return 'Rp ' + number.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+// ================= INPUT RUPIAH =================
+function initRupiahInput() {
+    document.querySelectorAll('.rupiah-input').forEach(function (input) {
+
+        input.addEventListener('input', function () {
+            let raw = getRawNumber(this.value);
+
+            if (raw > 0) {
+                this.value = 'Rp ' + formatRupiahNumber(raw);
+            } else {
+                this.value = '';
+            }
+        });
+
+        input.addEventListener('blur', function () {
+            if (this.value === 'Rp ') {
+                this.value = '';
+            }
+        });
+    });
 }
 
-// ===== FORMAT SEMUA TEXT RUPIAH =====
+// ================= TEXT DISPLAY =================
 function initRupiahText() {
     document.querySelectorAll('.rupiah-text').forEach(function (el) {
-        if (el.innerText.trim() !== '') {
-            el.innerText = formatRupiahDisplay(el.innerText);
+        let raw = getRawNumber(el.innerText);
+        if (raw > 0) {
+            el.innerText = 'Rp ' + formatRupiahNumber(raw);
         }
     });
 }
 
-function initRupiahInput() {
-    document.querySelectorAll('.rupiah-input').forEach(function (input) {
-
-        input.addEventListener('keyup', function () {
-            this.value = 'Rp ' + formatRupiah(this.value);
-        });
-
-        input.addEventListener('blur', function () {
-            if (this.value === 'Rp ') this.value = '';
-        });
-
-    });
-}
-
-
-// UPDATE DOM READY
+// ================= DOM READY =================
 document.addEventListener('DOMContentLoaded', function () {
     initRupiahInput();
     initRupiahText();

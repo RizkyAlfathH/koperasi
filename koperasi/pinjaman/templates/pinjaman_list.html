@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Manajemen Pinjaman{% endblock %}
+{% load widget_tweaks %}
 {% load static %}
 
 {% block extra_css %}
@@ -55,8 +56,10 @@
                 <td class="rupiah-text">{{ a.khusus|floatformat:0 }}</td>
                 <td class="rupiah-text">{{ a.barang|floatformat:0 }}</td>
                 <td class="rupiah-text"><strong>{{ a.total|floatformat:0 }}</strong></td>
-                <td style="text-align:center;">
-                    —
+                <td class="action-group">
+                    <a href="{% url 'pinjaman:pinjaman_anggota' a.nomor_anggota %}" class="action-view">
+                        <i class="ph-bold ph-eye"></i>
+                    </a>
                 </td>
             </tr>
             {% empty %}

@@ -58,11 +58,10 @@
             <div class="col-md-6">
                 <label>Jumlah Pinjaman</label>
                 <input type="text"
-                       id="id_jumlah_pinjaman"
-                       name="jumlah_pinjaman"
-                       class="form-control rupiah-input"
-                       placeholder="Masukkan jumlah pinjaman"
-                       required>
+                    id="id_jumlah_pinjaman"
+                    name="jumlah_pinjaman"
+                    class="form-control rupiah-input"
+                    required>
             </div>
         </div>
 
@@ -130,5 +129,19 @@ $(function () {
     });
 
 });
+
+function hitungJasa() {
+    const jumlah = getRawNumber($('#id_jumlah_pinjaman').val());
+    const persen = parseFloat($('#id_jasa_persen').val()) || 0;
+
+    if (jumlah > 0 && persen > 0) {
+        const jasa = Math.round(jumlah * persen / 100);
+        $('#id_jasa_rupiah').val('Rp ' + jasa.toLocaleString('id-ID'));
+    } else {
+        $('#id_jasa_rupiah').val('');
+    }
+}
+
+$('#id_jumlah_pinjaman, #id_jasa_persen').on('input', hitungJasa);
 </script>
 {% endblock %}

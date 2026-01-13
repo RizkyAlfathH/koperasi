@@ -151,3 +151,6 @@ STATICFILES_DIRS = [
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'admin_koperasi.User'
+
+LANGUAGE_CODE = 'id'
+USE_L10N = True

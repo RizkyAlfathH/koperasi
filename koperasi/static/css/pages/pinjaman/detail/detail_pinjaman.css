@@ -1,0 +1,20 @@
+.status-input {
+    font-weight: 600;
+    text-align: center;
+    border-radius: 20px;
+    cursor: default;
+}
+
+/* LUNAS */
+.status-lunas {
+    background-color: #dcfce7 !important;
+    border: 1.5px solid #22c55e !important;
+    color: #166534 !important;
+}
+
+/* BELUM */
+.status-belum {
+    background-color: #fee2e2 !important;
+    border: 1.5px solid #ef4444 !important;
+    color: #991b1b !important;
+}

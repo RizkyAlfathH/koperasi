@@ -4,6 +4,32 @@ from .models import Pinjaman
 
 
 class PinjamanForm(forms.ModelForm):
+
+    # ================= FIELD STRING (INPUT RUPIAH) =================
+    jumlah_pinjaman = forms.CharField(
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Jumlah pinjaman'
+        })
+    )
+
+    angsuran_per_bulan = forms.CharField(
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Angsuran per bulan'
+        })
+    )
+
+    jasa_rupiah = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'readonly': 'readonly'
+        })
+    )
+
     class Meta:
         model = Pinjaman
         fields = [
@@ -35,34 +61,66 @@ class PinjamanForm(forms.ModelForm):
                 'placeholder': 'Lama pinjaman (bulan)'
             }),
 
-            'jumlah_pinjaman': forms.TextInput(attrs={'class': 'form-control'}),
-            'angsuran_per_bulan': forms.TextInput(attrs={'class': 'form-control'}),
-
             'jasa_persen': forms.NumberInput(attrs={
                 'class': 'form-control',
-                'step': '0.01'
-            }),
-
-            'jasa_rupiah': forms.TextInput(attrs={
-                'class': 'form-control',
-                'readonly': 'readonly'
+                'step': '0.01',
+                'placeholder': 'Persentase jasa'
             }),
         }
 
+    # ================= HELPER =================
+    def _rupiah_to_decimal(self, value):
+        """
+        'Rp 1.000.000' -> Decimal('1000000')
+        """
+        if not value:
+            return Decimal('0')
+
+        return Decimal(
+            value.replace('Rp', '')
+                 .replace('.', '')
+                 .replace(',', '')
+                 .strip()
+        )
+
+    # ================= CLEAN PER FIELD =================
     def clean_jumlah_pinjaman(self):
-        value = self.cleaned_data.get('jumlah_pinjaman')
-        return Decimal(str(value).replace('.', '').replace(',', ''))
+        return self._rupiah_to_decimal(
+            self.cleaned_data.get('jumlah_pinjaman')
+        )
 
     def clean_angsuran_per_bulan(self):
-        value = self.cleaned_data.get('angsuran_per_bulan')
-        return Decimal(str(value).replace('.', '').replace(',', ''))
+        return self._rupiah_to_decimal(
+            self.cleaned_data.get('angsuran_per_bulan')
+        )
 
+    def clean_jasa_rupiah(self):
+        return self._rupiah_to_decimal(
+            self.cleaned_data.get('jasa_rupiah')
+        )
+
+    def clean_jasa_persen(self):
+        jasa_persen = self.cleaned_data.get('jasa_persen')
+
+        if jasa_persen is None:
+            return jasa_persen
+
+        try:
+            return Decimal(str(jasa_persen).replace(',', '.'))
+        except Exception:
+            raise forms.ValidationError(
+                "Persentase jasa tidak valid, gunakan format angka."
+            )
+
+    # ================= CLEAN GLOBAL =================
     def clean(self):
-        cleaned = super().clean()
-        jumlah = cleaned.get('jumlah_pinjaman')
-        persen = cleaned.get('jasa_persen')
+        cleaned_data = super().clean()
 
-        if jumlah and persen:
-            cleaned['jasa_rupiah'] = jumlah * persen / Decimal('100')
+        jumlah = cleaned_data.get('jumlah_pinjaman')   # Decimal
+        persen = cleaned_data.get('jasa_persen')       # Decimal
 
-        return cleaned
+        if jumlah and persen is not None:
+            jasa = jumlah * (persen / Decimal('100'))
+            cleaned_data['jasa_rupiah'] = jasa.quantize(Decimal('1'))
+
+        return cleaned_data
