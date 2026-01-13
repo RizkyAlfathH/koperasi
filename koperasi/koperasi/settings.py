@@ -45,7 +45,6 @@ INSTALLED_APPS = [
     'pinjaman',
     'static',
     'core',
-
     'widget_tweaks',
 ]
 
