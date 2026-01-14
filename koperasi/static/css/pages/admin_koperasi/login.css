@@ -7,7 +7,7 @@
 
 /* Body & background */
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Poppins', sans-serif;
     height: 100vh;
     display: flex;
     flex-direction: column; /* supaya logo di atas */
@@ -111,6 +111,7 @@ label {
 }
 
 .input-field input {
+    font-family: 'Poppins', sans-serif;
     width: 100%;
     padding: 15px 20px 15px 50px;
     border: 2px solid #E0E0E0;
@@ -137,6 +138,7 @@ label {
 
 /* Button */
 button {
+    font-family: 'Poppins', sans-serif;
     width: 100%;
     padding: 16px;
     background: #FFD700;

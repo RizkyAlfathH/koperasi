@@ -44,7 +44,6 @@ INSTALLED_APPS = [
     'simpanan',
     'pinjaman',
     'static',
-    'core',
 
     'widget_tweaks',
 ]

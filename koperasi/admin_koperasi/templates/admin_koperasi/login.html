@@ -6,6 +6,11 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/phosphor-icons"></script>
+
     <!-- Load CSS eksternal -->
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/pages/admin_koperasi/login.css' %}">
@@ -13,7 +18,7 @@
 <body>
     <div class="logo-section">
             {% load static %}
-            <img src="{% static 'image/logo_kopasmen3.jpg' %}" alt="Logo">
+            <img src="{% static 'image/logo_kopasmen.jpg' %}" alt="Logo">
             <div class="company-title">KOPASMEN</div>
     </div>
 
@@ -23,14 +28,14 @@
             <div class="input-group">
                 <label>Username</label>
                 <div class="input-field">
-                    <span class="input-icon"><i class="fas fa-user"></i></span>
+                    <span class="input-icon"><i class="ph-user"></i></span>
                     <input type="text" name="username" placeholder="Masukkan username..." required>
                 </div>
             </div>
             <div class="input-group">
                 <label>Password</label>
                 <div class="input-field">
-                    <span class="input-icon"><i class="fas fa-lock"></i></span>
+                    <span class="input-icon"><i class="ph-lock"></i></span>
                     <input type="password" name="password" placeholder="Masukkan password..." required>
                 </div>
             </div>
