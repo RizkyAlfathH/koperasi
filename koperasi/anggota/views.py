@@ -158,7 +158,7 @@ def edit_admin(request, user_id):
     if form.is_valid():
         form.save()
         messages.success(request, "Admin berhasil diperbarui.")
-        return redirect("kelola_akun", role=request.user.role)
+        return redirect("kelola_akun")
 
     return render(request, "kelola_akun/Form/form_admin.html", {
         "form": form,
@@ -174,7 +174,7 @@ def hapus_admin(request, user_id):
     admin = get_object_or_404(User, id=user_id, role__in=ROLE_PENGURUS)
     admin.delete()
     messages.success(request, "Admin berhasil dihapus.")
-    return redirect("kelola_akun", role=request.user.role)
+    return redirect("kelola_akun")
 
 def detail_admin(request, user_id):
     admin = get_object_or_404(User, id=user_id)
@@ -201,7 +201,7 @@ def tambah_anggota(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Anggota berhasil ditambahkan.")
-            return redirect("kelola_akun", role=request.user.role)
+            return redirect("kelola_akun")
     else:
         form = AnggotaForm()
 
@@ -222,7 +222,7 @@ def edit_anggota(request, nomor_anggota):
     if form.is_valid():
         form.save()
         messages.success(request, "Anggota berhasil diperbarui.")
-        return redirect("kelola_akun", role=request.user.role)
+        return redirect("kelola_akun")
 
     return render(request, "kelola_akun/Form/form_anggota.html", {
         "form": form,
@@ -238,7 +238,7 @@ def hapus_anggota(request, nomor_anggota):
     anggota = get_object_or_404(Anggota, nomor_anggota=nomor_anggota)
     anggota.delete()
     messages.success(request, "Anggota berhasil dihapus.")
-    return redirect("kelola_akun", role=request.user.role)
+    return redirect("kelola_akun")
 
 def detail_anggota(request, nomor_anggota):
     anggota = get_object_or_404(Anggota, nomor_anggota=nomor_anggota)

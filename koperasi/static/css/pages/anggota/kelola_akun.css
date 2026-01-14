@@ -32,3 +32,31 @@
 .page-kelola-akun .pagination-container {
     margin-top: 20px;
 }
+
+/* BADGE STATUS */
+.page-kelola-akun .status-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+    text-transform: lowercase;
+}
+
+/* AKTIF */
+.page-kelola-akun .badge-aktif {
+    background-color: #22c55e;
+    color: #fff;
+}
+
+/* NONAKTIF */
+.page-kelola-akun .badge-nonaktif {
+    background-color: #ef4444;
+    color: #fff;
+}
+
+/* DEFAULT */
+.page-kelola-akun .badge-default {
+    background-color: #9ca3af;
+    color: #fff;
+}

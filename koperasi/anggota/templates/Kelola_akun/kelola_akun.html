@@ -149,7 +149,17 @@
                     <td>{{ anggota.nip|default:"-" }}</td>
                     <td>{{ anggota.jenis_kelamin|default:"-" }}</td>
                     <td>{{ anggota.tanggal_daftar|date:"d M Y"|default:"-" }}</td>
-                    <td>{{ anggota.status|default:"-" }}</td>
+                    <td>
+                        {% if anggota.status|lower == "aktif" %}
+                            <span class="status-badge badge-aktif">aktif</span>
+                        {% elif anggota.status|lower == "nonaktif" %}
+                            <span class="status-badge badge-nonaktif">non-aktif</span>
+                        {% else %}
+                            <span class="status-badge badge-default">
+                                {{ anggota.status|default:"-" }}
+                            </span>
+                        {% endif %}
+                    </td>
                     <td title="{{ anggota.alasan_tidak_aktif }}">
                         {{ anggota.alasan_tidak_aktif|default:"-" }}
                     </td>
