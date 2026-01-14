@@ -1,0 +1,50 @@
+.bayar-modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.45);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    opacity:0;
+    pointer-events:none;
+    transition:.25s;
+    z-index:9999;
+}
+.bayar-modal.active{
+    opacity:1;
+    pointer-events:auto;
+}
+.bayar-card{
+    background:#fff;
+    padding:26px;
+    max-width:380px;
+    width:100%;
+    border-radius:14px;
+}
+.list-pinjaman{
+    list-style:none;
+    padding:0;
+    margin:15px 0;
+}
+.list-pinjaman li{
+    margin-bottom:10px;
+}
+.list-pinjaman a{
+    display:block;
+    padding:12px;
+    background:#fff9d6;
+    border:1px solid #FFD700;
+    border-radius:10px;
+    text-decoration:none;
+    font-weight:600;
+}
+.list-pinjaman a:hover{
+    background:#FFD700;
+}
+.btn-tutup{
+    background:#FFD700;
+    border:none;
+    padding:8px 15px;
+    border-radius:6px;
+    font-weight:600;
+}

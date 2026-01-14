@@ -1,5 +1,5 @@
-from datetime import datetime
-from decimal import Decimal
+from datetime import datetime, date
+from decimal import Decimal, InvalidOperation
 
 from django.shortcuts import get_object_or_404, render, redirect
 from django.http import JsonResponse
@@ -13,6 +13,7 @@ from .models import Angsuran, Pinjaman
 from .forms import PinjamanForm
 from admin_koperasi.models import User
 from anggota.models import Anggota
+from simpanan.models import Simpanan, JenisSimpanan
 
 @login_required
 def pinjaman_list(request):
@@ -169,40 +170,32 @@ def pinjaman_anggota(request, nomor_anggota):
 
     for pinjaman in pinjaman_qs:
 
-        # =========================
-        # HITUNG CICILAN TERBAYAR
-        # =========================
         angsuran_pokok = pinjaman.angsuran_per_bulan or Decimal('0')
 
-        jumlah_cicilan_terbayar = Angsuran.objects.filter(
+        jumlah_cicilan = Angsuran.objects.filter(
             id_pinjaman=pinjaman,
             tipe_bayar='cicilan'
         ).count()
 
         sisa_pinjaman = pinjaman.jumlah_pinjaman - (
-            jumlah_cicilan_terbayar * angsuran_pokok
+            jumlah_cicilan * angsuran_pokok
         )
 
         if sisa_pinjaman < 0:
             sisa_pinjaman = Decimal('0')
 
-        # =========================
-        # UPDATE STATUS OTOMATIS
-        # =========================
-        if sisa_pinjaman == 0:
+        # ===== STATUS AMAN =====
+        if sisa_pinjaman <= 0:
             status = 'Lunas'
         else:
             status = 'aktif'
 
-        # simpan ke DB kalau berubah
         if pinjaman.status != status:
             pinjaman.status = status
             pinjaman.sisa_pinjaman = sisa_pinjaman
             pinjaman.save(update_fields=['status', 'sisa_pinjaman'])
 
-        # =========================
-        # HITUNG JASA (SESUAI CONTOH)
-        # =========================
+        # ===== HITUNG JASA =====
         if pinjaman.id_kategori_jasa.kategori_jasa.lower() == 'turunan':
             jasa_rupiah = sisa_pinjaman * (
                 pinjaman.jasa_persen / 100 if pinjaman.jasa_persen else 0
@@ -215,9 +208,6 @@ def pinjaman_anggota(request, nomor_anggota):
         pinjaman.jasa_rupiah = jasa_rupiah
         pinjaman.sisa_pinjaman = sisa_pinjaman
 
-        # =========================
-        # PEMBAGIAN DATA
-        # =========================
         if status == 'Lunas':
             riwayat_pinjaman.append(pinjaman)
         else:
@@ -229,7 +219,11 @@ def pinjaman_anggota(request, nomor_anggota):
         'riwayat_pinjaman': riwayat_pinjaman,
     }
 
-    return render(request, 'detail/pinjaman_anggota.html', context)
+    return render(
+        request,
+        'detail/pinjaman_anggota.html',
+        context
+    )
 
 @login_required
 def detail_pinjaman(request, id_pinjaman):
@@ -273,3 +267,176 @@ def detail_pinjaman(request, id_pinjaman):
     }
 
     return render(request, 'detail/detail_pinjaman.html', context)
+
+@login_required
+@transaction.atomic
+def bayar_pinjaman(request, id_pinjaman):
+    pinjaman = get_object_or_404(Pinjaman, id_pinjaman=id_pinjaman)
+    admin_login = request.user
+
+    # =========================
+    # ANG SURAN POKOK
+    # =========================
+    angsuran_pokok = pinjaman.angsuran_per_bulan or Decimal('0')
+
+    total_cicilan = Angsuran.objects.filter(
+        id_pinjaman=pinjaman,
+        tipe_bayar='cicilan'
+    ).count()
+
+    sisa_pinjaman = pinjaman.jumlah_pinjaman - (total_cicilan * angsuran_pokok)
+    sisa_pinjaman = max(sisa_pinjaman, Decimal('0'))
+
+    pinjaman.sisa_pinjaman = sisa_pinjaman
+    pinjaman.save(update_fields=['sisa_pinjaman'])
+
+    # =========================
+    # HITUNG SISA BULAN
+    # =========================
+    sisa_bulan = pinjaman.jatuh_tempo - total_cicilan
+    sisa_bulan = max(sisa_bulan, 0)
+
+    # =========================
+    # HITUNG JASA
+    # =========================
+    if pinjaman.id_kategori_jasa.kategori_jasa.lower() == 'turunan':
+        jasa_rupiah = sisa_pinjaman * (pinjaman.jasa_persen or 0) / 100
+    else:
+        jasa_rupiah = pinjaman.jumlah_pinjaman * (pinjaman.jasa_persen or 0) / 100
+
+    total_bayar = angsuran_pokok + jasa_rupiah
+
+    # =========================
+    # POST
+    # =========================
+    if request.method == 'POST':
+        tanggal = request.POST.get('tanggal')
+        bulan = int(request.POST.get('bulan', 1))
+        nominal_raw = request.POST.get('nominal')
+
+        if not tanggal:
+            messages.error(request, 'Tanggal wajib diisi.')
+            return redirect('pinjaman:bayar_pinjaman', id_pinjaman=id_pinjaman)
+
+        try:
+            nominal = Decimal(nominal_raw.replace('.', '').replace(',', ''))
+        except:
+            messages.error(request, 'Nominal tidak valid.')
+            return redirect('pinjaman:bayar_pinjaman', id_pinjaman=id_pinjaman)
+
+        if bulan < 1 or bulan > sisa_bulan:
+            messages.error(request, 'Jumlah bulan tidak valid.')
+            return redirect('pinjaman:bayar_pinjaman', id_pinjaman=id_pinjaman)
+
+        for _ in range(bulan):
+            if pinjaman.sisa_pinjaman <= 0:
+                break
+
+            Angsuran.objects.create(
+                id_pinjaman=pinjaman,
+                id_admin=admin_login,
+                tanggal_bayar=tanggal,
+                jumlah_bayar=total_bayar,
+                tipe_bayar='cicilan'
+            )
+
+            pinjaman.sisa_pinjaman -= angsuran_pokok
+
+        if pinjaman.sisa_pinjaman <= 0:
+            pinjaman.status = 'Lunas'
+
+        pinjaman.save()
+
+        messages.success(request, 'Pembayaran berhasil.')
+        return redirect('pinjaman:detail_pinjaman', id_pinjaman=id_pinjaman)
+
+    # =========================
+    # GET
+    # =========================
+    return render(request, 'form/bayar_pinjaman.html', {
+        'pinjaman': pinjaman,
+        'angsuran_pokok': angsuran_pokok,
+        'jasa_rupiah': jasa_rupiah,
+        'total_bayar': total_bayar,
+        'sisa_bulan': sisa_bulan,
+    })
+
+
+def cek_auto_sukarela_ke_pinjaman(pinjaman, admin_login):
+    today = date.today()
+
+    # STOP kalau lunas
+    if pinjaman.status.lower() == 'lunas':
+        return
+
+    angsuran_pokok = pinjaman.angsuran_per_bulan
+    jasa_persen = pinjaman.jasa_persen or Decimal('0')
+
+    # HITUNG CICILAN TERBAYAR
+    total_cicilan = Angsuran.objects.filter(
+        id_pinjaman=pinjaman,
+        tipe_bayar='cicilan'
+    ).count()
+
+    sisa_pinjaman = pinjaman.jumlah_pinjaman - (total_cicilan * angsuran_pokok)
+
+    if sisa_pinjaman <= 0:
+        pinjaman.status = 'Lunas'
+        pinjaman.sisa_pinjaman = 0
+        pinjaman.save()
+        return
+
+    # HITUNG JASA BULAN INI
+    if pinjaman.id_kategori_jasa.kategori_jasa.lower() == 'turunan':
+        jasa_rupiah = sisa_pinjaman * (jasa_persen / 100)
+    else:
+        jasa_rupiah = pinjaman.jumlah_pinjaman * (jasa_persen / 100)
+
+    total_bulan_ini = angsuran_pokok + jasa_rupiah
+
+    # CEK SUDAH BAYAR BULAN INI
+    if Angsuran.objects.filter(
+        id_pinjaman=pinjaman,
+        tanggal_bayar__month=today.month,
+        tanggal_bayar__year=today.year,
+        tipe_bayar='cicilan'
+    ).exists():
+        return
+
+    # AMBIL SALDO SUKARELA
+    saldo_sukarela = Simpanan.objects.filter(
+        anggota=pinjaman.nomor_anggota,
+        jenis_simpanan__nama_jenis__iexact='Simpanan Sukarela'
+    ).aggregate(total=Sum('jumlah_menyimpan'))['total'] or Decimal('0')
+
+    if saldo_sukarela < total_bulan_ini:
+        return
+
+    # POTONG SUKARELA
+    jenis_sukarela, _ = JenisSimpanan.objects.get_or_create(
+        nama_jenis='Simpanan Sukarela'
+    )
+
+    Simpanan.objects.create(
+        anggota=pinjaman.nomor_anggota,
+        admin=admin_login,
+        jenis_simpanan=jenis_sukarela,
+        tanggal_menyimpan=today,
+        jumlah_menyimpan=-total_bulan_ini
+    )
+
+    # CATAT CICILAN
+    Angsuran.objects.create(
+        id_pinjaman=pinjaman,
+        id_admin=admin_login,
+        tanggal_bayar=today,
+        jumlah_bayar=total_bulan_ini,
+        tipe_bayar='cicilan'
+    )
+
+    # UPDATE STATUS
+    pinjaman.sisa_pinjaman -= angsuran_pokok
+    if pinjaman.sisa_pinjaman <= 0:
+        pinjaman.status = 'Lunas'
+
+    pinjaman.save()

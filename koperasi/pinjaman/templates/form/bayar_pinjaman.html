@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Bayar Pinjaman{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 5px 15px rgba(0,0,0,.05);
+    }
+
+    .card-title {
+        font-size: 22px;
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        font-weight: 500;
+        margin-bottom: 6px;
+    }
+
+    .form-control[readonly] {
+        background: #f8f9fa;
+        border-style: dashed;
+    }
+
+    .form-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 25px;
+    }
+
+    .btn-bayar {
+        background: #ffc107;
+        border: none;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+
+        <div class="card-title">Bayar Pinjaman</div>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="row">
+                <!-- KIRI -->
+                <div class="col-md-6">
+
+                    <div class="mb-3">
+                        <label class="form-label">Nama Anggota</label>
+                        <input type="text" class="form-control"
+                               value="{{ pinjaman.anggota.nomor_anggota }} - {{ pinjaman.anggota.nama }}"
+                               readonly>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Sisa Pinjaman</label>
+                        <input type="text" class="form-control rupiah-text"
+                               value="{{ pinjaman.sisa_pinjaman }}"
+                               readonly>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Jumlah Cicilan Pokok</label>
+                        <input type="text" class="form-control rupiah-text"
+                               value="{{ pinjaman.cicilan_pokok }}"
+                               readonly>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Kategori Jasa</label>
+                        <input type="text" class="form-control"
+                               value="{{ pinjaman.kategori_jasa }}"
+                               readonly>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Jumlah Bulan Dibayar</label>
+                        <input type="number" name="bulan"
+                               class="form-control"
+                               value="1"
+                               min="1"
+                               max="{{ sisa_bulan }}"
+                               required>
+                        <small class="text-muted">
+                            Cicilan tersisa: {{ sisa_bulan }} bulan
+                        </small>
+                    </div>
+
+                </div>
+
+                <!-- KANAN -->
+                <div class="col-md-6">
+
+                    <div class="mb-3">
+                        <label class="form-label">Pinjaman</label>
+                        <input type="text" class="form-control rupiah-text"
+                               value="{{ pinjaman.total_pinjaman }}"
+                               readonly>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Tanggal</label>
+                        <input type="date" name="tanggal"
+                               class="form-control"
+                               required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Persentase Jasa</label>
+                        <input type="text" class="form-control"
+                               value="{{ pinjaman.persentase_jasa }}%"
+                               readonly>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Pilihan Pembayaran</label>
+                        <input type="text" class="form-control"
+                               value="Cicilan + Jasa"
+                               readonly>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Jumlah Dibayar</label>
+                        <input type="text"
+                               name="nominal"
+                               class="form-control rupiah-input"
+                               value="{{ total_bayar }}"
+                               required>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Admin Bertugas</label>
+                <input type="text" class="form-control"
+                       value="{{ request.user.username }} ({{ request.user.role }})"
+                       readonly>
+            </div>
+
+            <div class="form-footer">
+                <a href="{% url 'pinjaman:pinjaman_list' %}" class="btn btn-secondary">
+                    Batal
+                </a>
+                <button type="submit" class="btn btn-bayar">
+                    Bayar
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+{% endblock %}
