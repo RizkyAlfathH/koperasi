@@ -1,0 +1,53 @@
+{% if page_obj.paginator.count > 0 %}
+<div class="pagination-wrapper">
+
+  <!-- INFO KIRI -->
+  <div class="pagination-info">
+    Menampilkan 
+    {{ page_obj.start_index }}–{{ page_obj.end_index }} 
+    dari {{ page_obj.paginator.count }} data
+  </div>
+
+  <!-- NAV KANAN -->
+  <nav class="pagination-container">
+    <ul class="pagination">
+
+      {% if page_obj.has_previous %}
+        <li>
+          <a href="?{{ param }}={{ page_obj.previous_page_number }}{% for k,v in request.GET.items %}{% if k != param %}&{{ k }}={{ v }}{% endif %}{% endfor %}">
+            &lt;
+          </a>
+        </li>
+      {% else %}
+        <li class="disabled">&lt;</li>
+      {% endif %}
+
+      {% for num in page_obj.paginator.page_range %}
+        {% if num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
+          {% if page_obj.number == num %}
+            <li class="active">{{ num }}</li>
+          {% else %}
+            <li>
+              <a href="?{{ param }}={{ num }}{% for k,v in request.GET.items %}{% if k != param %}&{{ k }}={{ v }}{% endif %}{% endfor %}">
+                {{ num }}
+              </a>
+            </li>
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+
+      {% if page_obj.has_next %}
+        <li>
+          <a href="?{{ param }}={{ page_obj.next_page_number }}{% for k,v in request.GET.items %}{% if k != param %}&{{ k }}={{ v }}{% endif %}{% endfor %}">
+            &gt;
+          </a>
+        </li>
+      {% else %}
+        <li class="disabled">&gt;</li>
+      {% endif %}
+
+    </ul>
+  </nav>
+
+</div>
+{% endif %}

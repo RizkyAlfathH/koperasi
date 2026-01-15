@@ -72,7 +72,8 @@
             </tbody>
         </table>
 
-        {% comment %} {% include "includes/pagination_admin.html" %} {% endcomment %}
+        {% include "includes/pagination.html" with page_obj=admins param="page_admin" %}
+
     </div>
 
     <!-- ================= ANGGOTA ================= -->
@@ -187,7 +188,8 @@
                 {% endfor %}
             </tbody>
         </table>
-        {% comment %} {% include "includes/pagination_anggota.html" %} {% endcomment %}
+        {% include "includes/pagination.html" with page_obj=anggotas param="page_anggota" %}
+
     </div>
 
 </div>
