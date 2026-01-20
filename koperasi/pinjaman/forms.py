@@ -10,7 +10,7 @@ class PinjamanForm(forms.ModelForm):
         required=True,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Jumlah pinjaman'
+            'placeholder': 'Masukkan jumlah pinjaman'
         })
     )
 
@@ -18,7 +18,7 @@ class PinjamanForm(forms.ModelForm):
         required=True,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Angsuran per bulan'
+            'placeholder': 'Masukkan jumlah angsuran per bulan'
         })
     )
 
@@ -58,13 +58,13 @@ class PinjamanForm(forms.ModelForm):
                 'class': 'form-control',
                 'min': 1,
                 'max': 36,
-                'placeholder': 'Lama pinjaman (bulan)'
+                'placeholder': 'Masukkan jumlah bulan (1-36)'
             }),
 
             'jasa_persen': forms.NumberInput(attrs={
                 'class': 'form-control',
                 'step': '0.01',
-                'placeholder': 'Persentase jasa'
+                'placeholder': 'Contoh: 1,5'
             }),
         }
 

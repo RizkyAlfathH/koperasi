@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% block title %}Manajemen Pinjaman{% endblock %}
 {% load widget_tweaks %}
 {% load static %}
 
@@ -7,7 +6,10 @@
 <link rel="stylesheet" href="{% static 'css/pages/pinjaman/pinjaman_list.css' %}">
 {% endblock %}
 
+{% block title %}Manajemen Pinjaman{% endblock %}
+
 {% block content %}
+
 <h1>Manajemen Pinjaman</h1>
 <div class="content-card">
     <div class="section-header">
@@ -72,4 +74,5 @@
         </tbody>
     </table>
 </div>
+
 {% endblock %}

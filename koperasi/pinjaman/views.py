@@ -22,7 +22,7 @@ def pinjaman_list(request):
     search_query = request.GET.get('search', '')
     sort_by = request.GET.get('sort', 'nomor')
 
-    anggotas = Anggota.objects.all()
+    anggotas = Anggota.objects.filter(status='aktif')
 
     if search_query:
         anggotas = anggotas.filter(
@@ -274,93 +274,123 @@ def bayar_pinjaman(request, id_pinjaman):
     pinjaman = get_object_or_404(Pinjaman, id_pinjaman=id_pinjaman)
     admin_login = request.user
 
-    # =========================
-    # ANG SURAN POKOK
-    # =========================
-    angsuran_pokok = pinjaman.angsuran_per_bulan or Decimal('0')
+    angsuran_pokok = Decimal(pinjaman.angsuran_per_bulan or 0)
+    jumlah_pinjaman = Decimal(pinjaman.jumlah_pinjaman or 0)
+    jasa_persen = Decimal(pinjaman.jasa_persen or 0)
 
-    total_cicilan = Angsuran.objects.filter(
-        id_pinjaman=pinjaman,
-        tipe_bayar='cicilan'
+    cicilan_terbayar = Angsuran.objects.filter(
+        id_pinjaman=pinjaman, tipe_bayar="cicilan"
     ).count()
 
-    sisa_pinjaman = pinjaman.jumlah_pinjaman - (total_cicilan * angsuran_pokok)
-    sisa_pinjaman = max(sisa_pinjaman, Decimal('0'))
+    sisa_pinjaman = jumlah_pinjaman - (cicilan_terbayar * angsuran_pokok)
+    sisa_pinjaman = max(sisa_pinjaman, Decimal("0"))
 
     pinjaman.sisa_pinjaman = sisa_pinjaman
-    pinjaman.save(update_fields=['sisa_pinjaman'])
+    pinjaman.save(update_fields=["sisa_pinjaman"])
 
-    # =========================
-    # HITUNG SISA BULAN
-    # =========================
-    sisa_bulan = pinjaman.jatuh_tempo - total_cicilan
-    sisa_bulan = max(sisa_bulan, 0)
+    sisa_bulan = max(pinjaman.jatuh_tempo - cicilan_terbayar, 0)
 
-    # =========================
-    # HITUNG JASA
-    # =========================
-    if pinjaman.id_kategori_jasa.kategori_jasa.lower() == 'turunan':
-        jasa_rupiah = sisa_pinjaman * (pinjaman.jasa_persen or 0) / 100
+    # Hitung jasa bulan ini
+    if pinjaman.id_kategori_jasa.kategori_jasa.lower() == "turunan":
+        jasa_rupiah = sisa_pinjaman * (jasa_persen / 100)
     else:
-        jasa_rupiah = pinjaman.jumlah_pinjaman * (pinjaman.jasa_persen or 0) / 100
+        jasa_rupiah = jumlah_pinjaman * (jasa_persen / 100)
 
     total_bayar = angsuran_pokok + jasa_rupiah
 
-    # =========================
-    # POST
-    # =========================
-    if request.method == 'POST':
-        tanggal = request.POST.get('tanggal')
-        bulan = int(request.POST.get('bulan', 1))
-        nominal_raw = request.POST.get('nominal')
-
-        if not tanggal:
-            messages.error(request, 'Tanggal wajib diisi.')
-            return redirect('pinjaman:bayar_pinjaman', id_pinjaman=id_pinjaman)
+    if request.method == "POST":
+        tanggal = request.POST.get("tanggal")
+        tipe_bayar = request.POST.get("tipe_bayar")
+        bulan = int(request.POST.get("bulan", 1))
+        nominal_raw = request.POST.get("nominal")
 
         try:
-            nominal = Decimal(nominal_raw.replace('.', '').replace(',', ''))
+            nominal = Decimal(nominal_raw.replace(".", "").replace(",", ""))
         except:
-            messages.error(request, 'Nominal tidak valid.')
-            return redirect('pinjaman:bayar_pinjaman', id_pinjaman=id_pinjaman)
+            messages.error(request, "Nominal tidak valid.")
+            return redirect("pinjaman:bayar_pinjaman", id_pinjaman=id_pinjaman)
 
-        if bulan < 1 or bulan > sisa_bulan:
-            messages.error(request, 'Jumlah bulan tidak valid.')
-            return redirect('pinjaman:bayar_pinjaman', id_pinjaman=id_pinjaman)
+        if not tanggal:
+            messages.error(request, "Tanggal wajib diisi.")
+            return redirect("pinjaman:bayar_pinjaman", id_pinjaman=id_pinjaman)
 
-        for _ in range(bulan):
-            if pinjaman.sisa_pinjaman <= 0:
-                break
+        # CICILAN
+        if tipe_bayar == "cicilan":
+            minimal = total_bayar * bulan
+            if nominal < minimal:
+                messages.error(request, f"Minimal bayar Rp {minimal:,.0f}")
+                return redirect("pinjaman:bayar_pinjaman", id_pinjaman=id_pinjaman)
+
+            for _ in range(bulan):
+                if pinjaman.sisa_pinjaman <= 0:
+                    break
+
+                Angsuran.objects.create(
+                    id_pinjaman=pinjaman,
+                    id_admin=admin_login,
+                    tanggal_bayar=tanggal,
+                    jumlah_bayar=total_bayar,
+                    tipe_bayar="cicilan"
+                )
+
+                pinjaman.sisa_pinjaman -= angsuran_pokok
+
+            # Kelebihan → masuk Sukarela
+            kelebihan = nominal - minimal
+            if kelebihan > 0:
+                jenis, _ = JenisSimpanan.objects.get_or_create(
+                    nama_jenis="Simpanan Sukarela"
+                )
+                Simpanan.objects.create(
+                    anggota=pinjaman.nomor_anggota,
+                    admin=admin_login,
+                    jenis_simpanan=jenis,
+                    tanggal_menyimpan=tanggal,
+                    jumlah_menyimpan=kelebihan
+                )
+
+        # JASA SAJA
+        elif tipe_bayar == "jasa":
+            if nominal > jasa_rupiah:
+                messages.error(request, "Bayar jasa tidak boleh melebihi nilai jasa.")
+                return redirect("pinjaman:bayar_pinjaman", id_pinjaman=id_pinjaman)
 
             Angsuran.objects.create(
                 id_pinjaman=pinjaman,
                 id_admin=admin_login,
                 tanggal_bayar=tanggal,
-                jumlah_bayar=total_bayar,
-                tipe_bayar='cicilan'
+                jumlah_bayar=nominal,
+                tipe_bayar="jasa"
             )
 
-            pinjaman.sisa_pinjaman -= angsuran_pokok
+        # UPDATE STATUS
+        jumlah_cicilan = Angsuran.objects.filter(
+            id_pinjaman=pinjaman,
+            tipe_bayar="cicilan"
+        ).count()
 
-        if pinjaman.sisa_pinjaman <= 0:
-            pinjaman.status = 'Lunas'
+        total_pokok_terbayar = jumlah_cicilan * angsuran_pokok
+
+        sisa_akhir = jumlah_pinjaman - total_pokok_terbayar
+        sisa_akhir = max(sisa_akhir, Decimal("0"))
+
+        pinjaman.sisa_pinjaman = sisa_akhir
+
+        if sisa_akhir <= 0:
+            pinjaman.status = "Lunas"
 
         pinjaman.save()
 
-        messages.success(request, 'Pembayaran berhasil.')
-        return redirect('pinjaman:detail_pinjaman', id_pinjaman=id_pinjaman)
+        messages.success(request, "Pembayaran berhasil dicimpan.")
+        return redirect("pinjaman:pinjaman_list")
 
-    # =========================
-    # GET
-    # =========================
-    return render(request, 'form/bayar_pinjaman.html', {
-        'pinjaman': pinjaman,
-        'angsuran_pokok': angsuran_pokok,
-        'jasa_rupiah': jasa_rupiah,
-        'total_bayar': total_bayar,
-        'sisa_bulan': sisa_bulan,
+    return render(request, "form/bayar_pinjaman.html", {
+        "pinjaman": pinjaman,
+        "angsuran_pokok": angsuran_pokok,
+        "jasa_rupiah": jasa_rupiah,
+        "total_bayar": total_bayar,
+        "sisa_bulan": sisa_bulan,
     })
-
 
 def cek_auto_sukarela_ke_pinjaman(pinjaman, admin_login):
     today = date.today()
@@ -440,3 +470,53 @@ def cek_auto_sukarela_ke_pinjaman(pinjaman, admin_login):
         pinjaman.status = 'Lunas'
 
     pinjaman.save()
+
+@login_required
+def detail_pembayaran(request, pembayaran_id):
+    pembayaran = get_object_or_404(Angsuran, id_pembayaran=pembayaran_id)
+    pinjaman = pembayaran.id_pinjaman
+    angsuran_pokok = pinjaman.angsuran_per_bulan or Decimal("0")
+
+    # Semua angsuran untuk pinjaman ini (urut dari awal)
+    semua_angsuran = Angsuran.objects.filter(
+        id_pinjaman=pinjaman
+    ).order_by('tanggal_bayar', 'id_pembayaran')
+
+    # Hitung sisa sebelum & sesudah
+    sisa_pinjaman = pinjaman.jumlah_pinjaman
+    sisa_sebelum = sisa_pinjaman
+    sisa_setelah = sisa_pinjaman
+
+    for angsuran in semua_angsuran:
+        if angsuran.id_pembayaran == pembayaran.id_pembayaran:
+            sisa_sebelum = sisa_pinjaman
+            if angsuran.tipe_bayar == "cicilan":
+                sisa_pinjaman -= angsuran_pokok
+            sisa_setelah = sisa_pinjaman
+            break
+        else:
+            if angsuran.tipe_bayar == "cicilan":
+                sisa_pinjaman -= angsuran_pokok
+
+    sisa_sebelum = max(sisa_sebelum, Decimal("0"))
+    sisa_setelah = max(sisa_setelah, Decimal("0"))
+
+    # Hitung jasa
+    if pinjaman.id_kategori_jasa.kategori_jasa.lower() == "turunan":
+        jasa_rupiah = sisa_sebelum * (pinjaman.jasa_persen / 100 if pinjaman.jasa_persen else 0)
+    else:
+        jasa_rupiah = pinjaman.jumlah_pinjaman * (pinjaman.jasa_persen / 100 if pinjaman.jasa_persen else 0)
+
+    # Jumlah dibayar
+    if pembayaran.tipe_bayar == "jasa":
+        jumlah_pembayaran = pembayaran.jumlah_bayar
+    else:
+        jumlah_pembayaran = angsuran_pokok + jasa_rupiah
+
+    return render(request, 'detail_pembayaran.html', {
+        'pembayaran': pembayaran,
+        'sisa_sebelum': sisa_sebelum,
+        'sisa_setelah': sisa_setelah,
+        'jasa_rupiah': jasa_rupiah,
+        'jumlah_pembayaran': jumlah_pembayaran,
+    })

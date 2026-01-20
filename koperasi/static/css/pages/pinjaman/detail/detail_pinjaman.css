@@ -1,3 +1,54 @@
+/* ===============================
+   FORM CARD
+================================ */
+.content-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+}
+
+/* ===============================
+   JUDUL
+================================ */
+.content-card h2 {
+    font-weight: 600;
+    margin-bottom: 25px;
+    color: #4A2C2A;
+}
+
+/* ===============================
+   LABEL
+================================ */
+label {
+    font-weight: 500;
+    color: #4A2C2A;
+    margin-bottom: 6px;
+    display: block;
+    font-size: 14px;
+}
+
+
+/* ===============================
+   INPUT / FORM
+================================ */
+.form-control {
+    border-radius: 8px;
+    font-size: 14px;
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+}
+
+.form-control:focus {
+    border-color: #FFD700 !important;
+    box-shadow: 0 0 0 0.15rem rgba(255, 215, 0, 0.4) !important;
+    outline: none;
+}
+
+
+/* ===============================
+   STATUS PINJAMAN
+================================ */
 .status-input {
     font-weight: 600;
     text-align: center;
@@ -5,16 +56,55 @@
     cursor: default;
 }
 
-/* LUNAS */
 .status-lunas {
     background-color: #dcfce7 !important;
     border: 1.5px solid #22c55e !important;
     color: #166534 !important;
 }
 
-/* BELUM */
 .status-belum {
     background-color: #fee2e2 !important;
     border: 1.5px solid #ef4444 !important;
     color: #991b1b !important;
+}
+
+
+/* ===============================
+   RIWAYAT ANGSURAN
+================================ */
+.angsuran-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fffefc;
+    border: 1px solid #ddd;
+    padding: 14px 18px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+}
+
+.angsuran-info {
+    font-size: 14px;
+    color: #333;
+}
+
+.angsuran-info i {
+    font-style: normal;
+    font-weight: bold;
+    margin-right: 8px;
+    color: #28a745;
+}
+
+.angsuran-info .text-danger {
+    color: #dc3545;
+}
+
+.angsuran-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.angsuran-actions strong {
+    font-size: 14px;
 }

@@ -36,9 +36,13 @@ function initRupiahInput() {
 // ================= TEXT DISPLAY =================
 function initRupiahText() {
     document.querySelectorAll('.rupiah-text').forEach(function (el) {
-        let raw = getRawNumber(el.innerText);
+        let raw = getRawNumber(el.value || el.innerText);
         if (raw > 0) {
-            el.innerText = 'Rp ' + formatRupiahNumber(raw);
+            if (el.value !== undefined) {
+                el.value = 'Rp ' + formatRupiahNumber(raw);
+            } else {
+                el.innerText = 'Rp ' + formatRupiahNumber(raw);
+            }
         }
     });
 }

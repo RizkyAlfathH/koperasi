@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="main-content">
+  <h1>Detail Pembayaran</h1>
+
+  <div class="card">
+    <div class="row">
+      <div class="col">
+        <label>Nama Anggota:</label>
+        <input type="text" readonly value="{{ pembayaran.id_pinjaman.nomor_anggota.nama }}">
+      </div>
+      <div class="col">
+        <label>Jenis Pinjaman:</label>
+        <input type="text" readonly value="{{ pembayaran.id_pinjaman.id_jenis_pinjaman.nama_jenis }}">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <label>Jumlah Cicilan Pokok:</label>
+        <input type="text" readonly value="Rp {{ pembayaran.id_pinjaman.angsuran_per_bulan|floatformat:0 }}">
+      </div>
+      <div class="col">
+        <label>Persentase Jasa:</label>
+        <input type="text" readonly value="{{ pembayaran.id_pinjaman.jasa_persen|floatformat:2 }}%">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <label>Jumlah Jasa:</label>
+        <input type="text" readonly value="Rp {{ jasa_rupiah|floatformat:0 }}">
+      </div>
+      <div class="col">
+        <label>Jumlah Dibayar:</label>
+        <input type="text" readonly value="Rp {{ jumlah_pembayaran|floatformat:0 }}">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <label>Admin:</label>
+        <input type="text" readonly value="{{ pembayaran.id_admin.username }}">
+      </div>
+      <div class="col">
+        <label>Tanggal Bayar:</label>
+        <input type="text" readonly value="{{ pembayaran.tanggal_bayar|date:'d M Y' }}">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <label>Sisa Pinjaman Sebelum:</label>
+        <input type="text" readonly value="Rp {{ sisa_sebelum|floatformat:0 }}">
+      </div>
+      <div class="col">
+        <label>Sisa Pinjaman Sesudah:</label>
+        <input type="text" readonly value="Rp {{ sisa_setelah|floatformat:0 }}">
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-wrapper">
+    <a href="{% url 'pinjaman:detail_pinjaman' pembayaran.id_pinjaman.id_pinjaman %}" class="btn-back">
+      &larr; Kembali
+    </a>
+  </div>
+</div>
+{% endblock %}

@@ -1,16 +1,17 @@
 {% extends "base.html" %}
 {% load static %}
 {% load widget_tweaks %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/pages/pinjaman/form/pinjaman_form.css' %}">
+{% endblock %}
+
 {% block title %}Tambah Pinjaman{% endblock %}
 
-
-
 {% block content %}
-<div class="content-card">
 
-    <div class="section-header">
-        <h2 class="section-title">Form Tambah Pinjaman</h2>
-    </div>
+<div class="content-card">
+    <h2>Form Tambah Pinjaman</h2>
 
     <form method="post">
         {% csrf_token %}
@@ -57,11 +58,7 @@
 
             <div class="col-md-6">
                 <label>Jumlah Pinjaman</label>
-                <input type="text"
-                    id="id_jumlah_pinjaman"
-                    name="jumlah_pinjaman"
-                    class="form-control rupiah-input"
-                    required>
+                {{ form.jumlah_pinjaman|add_class:"form-control rupiah-input" }}
             </div>
         </div>
 
@@ -82,14 +79,7 @@
         <div class="row mb-4">
             <div class="col-md-6">
                 <label>Persentase Jasa (%)</label>
-                <input type="number"
-                       id="id_jasa_persen"
-                       name="jasa_persen"
-                       class="form-control"
-                       step="0.01"
-                       min="0"
-                       max="100"
-                       required>
+                {{ form.jasa_persen|add_class:"form-control" }}
             </div>
 
             <div class="col-md-6">
@@ -144,4 +134,5 @@ function hitungJasa() {
 
 $('#id_jumlah_pinjaman, #id_jasa_persen').on('input', hitungJasa);
 </script>
+
 {% endblock %}

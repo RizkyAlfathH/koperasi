@@ -17,6 +17,6 @@ urlpatterns = [
     ),
 
     path('<int:id_pinjaman>/', views.detail_pinjaman, name='detail_pinjaman'),
-    path('bayar/<int:id_pinjaman>/', views.bayar_pinjaman, name='bayar_pinjaman')
-
+    path('bayar/<int:id_pinjaman>/', views.bayar_pinjaman, name='bayar_pinjaman'),
+    path('pembayaran/<int:pembayaran_id>/', views.detail_pembayaran, name='detail_pembayaran'),
 ]
