@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Detail Transaksi{% endblock %}
+
+{% block content %}
+
+<div class="content-card">
+    <h1>Detail Transaksi</h1>
+
+    <div class="row g-4">
+
+        <!-- ID TRANSAKSI -->
+        <div class="col-md-6">
+            <label class="form-label">ID Transaksi</label>
+            <input type="text"
+                   class="form-control"
+                   value="{{ transaksi.id }}"
+                   readonly>
+        </div>
+
+        <!-- NAMA ANGGOTA -->
+        <div class="col-md-6">
+            <label class="form-label">Nama Anggota</label>
+            <input type="text"
+                   class="form-control"
+                   value="{{ transaksi.anggota.nama }}"
+                   readonly>
+        </div>
+
+        <!-- JENIS SIMPANAN -->
+        <div class="col-md-6">
+            <label class="form-label">Jenis Simpanan</label>
+            <input type="text"
+                   class="form-control"
+                   value="{{ transaksi.jenis_simpanan }}"
+                   readonly>
+        </div>
+
+        <!-- TANGGAL -->
+        <div class="col-md-6">
+            <label class="form-label">Tanggal Transaksi</label>
+            <input type="text"
+                   class="form-control"
+                   value="{{ transaksi.tanggal|date:'d M Y' }}"
+                   readonly>
+        </div>
+
+        <!-- JENIS TRANSAKSI -->
+        <div class="col-md-6">
+            <label class="form-label">Jenis Transaksi</label>
+            <input type="text"
+                   class="form-control"
+                   value="{{ transaksi.get_jenis_transaksi_display }}"
+                   readonly>
+        </div>
+
+        <!-- JUMLAH -->
+        <div class="col-md-6">
+            <label class="form-label">Jumlah</label>
+            <input type="text"
+                   class="form-control rupiah-text"
+                   value="Rp {{ transaksi.jumlah|floatformat:0 }}"
+                   readonly>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ACTION -->
+<div class="form-actions" style="text-align:right; margin-top:20px;">
+    <a href="{% url 'simpanan:simpanan_anggota' transaksi.anggota.nomor_anggota %}"
+       class="btn-kembali">
+        Kembali
+    </a>
+</div>
+{% endblock %}

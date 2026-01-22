@@ -4,7 +4,7 @@
 {% block title %}Simpanan Anggota{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/simpanan/simpanan_anggota.css' %}">
+  <link rel="stylesheet" href="{% static 'css/pages/simpanan/simpanan_anggota.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -15,7 +15,7 @@
     <h2 class="section-title">Riwayat Transaksi Simpanan</h2>
   </div>
 
-  <table>
+  <table class="data-table">
     <thead>
       <tr>
         <th>No. Anggota</th>
@@ -36,6 +36,10 @@
         </td>
         <td style="text-align:center;">
           <div class="action-group">
+            <a href="{% url 'simpanan:detail_simpanan' anggota.nomor_anggota item.jenis_id %}"
+               class="action-view btn-detail">
+              <i class="ph-bold ph-eye"></i>
+            </a>
             <a href="{% url 'simpanan:tambah_penarikan' anggota.nomor_anggota item.jenis_id %}"
                class="action-tarik btn-penarikan"
                data-saldo="{{ item.saldo }}">
@@ -51,11 +55,10 @@
       {% endfor %}
     </tbody>
   </table>
-
-  <div class="btn-back-container">
-    <a href="{% url 'simpanan:daftar_simpanan' %}" class="btn btn-gold">Kembali</a>
-  </div>
 </div>
+  <div>
+    <a href="{% url 'simpanan:daftar_simpanan' %}" class="btn-kembali">Kembali</a> 
+  </div>
 {% endblock %}
 
 {% block extra_js %}

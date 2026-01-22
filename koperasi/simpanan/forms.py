@@ -94,6 +94,14 @@ class SimpananForm(forms.ModelForm):
 # ======================================================
 
 class PenarikanForm(forms.ModelForm):
+
+    jumlah = forms.CharField(
+        widget=forms.TextInput(attrs={
+            "class": "form-control rupiah-input",
+            "placeholder": "Masukkan jumlah penarikan"
+        })
+    )
+
     class Meta:
         model = Penarikan
         fields = ["tanggal", "jumlah"]
@@ -101,7 +109,7 @@ class PenarikanForm(forms.ModelForm):
             "tanggal": forms.DateInput(
                 attrs={
                     "type": "date",
-                    "class": "form-control datepicker"
+                    "class": "form-control"
                 },
                 format="%Y-%m-%d"
             ),
@@ -112,12 +120,18 @@ class PenarikanForm(forms.ModelForm):
         self.jenis_simpanan = kwargs.pop("jenis_simpanan", None)
         super().__init__(*args, **kwargs)
 
-        # ⬅️ samain dengan SimpananForm
         if not self.instance.pk:
             self.fields["tanggal"].initial = datetime.date.today()
 
+    def _to_decimal(self, value):
+        if not value:
+            return 0
+        value = re.sub(r"[^\d]", "", value)
+        return int(value)
+
     def clean_jumlah(self):
         jumlah = self.cleaned_data.get("jumlah")
+        jumlah = self._to_decimal(jumlah)
 
         if jumlah <= 0:
             raise forms.ValidationError("Jumlah penarikan harus lebih dari 0")
