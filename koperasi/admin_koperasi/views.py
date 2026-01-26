@@ -1,11 +1,13 @@
 from django.contrib.auth import authenticate, login, logout
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 
 from admin_koperasi.models import RolePermission
 from django.db import transaction
+from .forms import PengurusForm
+from .decorators import admin_only
 
 User = get_user_model()
 
@@ -124,6 +126,54 @@ def role_hakakses(request):
         }
     )
 
+@login_required
+@admin_only
+def pengurus_list(request):
+    pengurus = User.objects.filter(
+        role__in=['ketua', 'sekretaris', 'bendahara']
+    )
+    return render(request, 'admin_koperasi/manajemen_user/pengurus_list.html', {
+        'pengurus': pengurus
+    })
+
+
+@login_required
+@admin_only
+def pengurus_create(request):
+    form = PengurusForm(request.POST or None)
+    if form.is_valid():
+        form.save()
+        return redirect('admin_koperasi:pengurus_list')
+    return render(request, 'admin_koperasi/manajemen_user/pengurus_form.html', {
+        'form': form,
+        'title': 'Tambah Pengurus'
+    })
+
+
+@login_required
+@admin_only
+def pengurus_update(request, pk):
+    user = get_object_or_404(User, pk=pk)
+    form = PengurusForm(request.POST or None, instance=user)
+    if form.is_valid():
+        form.save()
+        return redirect('admin_koperasi:pengurus_list')
+    return render(request, 'admin_koperasi/manajemen_user/pengurus_form.html', {
+        'form': form,
+        'title': 'Edit Pengurus'
+    })
+
+
+@login_required
+@admin_only
+def pengurus_delete(request, pk):
+    user = get_object_or_404(User, pk=pk)
+    if request.method == 'POST':
+        user.delete()
+        return redirect('admin_koperasi:pengurus_list')
+    return render(request, 'admin_koperasi/manajemen_user/pengurus_confirm_delete.html', {
+        'user': user
+    })
 
 # ================= PENGURUS =================
 @login_required
