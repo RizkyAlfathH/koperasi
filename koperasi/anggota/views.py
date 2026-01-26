@@ -48,7 +48,6 @@ def dashboard_redirect(request):
 
     return redirect("admin_koperasi:admin_login")
 
-
 # ===============================
 # DASHBOARD PER ROLE
 # ===============================

@@ -48,7 +48,7 @@ def admin_dashboard(request):
 
 @login_required
 def role_hakakses(request):
-    if request.user.role != "admin":
+    if request.user.role != 'admin':
         return redirect("admin_koperasi:admin_login")
 
     # =============================
