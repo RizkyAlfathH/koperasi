@@ -17,18 +17,21 @@ from .views import (
     export_excel_anggota,
     export_pdf_anggota,
     import_excel_anggota,
+    dashboard_redirect,
+    ketua_dashboard,
+    sekretaris_dashboard,
+    bendahara_dashboard,
 )
 
-app_name = "anggota"
+app_name = 'anggota'
 
 urlpatterns = [
-    # ================= DASHBOARD =================
-    path("dashboard/", dashboard_redirect, name="dashboard"),
-    path("dashboard/ketua/", ketua_dashboard, name="ketua_dashboard"),
-    path("dashboard/sekretaris/", sekretaris_dashboard, name="sekretaris_dashboard"),
-    path("dashboard/bendahara/", bendahara_dashboard, name="bendahara_dashboard"),
+    path("dashboard/", dashboard_redirect, name="dashboard_redirect"),
 
-    # ================= KELOLA AKUN =================
+    path("dashboard/ketua/", ketua_dashboard, name="dashboard_ketua"),
+    path("dashboard/sekretaris/", sekretaris_dashboard, name="dashboard_sekretaris"),
+    path("dashboard/bendahara/", bendahara_dashboard, name="dashboard_bendahara"),
+    # 🔹 kelola akun (role-based)
     path("", kelola_akun, name="kelola_akun"),
 
     path("tambah/admin/", tambah_admin, name="tambah_admin"),

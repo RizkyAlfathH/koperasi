@@ -1,24 +1,52 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Dashboard Administrator</title>
-</head>
-<body>
+{% extends "base.html" %}
+{% load static %}
 
-<h2>Dashboard Administrator Sistem</h2>
+{% block title %}Dashboard Administrator{% endblock %}
 
-<p>Selamat datang, {{ request.user.username }}</p>
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/admin_koperasi/dashboard_admin.css' %}">
+{% endblock %}
 
-<ul>
-    <li>
-        <a href="{% url 'createpengurus' %}">
-            ➕ Tambah Ketua / Sekretaris / Bendahara
+{% block content %}
+<div class="admin-dashboard">
+
+    <div class="dashboard-header">
+        <h2>Administrator Sistem</h2>
+        <p>Selamat datang, <strong>{{ request.user.username }}</strong></p>
+    </div>
+
+    <div class="dashboard-grid">
+
+        <a href="{% url 'admin_koperasi:role_hakakses' %}" class="card">
+            <span class="icon">🔐</span>
+            <h3>Role & Hak Akses</h3>
+            <p>Kelola peran sistem</p>
         </a>
-    </li>
-    <li>
-        <a href="{% url 'admin_logout' %}">Logout</a>
-    </li>
-</ul>
 
-</body>
-</html>
+        <a href="{% url 'admin_koperasi:pengurus' %}" class="card">
+            <span class="icon">🏢</span>
+            <h3>Pengurus</h3>
+            <p>CRUD akun pengurus</p>
+        </a>
+
+        <a href="{% url 'admin_koperasi:log_aktifitas' %}" class="card">
+            <span class="icon">📄</span>
+            <h3>Log Aktivitas</h3>
+            <p>Audit sistem</p>
+        </a>
+
+        <a href="{% url 'admin_koperasi:pengaturan_sistem' %}" class="card">
+            <span class="icon">⚙️</span>
+            <h3>Pengaturan Sistem</h3>
+            <p>Konfigurasi aplikasi</p>
+        </a>
+
+        <a href="{% url 'admin_koperasi:admin_logout' %}" class="card logout">
+            <span class="icon">🚪</span>
+            <h3>Logout</h3>
+        </a>
+
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %} <script src="{% static 'js/admin_koperasi/dashboard_admin.js' %}"></script> {% endblock %}

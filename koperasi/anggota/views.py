@@ -38,9 +38,8 @@ User = get_user_model()
 ROLE_ADMIN = ["admin", "ketua", "sekretaris", "bendahara"]
 ROLE_PENGURUS = ["ketua", "sekretaris", "bendahara"]
 
-
 # ===============================
-# DASHBOARD REDIRECT (GLOBAL)
+# REDIRECT UTAMA SETELAH LOGIN
 # ===============================
 @login_required
 def dashboard_redirect(request):
@@ -308,6 +307,7 @@ def bendahara_dashboard(request):
     }
 
     return render(request, "dashboard/bendahara.html", context)
+
 
 # ===============================
 # KELOLA AKUN (ROLE-BASED)

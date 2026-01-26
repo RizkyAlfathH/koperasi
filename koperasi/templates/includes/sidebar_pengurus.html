@@ -1,0 +1,57 @@
+<div class="sidebar">
+    <div class="profile">
+        <div class="avatar">
+            {{ request.user.username|slice:":2"|upper }}
+        </div>
+        <div class="username">
+            {{ request.user.username|upper }}
+        </div>
+        <div class="role">
+            {{ request.user.role|capfirst }}
+        </div>
+    </div>
+
+    <ul>
+        <!-- ================= DASHBOARD ================= -->
+        <li>
+            <a href="{% url 'dashboard' %}"
+               class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+               Dashboard
+            </a>
+        </li>
+
+        <!-- ================= KELOLA AKUN ================= -->
+        {% if request.user.role in "admin ketua sekretaris" %}
+        <li>
+            <a href=""
+               class="{% if request.resolver_match.url_name in menu_akun_urls %}active{% endif %}">
+               Kelola Akun
+            </a>
+        </li>
+        {% endif %}
+
+        <!-- ================= SIMPANAN ================= -->
+        {% if request.user.role in "admin ketua bendahara" %}
+        <li>
+            <a href=""
+               class="{% if request.resolver_match.app_name == 'simpanan' %}active{% endif %}">
+               Manajemen Simpanan
+            </a>
+        </li>
+        {% endif %}
+
+        <!-- ================= PINJAMAN ================= -->
+        {% if request.user.role in "admin ketua bendahara" %}
+        <li>
+            <a href=""
+               class="{% if request.resolver_match.url_name in menu_pinjaman_urls %}active{% endif %}">
+               Manajemen Pinjaman
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+
+    <div class="logout-btn">
+        <a href="{% url 'admin_koperasi:admin_logout' %}">Logout</a>
+    </div>
+</div>
