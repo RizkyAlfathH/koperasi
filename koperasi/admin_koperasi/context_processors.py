@@ -34,6 +34,9 @@ def sidebar_active(request):
             'daftar_simpanan',
             'simpanan_form',
             'simpanan_anggota',
+            'detail_simpanan',
+            'tambah_penarikan',
+            'detail_transaksi',
         ],
 
         # Menu Pinjaman

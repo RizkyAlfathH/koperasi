@@ -4,8 +4,8 @@
 {% block title %}Tambah Simpanan{% endblock %}
 
 {% block content %}
-<div class="main-content">
-    <div class="form-card">
+
+    <div class="content-card">
         <h1>Tambah Simpanan</h1>
 
         <form method="post">
@@ -17,48 +17,48 @@
             </div>
             {% endif %}
 
-            <div class="form-grid">
+            <div class="row g-4">
 
-                <!-- ANGGOTA -->
-                <div class="form-group">
-                    <label for="id_anggota">Nama Anggota</label>
+                <!-- NAMA ANGGOTA -->
+                <div class="col-md-6">
+                    <label class="form-label">Nama Anggota</label>
                     <select id="id_anggota" name="anggota" class="form-control" required></select>
                 </div>
 
                 <!-- TANGGAL -->
-                <div class="form-group">
-                    <label for="id_tanggal">Tanggal Menyimpan</label>
+                <div class="col-md-6">
+                    <label class="form-label">Tanggal Menyimpan</label>
                     {{ form.tanggal|add_class:"form-control" }}
                 </div>
 
                 <!-- JENIS SIMPANAN -->
-                <div class="form-group">
-                    <label for="id_jenis_simpanan">Jenis Simpanan</label>
+                <div class="col-md-6">
+                    <label class="form-label">Jenis Simpanan</label>
                     {{ form.jenis_simpanan|add_class:"form-control" }}
                 </div>
 
-                <div class="form-group">
-                    <label for="id_jumlah">Jumlah Menyimpan</label>
+                <!-- JUMLAH -->
+                <div class="col-md-6">
+                    <label class="form-label">Jumlah Menyimpan</label>
                     {{ form.jumlah|add_class:"form-control rupiah-input" }}
                 </div>
 
-
                 <!-- DANA SOSIAL -->
-                <div class="form-group" id="field-dana-sosial" style="display:none;">
-                    <label for="id_dana_sosial">Dana Sosial</label>
+                <div class="col-md-6" id="field-dana-sosial" style="display:none;">
+                    <label class="form-label">Dana Sosial</label>
                     {{ form.dana_sosial|add_class:"form-control rupiah-input" }}
                 </div>
 
-                <!-- BUTTON -->
-                <div class="form-actions" style="text-align:right;">
-                    <a href="{% url 'simpanan:daftar_simpanan' %}" class="btn-outline">Batal</a>
-                    <button type="submit" class="btn-simpan">Simpan</button>
-                </div>
-
             </div>
+
+            <!-- ACTION BUTTON -->
+            <div class="form-actions" style="text-align:right; margin-top:20px;">
+                <a href="{% url 'simpanan:daftar_simpanan' %}" class="btn-outline">Batal</a>
+                <button type="submit" class="btn-simpan">Simpan</button>
+            </div>
+
         </form>
     </div>
-</div>
 
 <script>
 $(function () {
@@ -77,21 +77,16 @@ $(function () {
         width: '100%'
     });
 
-     function cekDanaSosial() {
+    function cekDanaSosial() {
         const anggota = $('#id_anggota').val();
         const jenis = $('#id_jenis_simpanan').val();
         const tanggal = $('#id_tanggal').val();
 
-        // SELALU sembunyikan dulu
         $('#field-dana-sosial').hide();
 
-        // ❌ kalau belum lengkap → stop
         if (!anggota || !jenis || !tanggal) return;
-
-        // ❌ kalau BUKAN simpanan wajib (id = 2) → STOP TOTAL
         if (jenis !== '2') return;
 
-        // ✅ baru cek ke backend
         $.getJSON(
             "{% url 'simpanan:cek_dana_sosial' %}",
             { anggota, jenis, tanggal },

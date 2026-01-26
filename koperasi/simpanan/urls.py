@@ -20,7 +20,11 @@ urlpatterns = [
     path("penarikan/<str:nomor_anggota>/<int:jenis>/",views.tambah_penarikan,name="tambah_penarikan"),
 
     # DETAIL SIMPANAN PER ANGGOTA
-    # path("detail/<str:nomor_anggota>/<int:jenis_id>/",views.detail_simpanan,name="detail_simpanan"),
+    path("detail/<str:nomor_anggota>/<int:jenis_id>/",views.detail_simpanan,name="detail_simpanan"),
+
+    path("transaksi/<int:id>/",views.detail_transaksi,name="detail_transaksi"),
+
+    path("kwitansi/<int:history_id>/", views.download_kwitansi, name="download_kwitansi"),
 
     # # EDIT
     # path('<str:kode_anggota>/edit/', views.edit_simpanan, name='edit_simpanan'),
