@@ -150,3 +150,6 @@ STATICFILES_DIRS = [
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'admin_koperasi.User'
+
+LOGIN_REDIRECT_URL = "anggota:dashboard_redirect"
+LOGOUT_REDIRECT_URL = "admin_koperasi:admin_login"
