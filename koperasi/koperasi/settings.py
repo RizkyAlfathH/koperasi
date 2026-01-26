@@ -44,9 +44,9 @@ INSTALLED_APPS = [
     'simpanan',
     'pinjaman',
     'static',
-    'core',
 
     'widget_tweaks',
+    "django_extensions",
 ]
 
 MIDDLEWARE = [
@@ -72,6 +72,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                'admin_koperasi.context_processors.sidebar_active',
             ],
         },
     },
@@ -151,3 +152,6 @@ STATICFILES_DIRS = [
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'admin_koperasi.User'
+
+LOGIN_REDIRECT_URL = "anggota:dashboard_redirect"
+LOGOUT_REDIRECT_URL = "admin_koperasi:admin_login"

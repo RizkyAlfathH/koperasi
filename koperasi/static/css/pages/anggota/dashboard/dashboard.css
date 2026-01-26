@@ -1,0 +1,150 @@
+/* ================= DASHBOARD ================= */
+
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.header-line {
+  width: 6px;
+  height: 30px;
+  background: #f5c400;
+  margin-right: 12px;
+  border-radius: 4px;
+}
+
+/* ================= INFO CARDS ================= */
+.info-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.info-card {
+  background: #fff;
+  padding: 20px;
+  border-radius: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 5px solid #f5c400;
+  box-shadow: 0 8px 25px rgba(0,0,0,.06);
+}
+
+.info-card p {
+  font-size: 13px;
+  color: #777;
+}
+
+.info-card h2 {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.icon {
+  font-size: 28px;
+  opacity: .7;
+}
+
+/* ================= MIDDLE GRID ================= */
+.middle-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 25px;
+  margin-bottom: 30px;
+}
+
+/* ================= CALENDAR ================= */
+.calendar-box {
+  background: #fff;
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 8px 25px rgba(0,0,0,.06);
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.calendar-days,
+.calendar-dates {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+}
+
+.calendar-days span {
+  font-weight: 600;
+  color: #888;
+}
+
+.calendar-dates span {
+  padding: 10px;
+  margin: 4px;
+  background: #f3f3f3;
+  border-radius: 8px;
+}
+
+.calendar-dates .today {
+  background: #f5c400;
+  font-weight: bold;
+}
+
+.calendar-info {
+  margin-top: 10px;
+  color: #d33;
+  font-size: 13px;
+}
+
+/* ================= CHART ================= */
+.chart-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 25px;
+}
+
+.chart-box {
+  background: #fff;
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 8px 25px rgba(0,0,0,.06);
+}
+
+.chart-full {
+  height: 360px;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.chart-toggle button {
+  border: none;
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: #f2f2f2;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.chart-toggle button.active {
+  background: #3696e6;
+  color: #fff;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 1200px) {
+  .info-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .middle-grid {
+    grid-template-columns: 1fr;
+  }
+}

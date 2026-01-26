@@ -1,0 +1,42 @@
+.detail-card {
+  max-width: 100%;
+}
+
+/* Layout form */
+.detail-card .row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+
+.detail-card .col {
+  flex: 1;
+  min-width: 220px;
+}
+
+/* Label */
+.detail-card label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: #4A2C2A;
+  font-size: 14px;
+}
+
+/* Field Box (readonly look, ganti input[readonly]) */
+.detail-card .field-box {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: #fffefc;
+  font-size: 14px;
+  color: #333;
+}
+
+.detail-card h1 {
+  font-size: 26px;
+  font-weight: 600;
+}
+
