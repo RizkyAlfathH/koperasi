@@ -4,12 +4,14 @@
     <title>KOPASMEN</title>
 
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    {% comment %} <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"> {% endcomment %}
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- Phosphor Icons -->
-    <script src="https://unpkg.com/phosphor-icons"></script>
+    {% comment %} <script src="https://unpkg.com/phosphor-icons"></script> {% endcomment %}
+
+    <link rel="stylesheet" href="https://unpkg.com/phosphor-icons@1.4.2/src/css/icons.css">
 
     <!-- Load CSS eksternal -->
     {% load static %}
@@ -28,19 +30,50 @@
             <div class="input-group">
                 <label>Username</label>
                 <div class="input-field">
-                    <span class="input-icon"><i class="ph-user"></i></span>
+                    <span class="input-icon">
+                        <i class="ph ph-user"></i>
+                    </span>
                     <input type="text" name="username" placeholder="Masukkan username..." required>
                 </div>
             </div>
             <div class="input-group">
                 <label>Password</label>
-                <div class="input-field">
-                    <span class="input-icon"><i class="ph-lock"></i></span>
-                    <input type="password" name="password" placeholder="Masukkan password..." required>
+
+                <div class="input-field password-field">
+                    <span class="input-icon">
+                        <i class="ph-lock"></i>
+                    </span>
+
+                    <input
+                        type="password"
+                        id="password"
+                        placeholder="Masukkan password..."
+                        required
+                    >
+
+                    <span class="toggle-password" onclick="togglePassword()">
+                        <i class="ph-eye" id="eyeIcon"></i>
+                    </span>
                 </div>
             </div>
+
             <button type="submit">Login</button>
         </form>
     </div>
 </body>
+<script>
+function togglePassword() {
+    const password = document.getElementById("password");
+    const icon = document.getElementById("eyeIcon");
+
+    if (password.type === "password") {
+        password.type = "text";
+        icon.classList.replace("ph-eye", "ph-eye-slash");
+    } else {
+        password.type = "password";
+        icon.classList.replace("ph-eye-slash", "ph-eye");
+    }
+}
+</script>
+
 </html>
