@@ -14,15 +14,16 @@
     <ul>
         <!-- Dashboard -->
         <li>
-            <a href="{% url 'dashboard' %}"
-               class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-               Dashboard
+            <a href="{% url 'anggota:dashboard' %}"
+            class="{% if request.resolver_match.url_name in menu_dashboard_urls %}active{% endif %}">
+            Dashboard
             </a>
         </li>
 
+
         <!-- Kelola Akun -->
         <li>
-            <a href="{% url 'kelola_akun' %}"
+            <a href="{% url 'anggota:kelola_akun' %}"
                class="{% if request.resolver_match.url_name in menu_akun_urls %}active{% endif %}">
                Kelola Akun
             </a>
