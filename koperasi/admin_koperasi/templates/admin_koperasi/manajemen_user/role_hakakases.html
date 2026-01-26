@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Manajemen Role & Hak Akses{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+  <h3 class="mb-4">Manajemen Role & Hak Akses</h3>
+
+  <form method="post">
+    {% csrf_token %}
+
+    <!-- ================= KETUA ================= -->
+    <div class="card mb-4">
+      <div class="card-header bg-primary text-white">
+        <strong>Role: Ketua</strong>
+      </div>
+      <div class="card-body">
+
+        <p class="text-muted">Ketua selalu memiliki akses penuh</p>
+
+        <div class="row">
+          {% for permission in permissions %}
+          <div class="col-md-4">
+            <div class="form-check">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                name="ketua_permissions"
+                value="{{ permission.code }}"
+                checked
+              >
+              <label class="form-check-label">
+                {{ permission.name }}
+              </label>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ================= SEKRETARIS ================= -->
+    <div class="card mb-4">
+      <div class="card-header bg-success text-white">
+        <strong>Role: Sekretaris</strong>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          {% for permission in permissions %}
+          <div class="col-md-4">
+            <div class="form-check">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                name="sekretaris_permissions"
+                value="{{ permission.code }}"
+                {% if permission.code in role_permissions.sekretaris %}
+                  checked
+                {% endif %}
+              >
+              <label class="form-check-label">
+                {{ permission.name }}
+              </label>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= BENDAHARA ================= -->
+    <div class="card mb-4">
+      <div class="card-header bg-warning">
+        <strong>Role: Bendahara</strong>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          {% for permission in permissions %}
+          <div class="col-md-4">
+            <div class="form-check">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                name="bendahara_permissions"
+                value="{{ permission.code }}"
+                {% if permission.code in role_permissions.bendahara %}
+                  checked
+                {% endif %}
+              >
+              <label class="form-check-label">
+                {{ permission.name }}
+              </label>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="text-end">
+      <button type="submit" class="btn btn-primary">
+        Simpan Hak Akses
+      </button>
+    </div>
+
+  </form>
+
+</div>
+{% endblock %}

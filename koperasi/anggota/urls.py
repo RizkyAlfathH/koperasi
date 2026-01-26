@@ -12,10 +12,20 @@ from .views import (
     export_excel_anggota,
     export_pdf_anggota,
     import_excel_anggota,
+    dashboard_redirect,
+    ketua_dashboard,
+    sekretaris_dashboard,
+    bendahara_dashboard,
 )
 
+app_name = 'anggota'
 
 urlpatterns = [
+    path("dashboard/", dashboard_redirect, name="dashboard_redirect"),
+
+    path("dashboard/ketua/", ketua_dashboard, name="dashboard_ketua"),
+    path("dashboard/sekretaris/", sekretaris_dashboard, name="dashboard_sekretaris"),
+    path("dashboard/bendahara/", bendahara_dashboard, name="dashboard_bendahara"),
     # 🔹 kelola akun (role-based)
     path("", kelola_akun, name="kelola_akun"),
 

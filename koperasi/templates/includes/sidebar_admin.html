@@ -1,0 +1,50 @@
+<div class="sidebar admin">
+    <div class="profile">
+        <div class="avatar admin">
+            {{ request.user.username|slice:":2"|upper }}
+        </div>
+        <div class="username">{{ request.user.username|upper }}</div>
+        <div class="role">Administrator Sistem</div>
+    </div>
+
+    <ul>
+        <li>
+            <a href="{% url 'admin_koperasi:admin_dashboard' %}"
+               class="{% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+               🧭 Dashboard
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'admin_koperasi:role_hakakses' %}"
+               class="{% if request.resolver_match.url_name == 'role_hakakses' %}active{% endif %}">
+               🔐 Role & Hak Akses
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'admin_koperasi:pengurus' %}"
+               class="{% if request.resolver_match.url_name == 'pengurus' %}active{% endif %}">
+               🏢 Pengurus
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'admin_koperasi:log_aktifitas' %}"
+               class="{% if request.resolver_match.url_name == 'log_aktifitas' %}active{% endif %}">
+               📄 Log Aktivitas
+            </a>
+        </li>
+
+        <li>
+            <a href="{% url 'admin_koperasi:pengaturan_sistem' %}"
+               class="{% if request.resolver_match.url_name == 'pengaturan_sistem' %}active{% endif %}">
+               ⚙️ Pengaturan Sistem
+            </a>
+        </li>
+    </ul>
+
+    <div class="logout-btn">
+        <a href="{% url 'admin_koperasi:admin_logout' %}">🚪 Logout</a>
+    </div>
+</div>

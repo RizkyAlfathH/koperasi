@@ -30,24 +30,24 @@ User = get_user_model()
 ROLE_ADMIN = ["admin", "ketua", "sekretaris", "bendahara"]
 ROLE_PENGURUS = ["ketua", "sekretaris", "bendahara"]
 
-
 # ===============================
-# DASHBOARD REDIRECT (GLOBAL)
+# REDIRECT UTAMA SETELAH LOGIN
 # ===============================
 @login_required
 def dashboard_redirect(request):
     role = request.user.role
 
-    if role == "ketua":
-        return render(request, "dashboard/ketua.html")
-    elif role == "sekretaris":
-        return render(request, "dashboard/sekretaris.html")
-    elif role == "bendahara":
-        return render(request, "dashboard/bendahara.html")
-    elif role == "admin":
+    if role == "admin":
         return redirect("admin_koperasi:admin_dashboard")
-    else:
-        return redirect("admin_koperasi:admin_login")
+    elif role == "ketua":
+        return redirect("anggota:dashboard_ketua")
+    elif role == "sekretaris":
+        return redirect("anggota:dashboard_sekretaris")
+    elif role == "bendahara":
+        return redirect("anggota:dashboard_bendahara")
+
+    return redirect("admin_koperasi:admin_login")
+
 
 # ===============================
 # DASHBOARD PER ROLE
@@ -55,22 +55,26 @@ def dashboard_redirect(request):
 @login_required
 def ketua_dashboard(request):
     if request.user.role != "ketua":
-        return redirect("dashboard")
+        return redirect("anggota:dashboard_redirect")
+
     return render(request, "dashboard/ketua.html")
 
 
 @login_required
 def sekretaris_dashboard(request):
     if request.user.role != "sekretaris":
-        return redirect("dashboard")
+        return redirect("anggota:dashboard_redirect")
+
     return render(request, "dashboard/sekretaris.html")
 
 
 @login_required
 def bendahara_dashboard(request):
     if request.user.role != "bendahara":
-        return redirect("dashboard")
+        return redirect("anggota:dashboard_redirect")
+
     return render(request, "dashboard/bendahara.html")
+
 
 
 # ===============================
