@@ -46,15 +46,16 @@ def dashboard_redirect(request):
     role = request.user.role
 
     if role == "ketua":
-        return redirect("anggota:ketua_dashboard")
+        return redirect("anggota:dashboard_ketua")
     elif role == "sekretaris":
-        return redirect("anggota:sekretaris_dashboard")
+        return redirect("anggota:dashboard_sekretaris")
     elif role == "bendahara":
-        return redirect("anggota:bendahara_dashboard")
+        return redirect("anggota:dashboard_bendahara")
     elif role == "admin":
         return redirect("admin_koperasi:admin_dashboard")
     else:
         return redirect("admin_koperasi:admin_login")
+
 
 # ===============================
 # DASHBOARD PER ROLE
@@ -62,7 +63,7 @@ def dashboard_redirect(request):
 @login_required
 def ketua_dashboard(request):
     if request.user.role != "ketua":
-        return redirect("dashboard")
+        return redirect("anggota:dashboard_redirect")
 
     # ===============================
     # INFO CARD
@@ -145,7 +146,7 @@ def ketua_dashboard(request):
 @login_required
 def sekretaris_dashboard(request):
     if request.user.role != "sekretaris":
-        return redirect("dashboard")
+        return redirect("anggota:dashboard_redirect")
 
     # ===============================
     # INFO CARD
@@ -228,7 +229,8 @@ def sekretaris_dashboard(request):
 @login_required
 def bendahara_dashboard(request):
     if request.user.role != "bendahara":
-        return redirect("dashboard")
+        return redirect("anggota:dashboard_redirect")
+
 
     # ===============================
     # INFO CARD

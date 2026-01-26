@@ -14,16 +14,16 @@
     <ul>
         <!-- ================= DASHBOARD ================= -->
         <li>
-            <a href="{% url 'dashboard' %}"
-               class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-               Dashboard
+            <a href="{% url 'anggota:dashboard_redirect' %}"
+            class="{% if request.resolver_match.url_name in menu_dashboard_urls %}active{% endif %}">
+            Dashboard
             </a>
         </li>
 
         <!-- ================= KELOLA AKUN ================= -->
         {% if request.user.role in "admin ketua sekretaris" %}
         <li>
-            <a href=""
+            <a href="{% url 'anggota:kelola_akun' %}"
                class="{% if request.resolver_match.url_name in menu_akun_urls %}active{% endif %}">
                Kelola Akun
             </a>
@@ -33,7 +33,7 @@
         <!-- ================= SIMPANAN ================= -->
         {% if request.user.role in "admin ketua bendahara" %}
         <li>
-            <a href=""
+            <a href="{% url 'simpanan:daftar_simpanan' %}"
                class="{% if request.resolver_match.app_name == 'simpanan' %}active{% endif %}">
                Manajemen Simpanan
             </a>
@@ -43,7 +43,7 @@
         <!-- ================= PINJAMAN ================= -->
         {% if request.user.role in "admin ketua bendahara" %}
         <li>
-            <a href=""
+            <a href="{% url 'pinjaman:pinjaman_list'%}"
                class="{% if request.resolver_match.url_name in menu_pinjaman_urls %}active{% endif %}">
                Manajemen Pinjaman
             </a>

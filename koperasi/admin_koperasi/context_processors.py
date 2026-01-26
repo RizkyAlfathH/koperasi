@@ -8,10 +8,10 @@ def sidebar_active(request):
     return {
         # ================= DASHBOARD =================
         'menu_dashboard_urls': [
-            'dashboard',
-            'ketua_dashboard',
-            'sekretaris_dashboard',
-            'bendahara_dashboard',
+            'dashboard_redirect',
+            'dashboard_ketua',
+            'dashboard_sekretaris',
+            'dashboard_bendahara',
         ],
         # Menu Kelola Akun (Admin + Anggota)
         'menu_akun_urls': [
