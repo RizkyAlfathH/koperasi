@@ -6,6 +6,13 @@ def sidebar_active(request):
     """
 
     return {
+        # ================= DASHBOARD =================
+        'menu_dashboard_urls': [
+            'dashboard',
+            'ketua_dashboard',
+            'sekretaris_dashboard',
+            'bendahara_dashboard',
+        ],
         # Menu Kelola Akun (Admin + Anggota)
         'menu_akun_urls': [
             'kelola_akun',

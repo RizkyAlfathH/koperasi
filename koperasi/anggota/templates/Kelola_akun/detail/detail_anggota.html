@@ -1,11 +1,17 @@
 {% extends "base.html" %}
+{% load static %}
+
 {% block title %}Detail Anggota{% endblock %}
 
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/pages/anggota/detail/detail_anggota.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="main-content">
+<div class="page-detail-anggota">
 
   <div class="content-card detail-card">
-    <h1>👥 Detail Anggota</h1>
+    <h1>Detail Anggota</h1>
 
     <div class="row">
       <div class="col">
@@ -84,9 +90,7 @@
     {% endif %}
   </div>
 
-  <div class="btn-back-container">
-    <a href="{% url 'kelola_akun' %}">⬅ Kembali</a>
-  </div>
+  <a href="{% url 'kelola_akun' %}" class="btn-kembali">Kembali</a>
 
 </div>
 {% endblock %}

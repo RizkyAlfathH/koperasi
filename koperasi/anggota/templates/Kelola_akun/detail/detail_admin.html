@@ -1,34 +1,37 @@
 {% extends "base.html" %}
+{% load static %}
+
 {% block title %}Detail Admin{% endblock %}
 
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/pages/anggota/detail/detail_admin.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="main-content">
+<div class="page-detail-admin">
 
   <div class="content-card detail-card">
-    <h1>👤 Detail Admin</h1>
+    <h1>Detail Admin</h1>
 
-    <div class="row">
-      <div class="col">
-        <label>No</label>
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label>ID Admin</label>
         <div class="field-box">{{ nomor_urut }}</div>
       </div>
-      <div class="col">
+
+      <div class="col-md-4">
         <label>Username</label>
         <div class="field-box">{{ admin.username }}</div>
       </div>
-    </div>
 
-    <div class="row">
-      <div class="col">
+      <div class="col-md-4">
         <label>Role</label>
         <div class="field-box">{{ admin.role }}</div>
       </div>
     </div>
   </div>
 
-  <div class="btn-back-container">
-    <a href="{% url 'kelola_akun' %}">⬅ Kembali</a>
-  </div>
+  <a href="{% url 'kelola_akun' %}" class="btn-kembali">Kembali</a>
 
 </div>
 {% endblock %}

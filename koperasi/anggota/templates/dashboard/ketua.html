@@ -1,14 +1,198 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Dashboard Ketua{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/anggota/dashboard/dashboard.css' %}">
+{% endblock %}
+
 {% block content %}
 
-<h2>Dashboard Ketua</h2>
-<p>Selamat datang, {{ request.user.username }}</p>
+<div class="dashboard-wrapper">
 
-<a href="/{{ request.user.role }}/kelolaakun/">
-    Kelola Akun
-</a>
+  <!-- ===== HEADER ===== -->
+  <div class="dashboard-header">
+    <span class="header-line"></span>
+    <h1>Dashboard Ketua</h1>
+  </div>
+
+  <!-- ================= INFO CARDS ================= -->
+  <div class="info-cards">
+    <div class="info-card">
+      <div>
+        <p>JUMLAH ADMIN</p>
+        <h2>{{ jumlah_admin }}</h2>
+      </div>
+      <span class="icon">👤</span>
+    </div>
+
+    <div class="info-card">
+      <div>
+        <p>JUMLAH ANGGOTA</p>
+        <h2>{{ jumlah_anggota }}</h2>
+      </div>
+      <span class="icon">👥</span>
+    </div>
+
+    <div class="info-card">
+      <div>
+        <p>JUMLAH SIMPANAN</p>
+        <h2 class="rupiah-text">Rp {{ jumlah_simpanan|floatformat:0 }}</h2>
+      </div>
+      <span class="icon">💰</span>
+    </div>
+
+    <div class="info-card">
+      <div>
+        <p>JUMLAH PINJAMAN</p>
+        <h2 class="rupiah-text">Rp {{ jumlah_pinjaman|floatformat:0 }}</h2>
+      </div>
+      <span class="icon">💳</span>
+    </div>
+  </div>
+
+  <!-- ================= KALENDER + DONUT ================= -->
+  <div class="middle-grid">
+
+    <!-- ===== KALENDER ===== -->
+    <div class="calendar-box">
+      <div class="calendar-header">
+        <h3 id="monthName"></h3>
+        <span id="yearNum"></span>
+      </div>
+
+      <div class="calendar-days">
+        <span>Min</span><span>Sen</span><span>Sel</span>
+        <span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span>
+      </div>
+
+      <div class="calendar-dates" id="calendarDates"></div>
+      <div class="calendar-info" id="todayInfo"></div>
+    </div>
+
+    <!-- ===== DONUT ===== -->
+    <div class="chart-box">
+      <h3>Statistik Pengguna</h3>
+      <canvas id="userDonutChart"></canvas>
+    </div>
+
+  </div>
+
+  <!-- ================= AREA CHART GABUNGAN ================= -->
+  <div class="chart-grid">
+    <div class="chart-box chart-full">
+
+      <div class="chart-header">
+        <h3>Statistik Simpanan & Pinjaman</h3>
+        <div class="chart-toggle">
+          <button class="active">Area</button>
+          <button>Donut</button>
+        </div>
+      </div>
+
+      <canvas id="statistikChart"></canvas>
+
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const bulan = {{ bulan_labels|safe }};
+const simpanan = {{ simpanan_data|safe }};
+const pinjaman = {{ pinjaman_data|safe }};
+
+new Chart(document.getElementById("statistikChart"), {
+  type: "line",
+  data: {
+    labels: bulan,
+    datasets: [
+      {
+        label: "Pinjaman",
+        data: pinjaman,
+        fill: true,
+        backgroundColor: "rgba(210,210,210,0.7)",
+        borderColor: "rgba(210,210,210,1)",
+        tension: 0.4,
+        pointRadius: 0
+      },
+      {
+        label: "Simpanan",
+        data: simpanan,
+        fill: true,
+        backgroundColor: "rgba(54,162,235,0.7)",
+        borderColor: "#3696e6",
+        tension: 0.4,
+        pointRadius: 0
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: "top",
+        align: "end"
+      }
+    },
+    scales: {
+      y: {
+        ticks: {
+          callback: value => "Rp " + value.toLocaleString("id-ID")
+        },
+        grid: {
+          color: "#eee"
+        }
+      },
+      x: {
+        grid: {
+          display: false
+        }
+      }
+    }
+  }
+});
+
+/* ================= DONUT ================= */
+new Chart(document.getElementById("userDonutChart"), {
+  type: "doughnut",
+  data: {
+    labels: ["Admin", "Anggota"],
+    datasets: [{
+      data: [{{ jumlah_admin }}, {{ jumlah_anggota }}],
+      backgroundColor: ["#ff6384", "#36a2eb"]
+    }]
+  },
+  options: {
+    cutout: "65%",
+    plugins: {
+      legend: { position: "bottom" }
+    }
+  }
+});
+
+/* ================= KALENDER ================= */
+const now = new Date();
+const months = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+const days = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
+
+document.getElementById("monthName").innerText = months[now.getMonth()];
+document.getElementById("yearNum").innerText = now.getFullYear();
+document.getElementById("todayInfo").innerText =
+  `Hari ini ${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]}`;
+
+const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).getDay();
+const totalDays = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+const calendar = document.getElementById("calendarDates");
+
+for (let i = 0; i < firstDay; i++) calendar.innerHTML += "<span></span>";
+for (let d = 1; d <= totalDays; d++) {
+  calendar.innerHTML += `<span class="${d === now.getDate() ? 'today' : ''}">${d}</span>`;
+}
+</script>
 
 {% endblock %}

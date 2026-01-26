@@ -72,7 +72,8 @@
             </tbody>
         </table>
 
-        {% comment %} {% include "includes/pagination_admin.html" %} {% endcomment %}
+        {% include "includes/pagination.html" with page_obj=admins param="page_admin" %}
+
     </div>
 
     <!-- ================= ANGGOTA ================= -->
@@ -98,7 +99,6 @@
                     enctype="multipart/form-data"
                     style="display:inline;">
                     {% csrf_token %}
-
                     <input type="file"
                         name="excel_file"
                         id="excelInput"
@@ -150,7 +150,17 @@
                     <td>{{ anggota.nip|default:"-" }}</td>
                     <td>{{ anggota.jenis_kelamin|default:"-" }}</td>
                     <td>{{ anggota.tanggal_daftar|date:"d M Y"|default:"-" }}</td>
-                    <td>{{ anggota.status|default:"-" }}</td>
+                    <td>
+                        {% if anggota.status|lower == "aktif" %}
+                            <span class="status-badge badge-aktif">aktif</span>
+                        {% elif anggota.status|lower == "nonaktif" %}
+                            <span class="status-badge badge-nonaktif">non-aktif</span>
+                        {% else %}
+                            <span class="status-badge badge-default">
+                                {{ anggota.status|default:"-" }}
+                            </span>
+                        {% endif %}
+                    </td>
                     <td title="{{ anggota.alasan_tidak_aktif }}">
                         {{ anggota.alasan_tidak_aktif|default:"-" }}
                     </td>
@@ -178,8 +188,8 @@
                 {% endfor %}
             </tbody>
         </table>
+        {% include "includes/pagination.html" with page_obj=anggotas param="page_anggota" %}
 
-        {% comment %} {% include "includes/pagination_anggota.html" %} {% endcomment %}
     </div>
 
 </div>
