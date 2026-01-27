@@ -128,41 +128,30 @@ def role_hakakses(request):
 
 @login_required
 @admin_only
-def pengurus_list(request):
+def pengurus_list(request, pk=None):
     pengurus = User.objects.filter(
         role__in=['ketua', 'sekretaris', 'bendahara']
     )
+
+    if pk:
+        instance = get_object_or_404(User, pk=pk)
+        title = "Edit Pengurus"
+    else:
+        instance = None
+        title = "Tambah Pengurus"
+
+    form = PengurusForm(request.POST or None, instance=instance)
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        return redirect('admin_koperasi:pengurus_list')
+
     return render(request, 'admin_koperasi/manajemen_user/pengurus_list.html', {
-        'pengurus': pengurus
-    })
-
-
-@login_required
-@admin_only
-def pengurus_create(request):
-    form = PengurusForm(request.POST or None)
-    if form.is_valid():
-        form.save()
-        return redirect('admin_koperasi:pengurus_list')
-    return render(request, 'admin_koperasi/manajemen_user/pengurus_form.html', {
+        'pengurus': pengurus,
         'form': form,
-        'title': 'Tambah Pengurus'
+        'title': title,
+        'edit_id': pk
     })
-
-
-@login_required
-@admin_only
-def pengurus_update(request, pk):
-    user = get_object_or_404(User, pk=pk)
-    form = PengurusForm(request.POST or None, instance=user)
-    if form.is_valid():
-        form.save()
-        return redirect('admin_koperasi:pengurus_list')
-    return render(request, 'admin_koperasi/manajemen_user/pengurus_form.html', {
-        'form': form,
-        'title': 'Edit Pengurus'
-    })
-
 
 @login_required
 @admin_only
@@ -174,38 +163,6 @@ def pengurus_delete(request, pk):
     return render(request, 'admin_koperasi/manajemen_user/pengurus_confirm_delete.html', {
         'user': user
     })
-
-# ================= PENGURUS =================
-@login_required
-def pengurus(request):
-    if request.user.role != 'admin':
-        return redirect('admin_koperasi:admin_login')
-
-    return render(request, 'admin_koperasi/struktur_koperasi/pengurus.html')
-
-
-@login_required
-def createpengurus(request):
-    if request.user.role != 'admin':
-        return redirect('admin_koperasi:admin_login')
-
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        role = request.POST.get('role')
-
-        if User.objects.filter(username=username).exists():
-            messages.error(request, 'Username sudah digunakan')
-        else:
-            User.objects.create_user(
-                username=username,
-                password=password,
-                role=role
-            )
-            messages.success(request, 'Pengurus berhasil ditambahkan')
-            return redirect('admin_koperasi:pengurus')
-
-    return render(request, 'admin_koperasi/struktur_koperasi/createpengurus.html')
 
 
 # ================= SISTEM =================

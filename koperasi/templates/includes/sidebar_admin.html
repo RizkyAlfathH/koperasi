@@ -23,9 +23,9 @@
         </li>
 
         <li>
-            <a href="{% url 'admin_koperasi:pengurus' %}"
-               class="{% if request.resolver_match.url_name == 'pengurus' %}active{% endif %}">
-               🏢 Pengurus
+            <a href="{% url 'admin_koperasi:pengurus_list' %}"
+                class="{% if request.resolver_match.url_name == 'pengurus_list' %}active{% endif %}">
+                🏢 Pengurus
             </a>
         </li>
 

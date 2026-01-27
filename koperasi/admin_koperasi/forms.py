@@ -5,17 +5,26 @@ class PengurusForm(forms.ModelForm):
     password = forms.CharField(
         widget=forms.PasswordInput,
         required=False,
-        help_text="Kosongkan jika tidak ingin mengubah password"
+        label="Password"
     )
 
     class Meta:
         model = User
-        fields = ['username', 'first_name', 'last_name', 'role', 'password']
+        fields = ['username', 'role', 'password']
+
+    def clean_role(self):
+        role = self.cleaned_data['role']
+        if role == 'admin':
+            raise forms.ValidationError("Tidak boleh membuat admin.")
+        return role
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        if self.cleaned_data.get('password'):
-            user.set_password(self.cleaned_data['password'])
+        pwd = self.cleaned_data.get('password')
+
+        if pwd:
+            user.set_password(pwd)
+
         if commit:
             user.save()
         return user
