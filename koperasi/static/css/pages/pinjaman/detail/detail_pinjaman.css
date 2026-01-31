@@ -111,17 +111,25 @@ label {
     font-size: 14px;
 }
 
-/* Perkecil ukuran input tanggal */
-.search-form input[type="date"] {
-    width: 150px;       /* ukuran kecil sesuai kebutuhan */
-    padding: 5px 10px;  /* sesuaikan padding */
-    font-size: 13px;    /* ukuran font lebih kecil */
-    display: inline-block;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    margin-bottom: 15px;
+/* Wrapper tanggal + reset */
+.date-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 15px; 
 }
 
+/* Input tanggal */
+.search-form input[type="date"] {
+    width: 150px;
+    padding: 5px 10px;
+    font-size: 13px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    margin-bottom: 0;
+}
+
+/* Tombol reset */
 .reset-date-btn {
     display: inline-flex;
     justify-content: center;

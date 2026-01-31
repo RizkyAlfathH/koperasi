@@ -96,17 +96,21 @@
 
 <h2 class="section-title">Riwayat Pembayaran</h2>
 
-<!-- FILTER TANGGAL -->
 <form method="GET" class="search-form" id="date-filter-form">
-    <label for="search_date">Cari Tanggal:</label>
-    <div class="date-input-wrapper" style="display:flex; align-items:center; gap:6px;">
-        <input type="date" name="search_date" id="search_date" 
-                class="form-control" value="{{ request.GET.search_date }}" 
-                onchange="document.getElementById('date-filter-form').submit();">
+    <label for="tanggal">Cari Tanggal:</label>
 
-        {% if request.GET.search_date %}
-            <a href="{% url 'pinjaman:detail_pinjaman' pinjaman.id_pinjaman %}" 
-            class="reset-date-btn" title="Reset Tanggal">
+    <div class="date-input-wrapper" style="display:flex; align-items:center; gap:6px;">
+        <input type="date"
+               name="tanggal"
+               id="tanggal"
+               class="form-control"
+               value="{{ request.GET.tanggal }}"
+               onchange="document.getElementById('date-filter-form').submit();">
+
+        {% if request.GET.tanggal %}
+            <a href="{% url 'pinjaman:detail_pinjaman' pinjaman.id_pinjaman %}"
+               class="reset-date-btn"
+               title="Reset Tanggal">
                 &#x21bb;
             </a>
         {% endif %}
@@ -154,7 +158,8 @@
         Tidak ada riwayat pembayaran.
     </div>
 {% endif %}
-
+    {% include "includes/pagination.html" with page_obj=page_obj param="page_angsuran" %}
+<br>
 <!-- ================= SISA PINJAMAN ================= -->
 <div class="sisa-pinjaman-card">
     <span>Sisa Pinjaman:</span>

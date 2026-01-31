@@ -1,5 +1,6 @@
 from django.db import models
 from anggota.models import Anggota
+from pinjaman.models import Pinjaman
 from admin_koperasi.models import User
 import datetime
 
@@ -53,6 +54,13 @@ class Simpanan(models.Model):
     tanggal = models.DateField(default=datetime.date.today)
     jumlah = models.DecimalField(max_digits=18, decimal_places=2)
     dana_sosial = models.DecimalField(max_digits=18, decimal_places=2, default=0)
+
+    sumber_pinjaman = models.ForeignKey(
+        Pinjaman,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL
+    )
 
     class Meta:
         db_table = "simpanan"

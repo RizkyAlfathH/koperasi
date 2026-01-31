@@ -83,7 +83,7 @@ def pinjaman_list(request):
         data_list.sort(key=lambda x: x['nomor_anggota'])
 
     paginator = Paginator(data_list, 10)
-    page_obj = paginator.get_page(request.GET.get('page'))
+    page_obj = paginator.get_page(request.GET.get('page_pinjaman'))
 
     return render(request, 'pinjaman_list.html', {
         'page_obj': page_obj,
@@ -259,10 +259,10 @@ def detail_pinjaman(request, id_pinjaman):
     # =========================
     # FILTER TANGGAL
     # =========================
-    search_date = request.GET.get('search_date')
-    if search_date:
+    tanggal_param = request.GET.get('tanggal')
+    if tanggal_param:
         try:
-            tanggal = datetime.strptime(search_date, "%Y-%m-%d").date()
+            tanggal = datetime.strptime(tanggal_param, "%Y-%m-%d").date()
             angsuran_qs = angsuran_qs.filter(tanggal_bayar=tanggal)
         except ValueError:
             pass
@@ -271,7 +271,7 @@ def detail_pinjaman(request, id_pinjaman):
     # PAGINATION
     # =========================
     paginator = Paginator(angsuran_qs, 5)
-    page_obj = paginator.get_page(request.GET.get('page'))
+    page_obj = paginator.get_page(request.GET.get('page_angsuran'))
 
     # =========================
     # HITUNG JASA (DINAMIS)

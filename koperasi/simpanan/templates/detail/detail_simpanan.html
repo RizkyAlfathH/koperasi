@@ -52,54 +52,59 @@
 
 <!-- ================= RIWAYAT ================= -->
 <div class="section">
-    <h2>Riwayat Transaksi {{ jenis_simpanan }}</h2>
+    <h2 class="section-title">Riwayat Transaksi {{ jenis_simpanan }}</h2>
 
-    <!-- FILTER -->
-    <form method="get" class="row g-3 align-items-end mb-4">
+    <!-- FILTER TANGGAL -->
+    <form method="GET" class="search-form" id="date-filter-form">
+        <label for="search_date">Cari Tanggal:</label>
 
-        <div class="col-md-4">
-            <label class="form-label">Cari Tanggal</label>
-            <input type="date" name="tanggal"
-                   value="{{ tanggal_filter }}"
-                   class="form-control">
+        <div class="date-input-wrapper" style="display:flex; align-items:center; gap:6px;">
+            <input type="date"
+                name="tanggal"
+                id="search_date"
+                class="form-control"
+                value="{{ tanggal_filter }}"
+                onchange="document.getElementById('date-filter-form').submit();">
+
+            {% if tanggal_filter %}
+                <a href="{% url 'simpanan:detail_simpanan' anggota.nomor_anggota jenis_simpanan.id %}"
+                class="reset-date-btn"
+                title="Reset Tanggal">
+                    &#x21bb;
+                </a>
+            {% endif %}
         </div>
-
-        <div class="col-md-2">
-            <button class="btn-simpan w-100" type="submit">Cari</button>
-        </div>
-
     </form>
 
     <!-- LIST TRANSAKSI -->
     {% for h in history %}
-    <div class="transaction-card">
+    <div class="angsuran-card">
 
-        <div class="row align-items-center">
+        <div class="angsuran-info">
+            <strong>{{ h.get_jenis_transaksi_display }}</strong><br>
+            <small>{{ h.tanggal|date:"d M Y" }}</small>
+        </div>
 
-            <div class="col-md-6">
-                <strong>{{ h.get_jenis_transaksi_display }}</strong><br>
-                <small>{{ h.tanggal|date:"d M Y" }}</small>
-            </div>
+        <div class="angsuran-actions">
+            <strong class="rupiah-text"
+                    data-value="{{ h.jumlah|floatformat:0 }}">
+            </strong>
 
-            <div class="col-md-4 text-end">
-                <strong class="rupiah-text"
-                        data-value="{{ h.jumlah|floatformat:0 }}">
-                </strong>
-            </div>
-
-            <div class="action-group col-md-2">
-                <a href="{% url 'simpanan:detail_transaksi' h.id %}" class="action-view" title="Lihat">
+            <div class="action-group">
+                <a href="{% url 'simpanan:detail_transaksi' h.id %}"
+                class="action-view" title="Lihat">
                     <i class="ph-bold ph-eye"></i>
                 </a>
 
                 <a href="{% url 'simpanan:download_kwitansi' h.id %}"
-                class="action-download"
-                title="Download Kwitansi">
+                class="action-download" title="Download Kwitansi">
                     <i class="ph-fill ph-download-simple"></i>
                 </a>
             </div>
         </div>
+
     </div>
+
     {% empty %}
         <div class="alert alert-info">
             Belum ada transaksi
