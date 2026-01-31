@@ -153,5 +153,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'admin_koperasi.User'
 
+LANGUAGE_CODE = 'id'
+USE_L10N = True
 LOGIN_REDIRECT_URL = "anggota:dashboard_redirect"
 LOGOUT_REDIRECT_URL = "admin_koperasi:admin_login"

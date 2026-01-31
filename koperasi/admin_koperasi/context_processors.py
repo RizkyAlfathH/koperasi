@@ -43,6 +43,9 @@ def sidebar_active(request):
         'menu_pinjaman_urls': [
             'pinjaman_list',
             'pinjaman_form',
+            'pinjaman_anggota',
+            'detail_pinjaman',
+            'bayar_pinjaman',
         ],
 
         # Tambahkan menu lain jika ada

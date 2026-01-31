@@ -1,0 +1,82 @@
+/* ===== JUDUL SECTION ===== */
+.content-card h2,
+.content-card h3,
+.content-card h5 {
+    font-weight: 600;
+    color: #4A2C2A;
+    margin-bottom: 12px;
+    line-height: 1.3;
+}
+
+/* Khusus judul modal */
+.bayar-card h5 {
+    text-align: center;
+    margin-bottom: 16px;
+    font-size: 20px;
+}
+
+.bayar-modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.45);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    opacity:0;
+    pointer-events:none;
+    transition:.25s;
+    z-index:9999;
+}
+
+.bayar-modal.active{
+    opacity:1;
+    pointer-events:auto;
+}
+
+.bayar-card{
+    background:#fff;
+    padding:26px;
+    max-width:380px;
+    width:100%;
+    border-radius:14px;
+}
+
+.list-pinjaman{
+    list-style:none;
+    padding:0;
+    margin:15px 0;
+}
+
+.list-pinjaman li{
+    margin-bottom:10px;
+}
+
+.list-pinjaman a{
+    display:block;
+    padding:12px;
+    background:#fff9d6;
+    border:1px solid #FFD700;
+    border-radius:10px;
+    text-decoration:none;
+    font-weight:600;
+}
+
+.list-pinjaman a:hover{
+    background:#FFD700;
+}
+
+.btn-tutup{
+    background: #FFD700;
+    color: #4A2C2A;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: none;
+    font-size: 13px;
+    transition: 0.2s;
+}
+
+.btn-tutup:hover {
+    background: #e6c200;
+}
+

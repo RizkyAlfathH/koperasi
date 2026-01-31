@@ -17,3 +17,10 @@
 .select2-selection__arrow {
     height: 40px;
 }
+
+.select2-container--default.select2-container--focus 
+.select2-selection--single {
+    border-color: #FFD700 !important;
+    box-shadow: 0 0 0 0.15rem rgba(255, 215, 0, 0.4) !important;
+    outline: none;
+}
