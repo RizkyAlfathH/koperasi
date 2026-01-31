@@ -16,3 +16,15 @@ class User(AbstractUser):
 
     def __str__(self):
         return f"{self.username} - {self.role}"
+
+# admin_koperasi/models.py
+
+class RolePermission(models.Model):
+    role = models.CharField(max_length=20)
+    permission_code = models.CharField(max_length=50)
+
+    class Meta:
+        unique_together = ('role', 'permission_code')
+
+    def __str__(self):
+        return f"{self.role} - {self.permission_code}"

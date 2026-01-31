@@ -19,8 +19,16 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
 
 from openpyxl import load_workbook
-from datetime import date, datetime
+from datetime import datetime,date
+
 import re
+
+from django.db.models import Sum
+from django.db.models.functions import TruncMonth
+
+from simpanan.models import Simpanan, Penarikan
+from pinjaman.models import Pinjaman, Angsuran
+from collections import defaultdict
 
 User = get_user_model()
 
@@ -30,24 +38,24 @@ User = get_user_model()
 ROLE_ADMIN = ["admin", "ketua", "sekretaris", "bendahara"]
 ROLE_PENGURUS = ["ketua", "sekretaris", "bendahara"]
 
-
 # ===============================
-# DASHBOARD REDIRECT (GLOBAL)
+# REDIRECT UTAMA SETELAH LOGIN
 # ===============================
 @login_required
 def dashboard_redirect(request):
     role = request.user.role
 
     if role == "ketua":
-        return render(request, "dashboard/ketua.html")
+        return redirect("anggota:dashboard_ketua")
     elif role == "sekretaris":
-        return render(request, "dashboard/sekretaris.html")
+        return redirect("anggota:dashboard_sekretaris")
     elif role == "bendahara":
-        return render(request, "dashboard/bendahara.html")
+        return redirect("anggota:dashboard_bendahara")
     elif role == "admin":
         return redirect("admin_koperasi:admin_dashboard")
     else:
         return redirect("admin_koperasi:admin_login")
+
 
 # ===============================
 # DASHBOARD PER ROLE
@@ -55,22 +63,252 @@ def dashboard_redirect(request):
 @login_required
 def ketua_dashboard(request):
     if request.user.role != "ketua":
-        return redirect("dashboard")
-    return render(request, "dashboard/ketua.html")
+        return redirect("anggota:dashboard_redirect")
 
+    # ===============================
+    # INFO CARD
+    # ===============================
+    jumlah_admin = User.objects.count()
+    jumlah_anggota = Anggota.objects.count()
+
+    jumlah_simpanan = (
+        Simpanan.objects.aggregate(total=Sum("jumlah"))["total"] or 0
+    )
+
+    jumlah_pinjaman = (
+        Pinjaman.objects.aggregate(total=Sum("jumlah_pinjaman"))["total"] or 0
+    )
+
+    # ===============================
+    # DATA BULANAN
+    # ===============================
+    simpanan_bulanan = (
+        Simpanan.objects
+        .annotate(bulan=TruncMonth("tanggal"))
+        .values("bulan")
+        .annotate(total=Sum("jumlah"))
+        .order_by("bulan")
+    )
+
+    pinjaman_bulanan = (
+        Pinjaman.objects
+        .annotate(bulan=TruncMonth("tanggal_meminjam"))
+        .values("bulan")
+        .annotate(total=Sum("jumlah_pinjaman"))
+        .order_by("bulan")
+    )
+
+    # ===============================
+    # GABUNG DATA BIAR LABEL SINKRON
+    # ===============================
+    data_bulanan = defaultdict(lambda: {
+        "simpanan": 0,
+        "pinjaman": 0
+    })
+
+    for x in simpanan_bulanan:
+        key = x["bulan"].strftime("%Y-%m")
+        data_bulanan[key]["simpanan"] = float(x["total"])
+
+    for x in pinjaman_bulanan:
+        key = x["bulan"].strftime("%Y-%m")
+        data_bulanan[key]["pinjaman"] = float(x["total"])
+
+    # ===============================
+    # SORT & FINAL ARRAY
+    # ===============================
+    bulan_labels = []
+    simpanan_data = []
+    pinjaman_data = []
+
+    for key in sorted(data_bulanan.keys()):
+        bulan_labels.append(
+            datetime.strptime(key, "%Y-%m").strftime("%b %Y")
+        )
+        simpanan_data.append(data_bulanan[key]["simpanan"])
+        pinjaman_data.append(data_bulanan[key]["pinjaman"])
+
+    # ===============================
+    # CONTEXT
+    # ===============================
+    context = {
+        "jumlah_admin": jumlah_admin,
+        "jumlah_anggota": jumlah_anggota,
+        "jumlah_simpanan": jumlah_simpanan,
+        "jumlah_pinjaman": jumlah_pinjaman,
+        "bulan_labels": bulan_labels,
+        "simpanan_data": simpanan_data,
+        "pinjaman_data": pinjaman_data,
+    }
+
+    return render(request, "dashboard/ketua.html", context)
 
 @login_required
 def sekretaris_dashboard(request):
     if request.user.role != "sekretaris":
-        return redirect("dashboard")
-    return render(request, "dashboard/sekretaris.html")
+        return redirect("anggota:dashboard_redirect")
 
+    # ===============================
+    # INFO CARD
+    # ===============================
+    jumlah_admin = User.objects.count()
+    jumlah_anggota = Anggota.objects.count()
+
+    jumlah_simpanan = (
+        Simpanan.objects.aggregate(total=Sum("jumlah"))["total"] or 0
+    )
+
+    jumlah_pinjaman = (
+        Pinjaman.objects.aggregate(total=Sum("jumlah_pinjaman"))["total"] or 0
+    )
+
+    # ===============================
+    # DATA BULANAN
+    # ===============================
+    simpanan_bulanan = (
+        Simpanan.objects
+        .annotate(bulan=TruncMonth("tanggal"))
+        .values("bulan")
+        .annotate(total=Sum("jumlah"))
+        .order_by("bulan")
+    )
+
+    pinjaman_bulanan = (
+        Pinjaman.objects
+        .annotate(bulan=TruncMonth("tanggal_meminjam"))
+        .values("bulan")
+        .annotate(total=Sum("jumlah_pinjaman"))
+        .order_by("bulan")
+    )
+
+    # ===============================
+    # GABUNG DATA BIAR LABEL SINKRON
+    # ===============================
+    data_bulanan = defaultdict(lambda: {
+        "simpanan": 0,
+        "pinjaman": 0
+    })
+
+    for x in simpanan_bulanan:
+        key = x["bulan"].strftime("%Y-%m")
+        data_bulanan[key]["simpanan"] = float(x["total"])
+
+    for x in pinjaman_bulanan:
+        key = x["bulan"].strftime("%Y-%m")
+        data_bulanan[key]["pinjaman"] = float(x["total"])
+
+    # ===============================
+    # SORT & FINAL ARRAY
+    # ===============================
+    bulan_labels = []
+    simpanan_data = []
+    pinjaman_data = []
+
+    for key in sorted(data_bulanan.keys()):
+        bulan_labels.append(
+            datetime.strptime(key, "%Y-%m").strftime("%b %Y")
+        )
+        simpanan_data.append(data_bulanan[key]["simpanan"])
+        pinjaman_data.append(data_bulanan[key]["pinjaman"])
+
+    # ===============================
+    # CONTEXT
+    # ===============================
+    context = {
+        "jumlah_admin": jumlah_admin,
+        "jumlah_anggota": jumlah_anggota,
+        "jumlah_simpanan": jumlah_simpanan,
+        "jumlah_pinjaman": jumlah_pinjaman,
+        "bulan_labels": bulan_labels,
+        "simpanan_data": simpanan_data,
+        "pinjaman_data": pinjaman_data,
+    }
+
+    return render(request, "dashboard/sekretaris.html", context)
 
 @login_required
 def bendahara_dashboard(request):
     if request.user.role != "bendahara":
-        return redirect("dashboard")
-    return render(request, "dashboard/bendahara.html")
+        return redirect("anggota:dashboard_redirect")
+
+
+    # ===============================
+    # INFO CARD
+    # ===============================
+    jumlah_admin = User.objects.count()
+    jumlah_anggota = Anggota.objects.count()
+
+    jumlah_simpanan = (
+        Simpanan.objects.aggregate(total=Sum("jumlah"))["total"] or 0
+    )
+
+    jumlah_pinjaman = (
+        Pinjaman.objects.aggregate(total=Sum("jumlah_pinjaman"))["total"] or 0
+    )
+
+    # ===============================
+    # DATA BULANAN
+    # ===============================
+    simpanan_bulanan = (
+        Simpanan.objects
+        .annotate(bulan=TruncMonth("tanggal"))
+        .values("bulan")
+        .annotate(total=Sum("jumlah"))
+        .order_by("bulan")
+    )
+
+    pinjaman_bulanan = (
+        Pinjaman.objects
+        .annotate(bulan=TruncMonth("tanggal_meminjam"))
+        .values("bulan")
+        .annotate(total=Sum("jumlah_pinjaman"))
+        .order_by("bulan")
+    )
+
+    # ===============================
+    # GABUNG DATA BIAR LABEL SINKRON
+    # ===============================
+    data_bulanan = defaultdict(lambda: {
+        "simpanan": 0,
+        "pinjaman": 0
+    })
+
+    for x in simpanan_bulanan:
+        key = x["bulan"].strftime("%Y-%m")
+        data_bulanan[key]["simpanan"] = float(x["total"])
+
+    for x in pinjaman_bulanan:
+        key = x["bulan"].strftime("%Y-%m")
+        data_bulanan[key]["pinjaman"] = float(x["total"])
+
+    # ===============================
+    # SORT & FINAL ARRAY
+    # ===============================
+    bulan_labels = []
+    simpanan_data = []
+    pinjaman_data = []
+
+    for key in sorted(data_bulanan.keys()):
+        bulan_labels.append(
+            datetime.strptime(key, "%Y-%m").strftime("%b %Y")
+        )
+        simpanan_data.append(data_bulanan[key]["simpanan"])
+        pinjaman_data.append(data_bulanan[key]["pinjaman"])
+
+    # ===============================
+    # CONTEXT
+    # ===============================
+    context = {
+        "jumlah_admin": jumlah_admin,
+        "jumlah_anggota": jumlah_anggota,
+        "jumlah_simpanan": jumlah_simpanan,
+        "jumlah_pinjaman": jumlah_pinjaman,
+        "bulan_labels": bulan_labels,
+        "simpanan_data": simpanan_data,
+        "pinjaman_data": pinjaman_data,
+    }
+
+    return render(request, "dashboard/bendahara.html", context)
 
 
 # ===============================
@@ -158,7 +396,7 @@ def edit_admin(request, user_id):
     if form.is_valid():
         form.save()
         messages.success(request, "Admin berhasil diperbarui.")
-        return redirect("kelola_akun", role=request.user.role)
+        return redirect("kelola_akun")
 
     return render(request, "kelola_akun/Form/form_admin.html", {
         "form": form,
@@ -174,7 +412,7 @@ def hapus_admin(request, user_id):
     admin = get_object_or_404(User, id=user_id, role__in=ROLE_PENGURUS)
     admin.delete()
     messages.success(request, "Admin berhasil dihapus.")
-    return redirect("kelola_akun", role=request.user.role)
+    return redirect("kelola_akun")
 
 def detail_admin(request, user_id):
     admin = get_object_or_404(User, id=user_id)
@@ -201,7 +439,7 @@ def tambah_anggota(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Anggota berhasil ditambahkan.")
-            return redirect("kelola_akun", role=request.user.role)
+            return redirect("kelola_akun")
     else:
         form = AnggotaForm()
 
@@ -222,7 +460,7 @@ def edit_anggota(request, nomor_anggota):
     if form.is_valid():
         form.save()
         messages.success(request, "Anggota berhasil diperbarui.")
-        return redirect("kelola_akun", role=request.user.role)
+        return redirect("kelola_akun")
 
     return render(request, "kelola_akun/Form/form_anggota.html", {
         "form": form,
@@ -238,7 +476,7 @@ def hapus_anggota(request, nomor_anggota):
     anggota = get_object_or_404(Anggota, nomor_anggota=nomor_anggota)
     anggota.delete()
     messages.success(request, "Anggota berhasil dihapus.")
-    return redirect("kelola_akun", role=request.user.role)
+    return redirect("kelola_akun")
 
 def detail_anggota(request, nomor_anggota):
     anggota = get_object_or_404(Anggota, nomor_anggota=nomor_anggota)

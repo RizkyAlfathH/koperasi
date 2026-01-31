@@ -108,6 +108,10 @@
     background: #22c55e;
 }
 
+.action-download {
+    background: #22c55e;
+}
+
 /* Hover */
 .action-group a:hover,
 .action-tarik:hover {
@@ -184,4 +188,20 @@
 .badge-belum {
     background: #f8d7da;
     color: #721c24;
+}
+.btn-kembali {
+    background: #FFD700;
+    color: #4A2C2A;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: none;
+    font-size: 13px;
+    transition: 0.2s;
+    text-decoration: none;
+    float: right;
+}
+
+.btn-kembali:hover {
+    background: #e6c200;
 }

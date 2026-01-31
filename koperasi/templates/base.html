@@ -42,8 +42,10 @@
     <div class="spinner"></div>
 </div>
 
-{% include "includes/sidebar.html" %}
-{% include "includes/navbar.html" %}
+{% if request.user.is_authenticated %}
+    {% include "includes/sidebar.html" %}
+    {% include "includes/navbar.html" %}
+{% endif %}
 
 <div class="main-content">
     {% block content %}{% endblock %}

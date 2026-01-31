@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/simpanan/detail/detail_simpanan.css' %}">
+{% endblock %}
+
+{% block title %}Detail Simpanan{% endblock %}
+
+{% block content %}
+
+<!-- ================= DETAIL SIMPANAN ================= -->
+<div class="content-card">
+    <h1>Detail Simpanan</h1>
+
+    <div class="row g-4">
+
+        <div class="col-md-6">
+            <label class="form-label">Nomor Anggota</label>
+            <input type="text" class="form-control" readonly
+                   value="{{ anggota.nomor_anggota }}">
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label">Nama Anggota</label>
+            <input type="text" class="form-control" readonly
+                   value="{{ anggota.nama }}">
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label">Jenis Simpanan</label>
+            <input type="text" class="form-control" readonly
+                   value="{{ jenis_simpanan }}">
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label">Tanggal Membuat Tabungan</label>
+            <input type="text" class="form-control" readonly
+                   value="{{ anggota.tanggal_daftar|date:'d M Y' }}">
+        </div>
+
+        <div class="col-md-12">
+            <label class="form-label">Saldo {{ jenis_simpanan }}</label>
+            <input type="text"
+                   class="form-control rupiah-input"
+                   data-value="{{ saldo_jenis|floatformat:0 }}"
+                   readonly>
+        </div>
+
+    </div>
+</div>
+
+<!-- ================= RIWAYAT ================= -->
+<div class="section">
+    <h2>Riwayat Transaksi {{ jenis_simpanan }}</h2>
+
+    <!-- FILTER -->
+    <form method="get" class="row g-3 align-items-end mb-4">
+
+        <div class="col-md-4">
+            <label class="form-label">Cari Tanggal</label>
+            <input type="date" name="tanggal"
+                   value="{{ tanggal_filter }}"
+                   class="form-control">
+        </div>
+
+        <div class="col-md-2">
+            <button class="btn-simpan w-100" type="submit">Cari</button>
+        </div>
+
+    </form>
+
+    <!-- LIST TRANSAKSI -->
+    {% for h in history %}
+    <div class="transaction-card">
+
+        <div class="row align-items-center">
+
+            <div class="col-md-6">
+                <strong>{{ h.get_jenis_transaksi_display }}</strong><br>
+                <small>{{ h.tanggal|date:"d M Y" }}</small>
+            </div>
+
+            <div class="col-md-4 text-end">
+                <strong class="rupiah-text"
+                        data-value="{{ h.jumlah|floatformat:0 }}">
+                </strong>
+            </div>
+
+            <div class="action-group col-md-2">
+                <a href="{% url 'simpanan:detail_transaksi' h.id %}" class="action-view" title="Lihat">
+                    <i class="ph-bold ph-eye"></i>
+                </a>
+
+                <a href="{% url 'simpanan:download_kwitansi' h.id %}"
+                class="action-download"
+                title="Download Kwitansi">
+                    <i class="ph-fill ph-download-simple"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+        <div class="alert alert-info">
+            Belum ada transaksi
+        </div>
+    {% endfor %}
+</div>
+{% include "includes/pagination.html" with page_obj=page_obj param=param %}
+
+
+<!-- ================= KEMBALI ================= -->
+<div class="mt-4">
+    <a href="{% url 'simpanan:simpanan_anggota' anggota.nomor_anggota %}"
+       class="btn-kembali">
+        Kembali
+    </a>
+</div>
+
+<!-- ================= FORMAT RUPIAH ================= -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    function formatRupiah(angka) {
+        return "Rp " + parseInt(angka).toLocaleString("id-ID");
+    }
+
+    // Saldo (input)
+    document.querySelectorAll(".rupiah-input").forEach(el => {
+        const value = el.dataset.value;
+        if (value) {
+            el.value = formatRupiah(value);
+        }
+    });
+
+    // Riwayat (text)
+    document.querySelectorAll(".rupiah-text").forEach(el => {
+        const value = el.dataset.value;
+        if (value) {
+            el.innerText = formatRupiah(value);
+        }
+    });
+
+});
+</script>
+
+{% endblock %}

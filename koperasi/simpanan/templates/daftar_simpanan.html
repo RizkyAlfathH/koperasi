@@ -48,16 +48,16 @@
             </tr>
         </thead>
         <tbody>
-            {% for item in data %}
+            {% for row in data %}
                 <tr>
-                    <td>{{ item.nomor_anggota }}</td>
-                    <td>{{ item.nama_anggota }}</td>
-                    <td class="rupiah-text">{{ item.total_pokok|floatformat:0 }}</td>
-                    <td class="rupiah-text">{{ item.total_wajib|floatformat:0 }}</td>
-                    <td class="rupiah-text">{{ item.total_sukarela|floatformat:0 }}</td>
-                    <td class="rupiah-text">{{ item.total_dana_sosial|floatformat:0 }}</td>
+                    <td>{{ row.nomor_anggota }}</td>
+                    <td>{{ row.nama_anggota }}</td>
+                    <td class="rupiah-text">{{ row.total_pokok|floatformat:0 }}</td>
+                    <td class="rupiah-text">{{ row.total_wajib|floatformat:0 }}</td>
+                    <td class="rupiah-text">{{ row.total_sukarela|floatformat:0 }}</td>
+                    <td class="rupiah-text">{{ row.total_dana_sosial|floatformat:0 }}</td>
                     <td class="action-group">
-                        <a href="{% url 'simpanan:simpanan_anggota' item.nomor_anggota %}"class="action-view"><i class="ph-bold ph-eye"></i></a>
+                        <a href="{% url 'simpanan:simpanan_anggota' row.nomor_anggota %}"class="action-view"><i class="ph-bold ph-eye"></i></a>
                         {% comment %} <a href="#" class="btn-edit"><i class="ph-bold ph-pencil-simple"></i></a> {% endcomment %}
                         <a href="#" class="action-delete"><i class="ph-bold ph-trash"></i></a>
                     </td>
@@ -70,40 +70,6 @@
 
         </tbody>
     </table>
-
-    <!-- PAGINATION -->
-    <div class="pagination-container">
-        <div class="pagination-info">
-            Menampilkan
-            <strong>{{ page_obj.start_index }}</strong> –
-            <strong>{{ page_obj.end_index }}</strong>
-            dari
-            <strong>{{ page_obj.paginator.count }}</strong>
-            data
-        </div>
-
-        <div class="pagination-modern">
-            {% if page_obj.has_previous %}
-                <a href="?page={{ page_obj.previous_page_number }}&searchSimpanan={{ searchSimpanan }}"
-                   class="page-btn prev">←</a>
-            {% endif %}
-
-            {% for num in page_obj.paginator.page_range %}
-                {% if num >= page_obj.number|add:'-2' and num <= page_obj.number|add:'2' %}
-                    {% if page_obj.number == num %}
-                        <span class="page-btn active">{{ num }}</span>
-                    {% else %}
-                        <a href="?page={{ num }}&searchSimpanan={{ searchSimpanan }}"
-                           class="page-btn">{{ num }}</a>
-                    {% endif %}
-                {% endif %}
-            {% endfor %}
-
-            {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}&searchSimpanan={{ searchSimpanan }}"
-                   class="page-btn next">→</a>
-            {% endif %}
-        </div>
-    </div>
+       {% include "includes/pagination.html" with page_obj=page_obj param=param %}
 </div>
 {% endblock %}

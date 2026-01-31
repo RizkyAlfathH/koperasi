@@ -1,16 +1,45 @@
 from django.urls import path
-from .views import (
-    admin_login,
-    admin_dashboard,
-    admin_logout,
-    createpengurus
-)
+from . import views
 
 app_name = 'admin_koperasi'
 
 urlpatterns = [
-    path('login/', admin_login, name='admin_login'),
-    path('dashboard/', admin_dashboard, name='admin_dashboard'),
-    path('pengurus/tambah/', createpengurus, name='createpengurus'),
-    path('logout/', admin_logout, name='admin_logout'),
+
+    # ===== AUTH =====
+    path('login/', views.admin_login, name='admin_login'),
+    path('logout/', views.admin_logout, name='admin_logout'),
+
+    # ===== DASHBOARD =====
+    path('dashboard/', views.admin_dashboard, name='admin_dashboard'),
+
+    # ===== ROLE & HAK AKSES =====
+    path(
+        'role-hak-akses/',
+        views.role_hakakses,
+        name='role_hakakses'
+    ),
+
+    # ===== PENGURUS (CRUD) =====
+    path(
+        'pengurus/',
+        views.pengurus,
+        name='pengurus'
+    ),
+    path(
+        'pengurus/tambah/',
+        views.createpengurus,
+        name='createpengurus'
+    ),
+
+    # ===== SISTEM =====
+    path(
+        'log-aktifitas/',
+        views.log_aktifitas,
+        name='log_aktifitas'
+    ),
+    path(
+        'pengaturan-sistem/',
+        views.pengaturan_sistem,
+        name='pengaturan_sistem'
+    ),
 ]

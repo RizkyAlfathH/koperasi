@@ -6,6 +6,13 @@ def sidebar_active(request):
     """
 
     return {
+        # ================= DASHBOARD =================
+        'menu_dashboard_urls': [
+            'dashboard_redirect',
+            'dashboard_ketua',
+            'dashboard_sekretaris',
+            'dashboard_bendahara',
+        ],
         # Menu Kelola Akun (Admin + Anggota)
         'menu_akun_urls': [
             'kelola_akun',
@@ -27,6 +34,9 @@ def sidebar_active(request):
             'daftar_simpanan',
             'simpanan_form',
             'simpanan_anggota',
+            'detail_simpanan',
+            'tambah_penarikan',
+            'detail_transaksi',
         ],
 
         # Menu Pinjaman

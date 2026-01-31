@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'static',
 
     'widget_tweaks',
+    "django_extensions",
 ]
 
 MIDDLEWARE = [
@@ -71,6 +72,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                'admin_koperasi.context_processors.sidebar_active',
             ],
         },
     },
@@ -153,3 +155,5 @@ AUTH_USER_MODEL = 'admin_koperasi.User'
 
 LANGUAGE_CODE = 'id'
 USE_L10N = True
+LOGIN_REDIRECT_URL = "anggota:dashboard_redirect"
+LOGOUT_REDIRECT_URL = "admin_koperasi:admin_login"
