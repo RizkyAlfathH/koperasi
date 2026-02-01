@@ -1,12 +1,15 @@
 {% extends "base.html" %}
-{% block title %}Manajemen Simpanan{% endblock %}
+{% load widget_tweaks %}
 {% load static %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/simpanan/daftar_simpanan.css' %}">
+<link rel="stylesheet" href="{% static 'css/pages/simpanan/daftar_simpanan.css' %}">
 {% endblock %}
 
+{% block title %}Manajemen Simpanan{% endblock %}
+
 {% block content %}
+
 <h1>Manajemen Simpanan</h1>
 
 <div class="content-card">
