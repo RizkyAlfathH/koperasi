@@ -1,0 +1,84 @@
+{% extends "admin_koperasi/dashboard.html" %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/pengurus/form.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="page-tambah-admin">
+    <div class="form-card">
+
+        <h2>{{ title }}</h2>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="row g-2">
+                {% for field in form %}
+                    {% if "password" in field.name %}
+                        <div class="col-12 col-md-6">
+                            <label>{{ field.label }}</label>
+                            <div class="input-wrapper">
+                                {{ field|add_class:"form-control" }}
+                                <i class="bi bi-eye-slash-fill input-icon toggle-password"></i>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="col-12 col-md-6">
+                            <label>{{ field.label }}</label>
+                            {{ field|add_class:"form-control" }}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <div class="text-end mt-4">
+                <a href="{% url 'admin_koperasi:pengurus_list' %}" class="btn-outline">
+                    Batal
+                </a>
+                <button type="submit" class="btn-simpan">
+                    Simpan
+                </button>
+            </div>
+
+            {% if form.errors %}
+            <div class="alert mt-4">
+                <ul class="mb-0">
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </form>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('click', function (e) {
+    if (e.target.classList.contains('toggle-password')) {
+        const input = e.target.parentElement.querySelector('input');
+        const icon = e.target;
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('bi-eye-slash-fill');
+            icon.classList.add('bi-eye-fill');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('bi-eye-fill');
+            icon.classList.add('bi-eye-slash-fill');
+        }
+    }
+});
+</script>
+{% endblock %}
