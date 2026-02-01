@@ -20,9 +20,12 @@ from reportlab.lib.units import cm
 from num2words import num2words
 from reportlab.lib import colors
 from reportlab.platypus import Table, TableStyle
+from admin_koperasi.utils import has_page_permission
 
 @login_required
 def daftar_simpanan(request):
+    if not has_page_permission(request.user, "simpanan"):
+        return redirect("dashboard")
     data_list = []
 
     search_query = request.GET.get('search', '')
@@ -321,8 +324,8 @@ def download_kwitansi(request, history_id):
     if trx.jenis_transaksi == HistoryTabungan.SETOR:
         judul = "BUKTI PENERIMAAN KAS"
         pihak_label = "Diterima dari"
-        pemberi = f"({anggota.nama})"
-        penerima = "(...........................)"
+        pemberi = "(...........................)"
+        penerima = f"({anggota.nama})"
         filename = f"kwitansi_setoran_{anggota.nama}"
 
     elif trx.jenis_transaksi == HistoryTabungan.TARIK:

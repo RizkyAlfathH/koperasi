@@ -1,11 +1,13 @@
 from django.contrib.auth import authenticate, login, logout
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 
 from admin_koperasi.models import RolePermission
 from django.db import transaction
+from .forms import PengurusForm
+from .decorators import admin_only
 
 User = get_user_model()
 
@@ -48,12 +50,9 @@ def admin_dashboard(request):
 
 @login_required
 def role_hakakses(request):
-    if request.user.role != 'admin':
+    if request.user.role != "admin":
         return redirect("admin_koperasi:admin_login")
 
-    # =============================
-    # MASTER PERMISSIONS
-    # =============================
     permissions = [
         {"code": "dashboard_ketua", "name": "Dashboard Ketua"},
         {"code": "dashboard_sekretaris", "name": "Dashboard Sekretaris"},
@@ -64,112 +63,108 @@ def role_hakakses(request):
         {"code": "laporan", "name": "Laporan"},
     ]
 
-    # =============================
-    # HANDLE POST (SIMPAN KE DB)
-    # =============================
+    roles = ["ketua", "sekretaris", "bendahara"]
+
+    # ================= POST =================
     if request.method == "POST":
-        ketua_permissions = request.POST.getlist("ketua_permissions")
-        sekretaris_permissions = request.POST.getlist("sekretaris_permissions")
-        bendahara_permissions = request.POST.getlist("bendahara_permissions")
-
         with transaction.atomic():
-            RolePermission.objects.filter(
-                role__in=["ketua", "sekretaris", "bendahara"]
-            ).delete()
+            for role in roles:
+                RolePermission.objects.filter(role=role).delete()
 
-            for p in ketua_permissions:
-                RolePermission.objects.create(role="ketua", permission_code=p)
-
-            for p in sekretaris_permissions:
-                RolePermission.objects.create(role="sekretaris", permission_code=p)
-
-            for p in bendahara_permissions:
-                RolePermission.objects.create(role="bendahara", permission_code=p)
+                selected_permissions = request.POST.getlist(f"{role}_permissions")
+                for p in selected_permissions:
+                    RolePermission.objects.create(
+                        role=role,
+                        permission_code=p
+                    )
 
         messages.success(request, "Hak akses berhasil disimpan")
         return redirect("admin_koperasi:role_hakakses")
 
-    # =============================
-    # LOAD DATA DARI DB
-    # =============================
-    role_permissions = {
-        "ketua": [],
-        "sekretaris": [],
-        "bendahara": [],
-    }
+    # ================= LOAD =================
+    role_permissions = {role: [] for role in roles}
 
-    for rp in RolePermission.objects.all():
+    data = RolePermission.objects.all()
+
+    # === DEFAULT JIKA DB KOSONG ===
+    if not data.exists():
+        default_data = {
+            "ketua": [p["code"] for p in permissions],
+            "sekretaris": [
+                "dashboard_sekretaris",
+                "kelola_anggota",
+            ],
+            "bendahara": [
+                "dashboard_bendahara",
+                "simpanan",
+                "pinjaman",
+                "laporan",
+            ],
+        }
+
+        for role, perms in default_data.items():
+            for p in perms:
+                RolePermission.objects.create(role=role, permission_code=p)
+
+        data = RolePermission.objects.all()
+
+    for rp in data:
         role_permissions[rp.role].append(rp.permission_code)
-
-    # fallback default kalau DB masih kosong
-    if not RolePermission.objects.exists():
-        role_permissions["ketua"] = [p["code"] for p in permissions]
-        role_permissions["sekretaris"] = [
-            "dashboard_sekretaris",
-            "kelola_anggota",
-        ]
-        role_permissions["bendahara"] = [
-            "dashboard_bendahara",
-            "simpanan",
-            "pinjaman",
-            "laporan",
-        ]
 
     return render(
         request,
-        "admin_koperasi/manajemen_user/role_hakakases.html",
+        "admin_koperasi/manajemen_user/role_hakakses.html",
         {
             "permissions": permissions,
             "role_permissions": role_permissions,
         }
     )
 
-
-# ================= PENGURUS =================
 @login_required
-def pengurus(request):
-    if request.user.role != 'admin':
-        return redirect('admin_koperasi:admin_login')
+@admin_only
+def pengurus_list(request, pk=None):
+    pengurus = User.objects.filter(
+        role__in=['ketua', 'sekretaris', 'bendahara']
+    )
 
-    return render(request, 'admin_koperasi/struktur_koperasi/pengurus.html')
+    if pk:
+        instance = get_object_or_404(User, pk=pk)
+        title = "Edit Pengurus"
+    else:
+        instance = None
+        title = "Tambah Pengurus"
 
+    form = PengurusForm(request.POST or None, instance=instance)
+
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        return redirect('admin_koperasi:pengurus_list')
+
+    return render(request, 'admin_koperasi/manajemen_user/pengurus_list.html', {
+        'pengurus': pengurus,
+        'form': form,
+        'title': title,
+        'edit_id': pk
+    })
 
 @login_required
-def createpengurus(request):
-    if request.user.role != 'admin':
-        return redirect('admin_koperasi:admin_login')
-
+@admin_only
+def pengurus_delete(request, pk):
+    user = get_object_or_404(User, pk=pk)
     if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        role = request.POST.get('role')
-
-        if User.objects.filter(username=username).exists():
-            messages.error(request, 'Username sudah digunakan')
-        else:
-            User.objects.create_user(
-                username=username,
-                password=password,
-                role=role
-            )
-            messages.success(request, 'Pengurus berhasil ditambahkan')
-            return redirect('admin_koperasi:pengurus')
-
-    return render(request, 'admin_koperasi/struktur_koperasi/createpengurus.html')
-
-
-# ================= SISTEM =================
-@login_required
-def log_aktifitas(request):
-    if request.user.role != 'admin':
-        return redirect('admin_koperasi:admin_login')
-
-    return render(request, 'admin_koperasi/sistem/log_aktifitas.html')
-
+        user.delete()
+        return redirect('admin_koperasi:pengurus_list')
+    return render(request, 'admin_koperasi/manajemen_user/pengurus_confirm_delete.html', {
+        'user': user
+    })
 
 @login_required
-def pengaturan_sistem(request):
-    if request.user.role != 'admin':
-        return redirect('admin_koperasi:admin_login')
+@admin_only
+def pengurus_toggle(request, pk):
+    user = get_object_or_404(User, pk=pk)
 
-    return render(request, 'admin_koperasi/sistem/pengaturan_sistem.html')
+    if request.method == "POST":
+        user.is_active = not user.is_active
+        user.save()
+
+    return redirect('admin_koperasi:pengurus_list')

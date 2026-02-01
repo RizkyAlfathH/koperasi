@@ -3,33 +3,42 @@
 
 {% block title %}Manajemen Role & Hak Akses{% endblock %}
 
-{% block content %}
-<div class="container mt-4">
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/admin_koperasi/role_permission.css' %}">
+{% endblock %}
 
-  <h3 class="mb-4">Manajemen Role & Hak Akses</h3>
+{% block content %}
+<div class="container-fluid">
+
+  <!-- ===== HEADER ===== -->
+  <div class="mb-4">
+    <h4 class="mb-1">Manajemen Role & Hak Akses</h4>
+    <small class="text-muted">
+      Atur hak akses setiap role pengguna sistem
+    </small>
+  </div>
 
   <form method="post">
     {% csrf_token %}
 
     <!-- ================= KETUA ================= -->
-    <div class="card mb-4">
-      <div class="card-header bg-primary text-white">
-        <strong>Role: Ketua</strong>
+    <div class="card admin-card mb-4">
+      <div class="card-header admin-card-header">
+        Role: Ketua
       </div>
       <div class="card-body">
-
-        <p class="text-muted">Ketua selalu memiliki akses penuh</p>
-
         <div class="row">
           {% for permission in permissions %}
-          <div class="col-md-4">
-            <div class="form-check">
+          <div class="col-md-4 mb-2">
+            <div class="form-check admin-check">
               <input
                 class="form-check-input"
                 type="checkbox"
                 name="ketua_permissions"
                 value="{{ permission.code }}"
-                checked
+                {% if permission.code in role_permissions.ketua %}
+                  checked
+                {% endif %}
               >
               <label class="form-check-label">
                 {{ permission.name }}
@@ -38,20 +47,20 @@
           </div>
           {% endfor %}
         </div>
-
       </div>
     </div>
 
+
     <!-- ================= SEKRETARIS ================= -->
-    <div class="card mb-4">
-      <div class="card-header bg-success text-white">
-        <strong>Role: Sekretaris</strong>
+    <div class="card admin-card mb-4">
+      <div class="card-header admin-card-header">
+        Role: Sekretaris
       </div>
       <div class="card-body">
         <div class="row">
           {% for permission in permissions %}
-          <div class="col-md-4">
-            <div class="form-check">
+          <div class="col-md-4 mb-2">
+            <div class="form-check admin-check">
               <input
                 class="form-check-input"
                 type="checkbox"
@@ -72,15 +81,15 @@
     </div>
 
     <!-- ================= BENDAHARA ================= -->
-    <div class="card mb-4">
-      <div class="card-header bg-warning">
-        <strong>Role: Bendahara</strong>
+    <div class="card admin-card mb-4">
+      <div class="card-header admin-card-header">
+        Role: Bendahara
       </div>
       <div class="card-body">
         <div class="row">
           {% for permission in permissions %}
-          <div class="col-md-4">
-            <div class="form-check">
+          <div class="col-md-4 mb-2">
+            <div class="form-check admin-check">
               <input
                 class="form-check-input"
                 type="checkbox"
@@ -101,7 +110,7 @@
     </div>
 
     <div class="text-end">
-      <button type="submit" class="btn btn-primary">
+      <button type="submit" class="btn btn-admin-primary">
         Simpan Hak Akses
       </button>
     </div>

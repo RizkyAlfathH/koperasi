@@ -23,29 +23,11 @@
             <p>Kelola peran sistem</p>
         </a>
 
-        <a href="{% url 'admin_koperasi:pengurus' %}" class="card">
+        <a href="{% url 'admin_koperasi:pengurus_list' %}" class="card">
             <span class="icon">🏢</span>
             <h3>Pengurus</h3>
             <p>CRUD akun pengurus</p>
         </a>
-
-        <a href="{% url 'admin_koperasi:log_aktifitas' %}" class="card">
-            <span class="icon">📄</span>
-            <h3>Log Aktivitas</h3>
-            <p>Audit sistem</p>
-        </a>
-
-        <a href="{% url 'admin_koperasi:pengaturan_sistem' %}" class="card">
-            <span class="icon">⚙️</span>
-            <h3>Pengaturan Sistem</h3>
-            <p>Konfigurasi aplikasi</p>
-        </a>
-
-        <a href="{% url 'admin_koperasi:admin_logout' %}" class="card logout">
-            <span class="icon">🚪</span>
-            <h3>Logout</h3>
-        </a>
-
     </div>
 </div>
 {% endblock %}

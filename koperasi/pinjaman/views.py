@@ -14,9 +14,12 @@ from .forms import PinjamanForm
 from admin_koperasi.models import User
 from anggota.models import Anggota
 from simpanan.models import Simpanan, JenisSimpanan
+from admin_koperasi.utils import has_page_permission
 
 @login_required
 def pinjaman_list(request):
+    if not has_page_permission(request.user, "pinjaman"):
+        return redirect("dashboard")
     data_list = []
 
     search_query = request.GET.get('search', '')

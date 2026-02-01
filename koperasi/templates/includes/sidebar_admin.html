@@ -23,23 +23,9 @@
         </li>
 
         <li>
-            <a href="{% url 'admin_koperasi:pengurus' %}"
-               class="{% if request.resolver_match.url_name == 'pengurus' %}active{% endif %}">
-               🏢 Pengurus
-            </a>
-        </li>
-
-        <li>
-            <a href="{% url 'admin_koperasi:log_aktifitas' %}"
-               class="{% if request.resolver_match.url_name == 'log_aktifitas' %}active{% endif %}">
-               📄 Log Aktivitas
-            </a>
-        </li>
-
-        <li>
-            <a href="{% url 'admin_koperasi:pengaturan_sistem' %}"
-               class="{% if request.resolver_match.url_name == 'pengaturan_sistem' %}active{% endif %}">
-               ⚙️ Pengaturan Sistem
+            <a href="{% url 'admin_koperasi:pengurus_list' %}"
+                class="{% if request.resolver_match.url_name == 'pengurus_list' %}active{% endif %}">
+                🏢 Pengurus
             </a>
         </li>
     </ul>
