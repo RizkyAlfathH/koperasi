@@ -1,3 +1,23 @@
+/* ===============================
+   PEMISAH SIMPANAN & PINJAMAN
+   =============================== */
+
+/* Supaya garis lebih halus */
+.data-table th,
+.data-table td {
+    border-left: 2px solid #eee;
+}
+
+.data-table th {
+    text-align: center;
+}
+
+.info-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: #4A2C2A;
+}
+
 /* SEARCH FORM */
 .filter-form {
     display: flex;
