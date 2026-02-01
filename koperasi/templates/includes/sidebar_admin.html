@@ -28,20 +28,6 @@
                 🏢 Pengurus
             </a>
         </li>
-
-        <li>
-            <a href="{% url 'admin_koperasi:log_aktifitas' %}"
-               class="{% if request.resolver_match.url_name == 'log_aktifitas' %}active{% endif %}">
-               📄 Log Aktivitas
-            </a>
-        </li>
-
-        <li>
-            <a href="{% url 'admin_koperasi:pengaturan_sistem' %}"
-               class="{% if request.resolver_match.url_name == 'pengaturan_sistem' %}active{% endif %}">
-               ⚙️ Pengaturan Sistem
-            </a>
-        </li>
     </ul>
 
     <div class="logout-btn">

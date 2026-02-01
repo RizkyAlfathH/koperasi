@@ -164,19 +164,13 @@ def pengurus_delete(request, pk):
         'user': user
     })
 
-
-# ================= SISTEM =================
 @login_required
-def log_aktifitas(request):
-    if request.user.role != 'admin':
-        return redirect('admin_koperasi:admin_login')
+@admin_only
+def pengurus_toggle(request, pk):
+    user = get_object_or_404(User, pk=pk)
 
-    return render(request, 'admin_koperasi/sistem/log_aktifitas.html')
+    if request.method == "POST":
+        user.is_active = not user.is_active
+        user.save()
 
-
-@login_required
-def pengaturan_sistem(request):
-    if request.user.role != 'admin':
-        return redirect('admin_koperasi:admin_login')
-
-    return render(request, 'admin_koperasi/sistem/pengaturan_sistem.html')
+    return redirect('admin_koperasi:pengurus_list')

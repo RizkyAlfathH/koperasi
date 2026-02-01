@@ -1,69 +1,155 @@
-{% extends "admin_koperasi/dashboard.html" %}
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Manajemen Pengurus{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/pages/admin_koperasi/pengurus.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="row">
+<div class="container-fluid">
 
-    <!-- ===== KIRI: TABLE ===== -->
-    <div class="col-md-8">
-        <h4>Manajemen Pengurus</h4>
-
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Username</th>
-                    <th>Role</th>
-                    <th class="text-center">Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for p in pengurus %}
-                <tr>
-                    <td>{{ p.username }}</td>
-                    <td>{{ p.get_role_display }}</td>
-                    <td class="text-center">
-                        <a href="{% url 'admin_koperasi:pengurus_edit' p.id %}"
-                           class="btn btn-sm btn-warning">Edit</a>
-
-                        <form action="{% url 'admin_koperasi:pengurus_delete' p.id %}"
-                              method="post" style="display:inline;">
-                            {% csrf_token %}
-                            <button class="btn btn-sm btn-danger"
-                                    onclick="return confirm('Hapus data?')">
-                                Hapus
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <!-- ===== KANAN: FORM ===== -->
-    <div class="col-md-4">
-        <div class="card sticky-top" style="top: 80px;">
-            <div class="card-header">
-                <strong>{{ title }}</strong>
-            </div>
-            <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
-                    {{ form.as_p }}
-
-                    <button class="btn btn-success w-100 mt-2">
-                        Simpan
-                    </button>
-
-                    {% if edit_id %}
-                    <a href="{% url 'admin_koperasi:pengurus_list' %}"
-                       class="btn btn-secondary w-100 mt-2">
-                        Batal
-                    </a>
-                    {% endif %}
-                </form>
-            </div>
+    <!-- ===== HEADER ===== -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-1">Manajemen Pengurus</h4>
+            <small class="text-muted">
+                Kelola akun Ketua, Sekretaris, dan Bendahara
+            </small>
         </div>
     </div>
 
+    <div class="row g-4">
+
+        <!-- ===== KIRI: TABLE ===== -->
+        <div class="col-lg-8">
+
+            <div class="card admin-card">
+                <div class="card-body p-0">
+
+                    <table class="table admin-table align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th class="text-center" width="160">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                            {% for p in pengurus %}
+                            <tr>
+                                <td>
+                                    <strong>{{ p.username }}</strong>
+                                </td>
+
+                                <td>
+                                    <span class="badge badge-role badge-{{ p.role }}">
+                                        {{ p.get_role_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if p.is_active %}
+                                        <span class="badge bg-success">Aktif</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Nonaktif</span>
+                                    {% endif %}
+                                </td>
+                               <td class="text-center">
+
+                                    <form action="{% url 'admin_koperasi:pengurus_toggle' p.id %}"
+                                        method="post" class="d-inline">
+                                        {% csrf_token %}
+
+                                        {% if p.is_active %}
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-success"
+                                                    onclick="return confirm('Nonaktifkan pengurus ini?')">
+                                                Aktif
+                                            </button>
+                                        {% else %}
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-secondary"
+                                                    onclick="return confirm('Aktifkan kembali pengurus ini?')">
+                                                Nonaktif
+                                            </button>
+                                        {% endif %}
+                                    </form>
+
+                                    <a href="{% url 'admin_koperasi:pengurus_edit' p.id %}"
+                                    class="btn btn-sm btn-outline-primary ms-1">
+                                        Edit
+                                    </a>
+
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted py-4">
+                                    Belum ada data pengurus
+                                </td>
+                            </tr>
+                            {% endfor %}
+
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ===== KANAN: FORM ===== -->
+        <div class="col-lg-4">
+
+            <div class="card admin-card sticky-top" style="top: 90px;">
+                <div class="card-header admin-card-header">
+                    {{ title }}
+                </div>
+
+                <div class="card-body">
+
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            {{ form.username.label_tag }}
+                            {{ form.username }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.role.label_tag }}
+                            {{ form.role }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.password.label_tag }}
+                            {{ form.password }}
+
+                            {% if edit_id %}
+                            <small class="text-muted">
+                                Kosongkan jika tidak ingin mengganti password
+                            </small>
+                            {% endif %}
+                        </div>
+
+                        <button class="btn btn-admin-primary w-100">
+                            Simpan
+                        </button>
+
+                        <a href="{% url 'admin_koperasi:pengurus_list' %}"
+                           class="btn btn-admin-secondary w-100 mt-2">
+                            Batal
+                        </a>
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
 </div>
 {% endblock %}

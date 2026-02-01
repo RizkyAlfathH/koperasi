@@ -23,16 +23,9 @@ urlpatterns = [
     path('pengurus/', views.pengurus_list, name='pengurus_list'),
     path('pengurus/<int:pk>/', views.pengurus_list, name='pengurus_edit'),
     path('pengurus/<int:pk>/hapus/', views.pengurus_delete, name='pengurus_delete'),
-
-    # ===== SISTEM =====
     path(
-        'log-aktifitas/',
-        views.log_aktifitas,
-        name='log_aktifitas'
-    ),
-    path(
-        'pengaturan-sistem/',
-        views.pengaturan_sistem,
-        name='pengaturan_sistem'
+        'pengurus/<int:pk>/toggle/',
+        views.pengurus_toggle,
+        name='pengurus_toggle'
     ),
 ]

@@ -13,9 +13,15 @@ class PengurusForm(forms.ModelForm):
         fields = ['username', 'role', 'password']
 
     def clean_role(self):
-        role = self.cleaned_data['role']
+        role = self.cleaned_data.get('role')
+
+        # saat edit, biarkan role lama
+        if self.instance.pk:
+            return role
+
         if role == 'admin':
             raise forms.ValidationError("Tidak boleh membuat admin.")
+
         return role
 
     def save(self, commit=True):
