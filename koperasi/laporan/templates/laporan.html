@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/laporan/laporan.css' %}">
+{% endblock %}
+
+{% block title %}Laporan{% endblock %}
+
+{% block content %}
+
+<h1>Laporan KOPASMEN</h1>
+
+<div class="laporan-wrapper">
+
+<!-- ================= CARD BULANAN ================= -->
+<div class="content-card">
+    <h2>Laporan Bulanan</h2>
+    <p class="info-text">
+        Data tercatat sampai {{ akhir_bulan|date:"d F Y" }}
+    </p>
+
+    <form method="get" class="filter-form">
+        <select name="bulan">
+            {% for value, label in bulan_choices %}
+                <option value="{{ value }}" {% if value == bulan %}selected{% endif %}>
+                    {{ label }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <select name="tahun">
+            {% for t in tahun_range %}
+                <option value="{{ t }}" {% if t == tahun_bulan %}selected{% endif %}>{{ t }}</option>
+            {% endfor %}
+        </select>
+
+        <button type="submit" class="btn btn-primary">
+            Tampilkan
+        </button>
+
+        {% if request.GET.bulan != None or request.GET.tahun != None %}
+        <a href="{% url 'laporan:laporan' %}" class="reset-btn">
+            &#x21bb;
+        </a>
+        {% endif %}
+
+        <a href="{% url 'laporan:export_laporan' %}?periode=bulan&bulan={{ bulan }}&tahun={{ tahun_bulan }}"
+           class="btn btn-success">
+            <i class="ph-bold ph-file-xls"></i> Download Laporan
+        </a>
+
+        <select name="per_page_bulan" id="perPageBulan" class="per-page-select">
+            <option value="10" {% if per_page_bulan == 10 %}selected{% endif %}>10</option>
+            <option value="25" {% if per_page_bulan == 25 %}selected{% endif %}>25</option>
+            <option value="50" {% if per_page_bulan == 50 %}selected{% endif %}>50</option>
+            <option value="100" {% if per_page_bulan == 100 %}selected{% endif %}>100</option>
+        </select>
+    </form>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th rowspan="2">Nomor Anggota</th>
+                <th rowspan="2">Nama</th>
+                <th colspan="4">Simpanan</th>
+                <th colspan="4">Pinjaman</th>
+            </tr>
+            <tr>
+                <th>Pokok</th>
+                <th>Wajib</th>
+                <th>Sukarela</th>
+                <th>Total</th>
+                <th>Reguler</th>
+                <th>Khusus</th>
+                <th>Barang</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in laporan_bulanan %}
+            <tr>
+                <td>{{ item.no }}</td>
+                <td>{{ item.nama }}</td>
+
+                <td class="rupiah-text">{{ item.simpanan.pokok|floatformat:0 }}</td>
+                <td class="rupiah-text">{{ item.simpanan.wajib|floatformat:0 }}</td>
+                <td class="rupiah-text">{{ item.simpanan.sukarela|floatformat:0 }}</td>
+                <td class="rupiah-text"><strong>{{ item.simpanan.total|floatformat:0 }}</strong></td>
+
+                <td class="rupiah-text">{{ item.pinjaman.reguler|floatformat:0 }}</td>
+                <td class="rupiah-text">{{ item.pinjaman.khusus|floatformat:0 }}</td>
+                <td class="rupiah-text">{{ item.pinjaman.barang|floatformat:0 }}</td>
+                <td class="rupiah-text"><strong>{{ item.pinjaman.total|floatformat:0 }}</strong></td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="10" class="empty-state">
+                    Tidak ada data laporan bulanan
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% include "includes/pagination.html" with page_obj=laporan_bulanan param="page_bulan" %}
+</div>
+
+
+<!-- ================= CARD TAHUNAN ================= -->
+<div class="content-card">
+    <h2>Laporan Tahunan</h2>
+    <p class="info-text">
+        Data tercatat sampai {{ akhir_tahun|date:"d F Y" }}
+    </p>
+    <form method="get" class="filter-form">
+        <select name="tahun_tahunan">
+            {% for t in tahun_range %}
+                <option value="{{ t }}" {% if t == tahun_tahunan %}selected{% endif %}>{{ t }}</option>
+            {% endfor %}
+        </select>
+
+        <button type="submit" class="btn btn-primary">
+            Tampilkan
+        </button>
+
+        {% if request.GET.tahun_tahunan != None %}
+        <a href="{% url 'laporan:laporan' %}" class="reset-btn">
+            &#x21bb;
+        </a>
+        {% endif %}
+
+        <a href="{% url 'laporan:export_laporan' %}?periode=tahun&tahun={{ tahun_tahunan }}"
+           class="btn btn-success">
+            <i class="ph-bold ph-file-xls"></i> Download Laporan
+        </a>
+
+        <select name="per_page_tahun" id="perPageTahun" class="per-page-select">
+            <option value="10" {% if per_page_tahun == 10 %}selected{% endif %}>10</option>
+            <option value="25" {% if per_page_tahun == 25 %}selected{% endif %}>25</option>
+            <option value="50" {% if per_page_tahun == 50 %}selected{% endif %}>50</option>
+            <option value="100" {% if per_page_tahun == 100 %}selected{% endif %}>100</option>
+        </select>
+    </form>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th rowspan="2">Nomor Anggota</th>
+                <th rowspan="2">Nama</th>
+                <th colspan="4">Simpanan</th>
+                <th colspan="4">Pinjaman</th>
+            </tr>
+            <tr>
+                <th>Pokok</th>
+                <th>Wajib</th>
+                <th>Sukarela</th>
+                <th>Total</th>
+                <th>Reguler</th>
+                <th>Khusus</th>
+                <th>Barang</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in laporan_tahunan %}
+            <tr>
+                <td>{{ item.no }}</td>
+                <td>{{ item.nama }}</td>
+
+                <td class="rupiah-text">{{ item.simpanan.pokok|floatformat:0 }}</td>
+                <td class="rupiah-text">{{ item.simpanan.wajib|floatformat:0 }}</td>
+                <td class="rupiah-text">{{ item.simpanan.sukarela|floatformat:0 }}</td>
+                <td class="rupiah-text"><strong>{{ item.simpanan.total|floatformat:0 }}</strong></td>
+
+                <td class="rupiah-text">{{ item.pinjaman.reguler|floatformat:0 }}</td>
+                <td class="rupiah-text">{{ item.pinjaman.khusus|floatformat:0 }}</td>
+                <td class="rupiah-text">{{ item.pinjaman.barang|floatformat:0 }}</td>
+                <td class="rupiah-text"><strong>{{ item.pinjaman.total|floatformat:0 }}</strong></td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="10" class="empty-state">
+                    Tidak ada data laporan tahunan
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% include "includes/pagination.html" with page_obj=laporan_tahunan param="page_tahun" %}
+</div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function handlePerPage(selectId, paramName, resetPages = []) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+
+    select.addEventListener("change", function () {
+        const url = new URL(window.location.href);
+
+        if (this.value === "10") {
+            url.searchParams.delete(paramName);
+        } else {
+            url.searchParams.set(paramName, this.value);
+        }
+
+        // reset pagination terkait
+        resetPages.forEach(p => url.searchParams.delete(p));
+
+        window.location.href = url.toString();
+    });
+}
+
+// BULANAN
+handlePerPage(
+    "perPageBulan",
+    "per_page_bulan",
+    ["page_bulan"]
+);
+
+// TAHUNAN
+handlePerPage(
+    "perPageTahun",
+    "per_page_tahun",
+    ["page_tahun"]
+);
+</script>
+{% endblock %}

@@ -49,6 +49,17 @@
             </a>
         </li>
         {% endif %}
+
+        <!-- ================= LAPORAN ================= -->
+        {% if request.user.role in "admin ketua sekretaris bendahara" %}
+        <li>
+            <a href="{% url 'laporan:laporan' %}"
+            class="{% if request.resolver_match.app_name == 'laporan' %}active{% endif %}">
+            Laporan
+            </a>
+        </li>
+        {% endif %}
+
     </ul>
 
     <div class="logout-btn">
