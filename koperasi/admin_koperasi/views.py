@@ -50,12 +50,9 @@ def admin_dashboard(request):
 
 @login_required
 def role_hakakses(request):
-    if request.user.role != 'admin':
+    if request.user.role != "admin":
         return redirect("admin_koperasi:admin_login")
 
-    # =============================
-    # MASTER PERMISSIONS
-    # =============================
     permissions = [
         {"code": "dashboard_ketua", "name": "Dashboard Ketua"},
         {"code": "dashboard_sekretaris", "name": "Dashboard Sekretaris"},
@@ -66,60 +63,57 @@ def role_hakakses(request):
         {"code": "laporan", "name": "Laporan"},
     ]
 
-    # =============================
-    # HANDLE POST (SIMPAN KE DB)
-    # =============================
+    roles = ["ketua", "sekretaris", "bendahara"]
+
+    # ================= POST =================
     if request.method == "POST":
-        ketua_permissions = request.POST.getlist("ketua_permissions")
-        sekretaris_permissions = request.POST.getlist("sekretaris_permissions")
-        bendahara_permissions = request.POST.getlist("bendahara_permissions")
-
         with transaction.atomic():
-            RolePermission.objects.filter(
-                role__in=["ketua", "sekretaris", "bendahara"]
-            ).delete()
+            for role in roles:
+                RolePermission.objects.filter(role=role).delete()
 
-            for p in ketua_permissions:
-                RolePermission.objects.create(role="ketua", permission_code=p)
-
-            for p in sekretaris_permissions:
-                RolePermission.objects.create(role="sekretaris", permission_code=p)
-
-            for p in bendahara_permissions:
-                RolePermission.objects.create(role="bendahara", permission_code=p)
+                selected_permissions = request.POST.getlist(f"{role}_permissions")
+                for p in selected_permissions:
+                    RolePermission.objects.create(
+                        role=role,
+                        permission_code=p
+                    )
 
         messages.success(request, "Hak akses berhasil disimpan")
         return redirect("admin_koperasi:role_hakakses")
 
-    # =============================
-    # LOAD DATA DARI DB
-    # =============================
-    role_permissions = {
-        "ketua": [],
-        "sekretaris": [],
-        "bendahara": [],
-    }
+    # ================= LOAD =================
+    role_permissions = {role: [] for role in roles}
 
-    for rp in RolePermission.objects.all():
+    data = RolePermission.objects.all()
+
+    # === DEFAULT JIKA DB KOSONG ===
+    if not data.exists():
+        default_data = {
+            "ketua": [p["code"] for p in permissions],
+            "sekretaris": [
+                "dashboard_sekretaris",
+                "kelola_anggota",
+            ],
+            "bendahara": [
+                "dashboard_bendahara",
+                "simpanan",
+                "pinjaman",
+                "laporan",
+            ],
+        }
+
+        for role, perms in default_data.items():
+            for p in perms:
+                RolePermission.objects.create(role=role, permission_code=p)
+
+        data = RolePermission.objects.all()
+
+    for rp in data:
         role_permissions[rp.role].append(rp.permission_code)
-
-    # fallback default kalau DB masih kosong
-    if not RolePermission.objects.exists():
-        role_permissions["ketua"] = [p["code"] for p in permissions]
-        role_permissions["sekretaris"] = [
-            "dashboard_sekretaris",
-            "kelola_anggota",
-        ]
-        role_permissions["bendahara"] = [
-            "dashboard_bendahara",
-            "simpanan",
-            "pinjaman",
-            "laporan",
-        ]
 
     return render(
         request,
-        "admin_koperasi/manajemen_user/role_hakakases.html",
+        "admin_koperasi/manajemen_user/role_hakakses.html",
         {
             "permissions": permissions,
             "role_permissions": role_permissions,

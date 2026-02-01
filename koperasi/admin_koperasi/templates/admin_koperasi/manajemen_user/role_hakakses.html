@@ -27,11 +27,6 @@
         Role: Ketua
       </div>
       <div class="card-body">
-
-        <p class="text-muted small mb-3">
-          Ketua memiliki akses penuh ke seluruh sistem
-        </p>
-
         <div class="row">
           {% for permission in permissions %}
           <div class="col-md-4 mb-2">
@@ -39,7 +34,11 @@
               <input
                 class="form-check-input"
                 type="checkbox"
-                checked
+                name="ketua_permissions"
+                value="{{ permission.code }}"
+                {% if permission.code in role_permissions.ketua %}
+                  checked
+                {% endif %}
               >
               <label class="form-check-label">
                 {{ permission.name }}
@@ -48,9 +47,9 @@
           </div>
           {% endfor %}
         </div>
-
       </div>
     </div>
+
 
     <!-- ================= SEKRETARIS ================= -->
     <div class="card admin-card mb-4">

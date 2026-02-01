@@ -314,17 +314,18 @@ def bendahara_dashboard(request):
 # ===============================
 # KELOLA AKUN (ROLE-BASED)
 # ===============================
+from admin_koperasi.utils import has_page_permission
+
 @login_required
 def kelola_akun(request):
-    role = request.user.role   # 🔥 AMBIL DARI LOGIN
+    if not has_page_permission(request.user, "kelola_anggota"):
+        return redirect("dashboard")  # atau halaman 403
 
-    if role not in ROLE_PENGURUS:
-        return redirect("dashboard")
+    role = request.user.role
 
     search_admin = request.GET.get("searchAdmin", "")
     search_anggota = request.GET.get("searchAnggota", "")
 
-    # ---------- ADMIN / PENGURUS ----------
     admins = User.objects.filter(role__in=ROLE_PENGURUS)
     if search_admin:
         admins = admins.filter(username__icontains=search_admin)
@@ -334,7 +335,6 @@ def kelola_akun(request):
         request.GET.get("page_admin", 1)
     )
 
-    # ---------- ANGGOTA ----------
     anggotas = Anggota.objects.annotate(
         status_order=Case(
             When(status__iexact="NONAKTIF", then=Value(1)),
@@ -361,6 +361,7 @@ def kelola_akun(request):
         "searchAnggota": search_anggota,
         "ROLE_ADMIN": ROLE_ADMIN,
     })
+
 
 # ===============================
 # CRUD ADMIN (KETUA / SEKRETARIS / BENDAHARA)

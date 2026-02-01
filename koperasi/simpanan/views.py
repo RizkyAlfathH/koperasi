@@ -20,9 +20,12 @@ from reportlab.lib.units import cm
 from num2words import num2words
 from reportlab.lib import colors
 from reportlab.platypus import Table, TableStyle
+from admin_koperasi.utils import has_page_permission
 
 @login_required
 def daftar_simpanan(request):
+    if not has_page_permission(request.user, "simpanan"):
+        return redirect("dashboard")
     data_list = []
 
     search_query = request.GET.get('search', '')
