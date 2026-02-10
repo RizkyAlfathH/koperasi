@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-0ffvy-6-nulj40g(=yma$6v=q(+n_-#96bslekesmi(@4&8m#4
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -44,9 +44,12 @@ INSTALLED_APPS = [
     'simpanan',
     'pinjaman',
     'static',
+    'api',
 
     'widget_tweaks',
     "django_extensions",
+    'rest_framework',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -56,8 +59,11 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
 ]
 
+CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = 'koperasi.urls'
 
