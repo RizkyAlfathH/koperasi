@@ -28,4 +28,5 @@ urlpatterns = [
     path('simpanan/', include('simpanan.urls')),
     path('pinjaman/', include('pinjaman.urls')),
     path('api/', include('api.urls')),
+    path('laporan/', include('laporan.urls')),
 ]
