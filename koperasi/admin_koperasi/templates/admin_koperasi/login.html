@@ -1,67 +1,77 @@
+{% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
+    <meta charset="UTF-8">
     <title>KOPASMEN</title>
 
-    <!-- Font Awesome -->
-    {% comment %} <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"> {% endcomment %}
-
+    <!-- FONT -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Phosphor Icons -->
-    {% comment %} <script src="https://unpkg.com/phosphor-icons"></script> {% endcomment %}
-
+    <!-- PHOSPHOR ICON -->
     <link rel="stylesheet" href="https://unpkg.com/phosphor-icons@1.4.2/src/css/icons.css">
 
-    <!-- Load CSS eksternal -->
-    {% load static %}
+    <!-- CSS LOGIN -->
     <link rel="stylesheet" href="{% static 'css/pages/admin_koperasi/login.css' %}">
+
+    <!-- CSS LOADER (PAKAI YANG SAMA) -->
+    <link rel="stylesheet" href="{% static 'css/loader/loader.css' %}">
 </head>
 <body>
-    <div class="logo-section">
-            {% load static %}
-            <img src="{% static 'image/logo_kopasmen.jpg' %}" alt="Logo">
-            <div class="company-title">KOPASMEN</div>
-    </div>
 
-    <div class="login-wrapper">
-        <form method="post">
-            {% csrf_token %}
-            <div class="input-group">
-                <label>Username</label>
-                <div class="input-field">
-                    <span class="input-icon">
-                        <i class="ph ph-user"></i>
-                    </span>
-                    <input type="text" name="username" placeholder="Masukkan username..." required>
-                </div>
+<!-- ✅ GLOBAL LOADER -->
+<div id="global-loader">
+  <div class="loader-content">
+    <div class="spinner"></div>
+    <p>Memuat...</p>
+  </div>
+</div>
+
+<div class="logo-section">
+    <img src="{% static 'image/logo_kopasmen.jpg' %}" alt="Logo">
+    <div class="company-title">KOPASMEN</div>
+</div>
+
+<div class="login-wrapper">
+    <form method="post" onsubmit="showLoader()">
+        {% csrf_token %}
+
+        <div class="input-group">
+            <label>Username</label>
+            <div class="input-field">
+                <span class="input-icon">
+                    <i class="ph ph-user"></i>
+                </span>
+                <input type="text" name="username" placeholder="Masukkan username..." required>
             </div>
-            <div class="input-group">
-                <label>Password</label>
+        </div>
 
-                <div class="input-field password-field">
-                    <span class="input-icon">
-                        <i class="ph-lock"></i>
-                    </span>
-
-                    <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        placeholder="Masukkan password..."
-                        required
-                    >
-
-                    <span class="toggle-password" onclick="togglePassword()">
-                        <i class="ph-eye" id="eyeIcon"></i>
-                    </span>
-                </div>
+        <div class="input-group">
+            <label>Password</label>
+            <div class="input-field password-field">
+                <span class="input-icon">
+                    <i class="ph-lock"></i>
+                </span>
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    placeholder="Masukkan password..."
+                    required
+                >
+                <span class="toggle-password" onclick="togglePassword()">
+                    <i class="ph-eye" id="eyeIcon"></i>
+                </span>
             </div>
+        </div>
 
-            <button type="submit">Login</button>
-        </form>
-    </div>
-</body>
+        <button type="submit">Login</button>
+    </form>
+</div>
+
+<!-- LOADER JS -->
+<script src="{% static 'js/loader/loader.js' %}"></script>
+
 <script>
 function togglePassword() {
     const password = document.getElementById("password");
@@ -77,4 +87,5 @@ function togglePassword() {
 }
 </script>
 
+</body>
 </html>
