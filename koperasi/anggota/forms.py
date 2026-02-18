@@ -54,14 +54,24 @@ class AdminForm(forms.ModelForm):
     def clean_username(self):
         username = self.cleaned_data.get("username")
 
-        if username and User.objects.filter(username=username).exists():
+        if not username:
+            return username
+
+        # Ambil queryset user dengan username sama
+        qs = User.objects.filter(username=username)
+
+        # Jika sedang edit (ada instance pk)
+        if self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+
+        if qs.exists():
             raise ValidationError("Username sudah digunakan.")
 
-        if username and len(username) < 4:
+        if len(username) < 4:
             raise ValidationError("Username minimal 4 karakter.")
 
         return username
-
+    
 
     def clean_password(self):
         password = self.cleaned_data.get("password")
@@ -93,33 +103,10 @@ class AdminForm(forms.ModelForm):
 
 
 class AnggotaForm(forms.ModelForm):
-    password = forms.CharField(
-        widget=forms.PasswordInput(attrs={
-            "placeholder": "Masukkan password",
-            "autocomplete": "new-password"
-        }),
-        required=False,
-        label="Password"
-    )
 
     class Meta:
         model = Anggota
-        fields = [
-            "nomor_anggota",
-            "nama",
-            "umur",
-            "nip",
-            "alamat",
-            "no_telp",
-            "email",
-            "jenis_kelamin",
-            "pekerjaan",
-            "tanggal_daftar",
-            "status",
-            "alasan_nonaktif",
-            "tanggal_nonaktif",
-        ]
-
+        fields = "__all__"
         widgets = {
             "tanggal_daftar": forms.DateInput(attrs={
                 "type": "date",
@@ -134,31 +121,55 @@ class AnggotaForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        for name, field in self.fields.items():
+            if field.required:
+                field.error_messages.update({
+                    "required": f"{field.label} wajib diisi."
+                })
+
+
+        # ===============================
+        # PLACEHOLDER
+        # ===============================
         self.fields["nomor_anggota"].widget.attrs.update({
-            "placeholder": "Nomor anggota",
+            "placeholder": "Masukkan Nomor anggota",
             "inputmode": "numeric"
         })
         self.fields["nama"].widget.attrs.update({
-            "placeholder": "Nama lengkap"
+            "placeholder": "Masukkan Nama lengkap"
         })
         self.fields["umur"].widget.attrs.update({
-            "placeholder": "Umur"
+            "placeholder": "Masukkan Umur"
         })
         self.fields["nip"].widget.attrs.update({
-            "placeholder": "NIP"
+            "placeholder": "Masukkan NIP"
         })
         self.fields["alamat"].widget.attrs.update({
-            "placeholder": "Alamat lengkap"
+            "placeholder": "Masukkan Alamat lengkap"
         })
         self.fields["no_telp"].widget.attrs.update({
-            "placeholder": "Nomor telepon"
+            "placeholder": "Masukkan Nomor telepon"
         })
         self.fields["email"].widget.attrs.update({
-            "placeholder": "Email aktif"
+            "placeholder": "Masukkan Email aktif"
         })
         self.fields["pekerjaan"].widget.attrs.update({
-            "placeholder": "Pekerjaan"
+            "placeholder": "Masukkan Pekerjaan"
         })
+
+    def clean(self):
+        cleaned_data = super().clean()
+        status = cleaned_data.get("status")
+        alasan = cleaned_data.get("alasan_nonaktif")
+        tanggal = cleaned_data.get("tanggal_nonaktif")
+
+        if status and status.lower() == "nonaktif":
+            if not alasan:
+                self.add_error("alasan_nonaktif", "Alasan nonaktif wajib diisi.")
+            if not tanggal:
+                self.add_error("tanggal_nonaktif", "Tanggal nonaktif wajib diisi.")
+
+        return cleaned_data
 
     def save(self, commit=True):
         anggota = super().save(commit=False)
