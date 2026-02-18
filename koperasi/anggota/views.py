@@ -376,7 +376,8 @@ def tambah_admin(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Admin berhasil ditambahkan.")
-            return redirect("kelola_akun", role=request.user.role)
+            return redirect("anggota:kelola_akun")
+
     else:
         form = AdminForm()
 

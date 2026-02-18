@@ -1,4 +1,5 @@
 from django import forms
+from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from .models import Anggota
 
@@ -10,8 +11,11 @@ class AdminForm(forms.ModelForm):
             "placeholder": "Masukkan password",
             "autocomplete": "new-password"
         }),
-        required=False,
-        label="Password"
+        required=True,
+        label="Password",
+        error_messages={
+            "required": "Password wajib diisi."
+        }
     )
 
     class Meta:
@@ -27,7 +31,17 @@ class AdminForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # ROLE DROPDOWN (EMPTY DEFAULT)
+        self.fields["username"].required = True
+        self.fields["role"].required = True
+
+        self.fields["username"].error_messages = {
+            "required": "Username wajib diisi."
+        }
+
+        self.fields["role"].error_messages = {
+            "required": "Silakan pilih role."
+        }
+
         self.fields["role"].choices = [
             ("", "---------"),
             ("ketua", "Ketua"),
@@ -35,34 +49,46 @@ class AdminForm(forms.ModelForm):
             ("bendahara", "Bendahara"),
         ]
 
-        self.fields["role"].required = True
+    # ================= VALIDASI =================
 
-        # OPTIONAL: styling konsisten
-        self.fields["role"].widget.attrs.update({
-            "class": "form-control"
-        })
+    def clean_username(self):
+        username = self.cleaned_data.get("username")
+
+        if username and User.objects.filter(username=username).exists():
+            raise ValidationError("Username sudah digunakan.")
+
+        if username and len(username) < 4:
+            raise ValidationError("Username minimal 4 karakter.")
+
+        return username
+
+
+    def clean_password(self):
+        password = self.cleaned_data.get("password")
+
+        if not password:
+            raise ValidationError("Password wajib diisi.")
+
+        if len(password) < 6:
+            raise ValidationError("Password minimal 6 karakter.")
+
+        return password
 
     def clean_role(self):
         role = self.cleaned_data.get("role")
 
-        if not role:
-            raise forms.ValidationError("Silakan pilih role.")
-
-        if role not in ["ketua", "sekretaris", "bendahara"]:
-            raise forms.ValidationError("Role tidak diizinkan.")
+        if role and role not in ["ketua", "sekretaris", "bendahara"]:
+            raise ValidationError("Role tidak diizinkan.")
 
         return role
 
+
     def save(self, commit=True):
         user = super().save(commit=False)
-
-        password = self.cleaned_data.get("password")
-        if password:
-            user.set_password(password)
-
+        user.set_password(self.cleaned_data["password"])
+        user.is_staff = True  # otomatis staff
         if commit:
             user.save()
-
         return user
 
 

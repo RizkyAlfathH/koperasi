@@ -79,13 +79,25 @@
     color: #888;
 }
 
+/* FORCE ERROR STYLE */
+.page-tambah-admin input.is-invalid,
+.page-tambah-admin select.is-invalid {
+    border: 2px solid #dc3545 !important;
+    background-color: #fff5f5;
+}
+
+/* error text */
+.page-tambah-admin .invalid-feedback {
+    display: block;
+    color: #dc3545;
+    font-size: 13px;
+    margin-top: 6px;
+}
+
 /* ===============================
-   ERROR
+   ERROR FOCUS OVERRIDE
 ================================ */
-.page-tambah-admin .alert {
-    background: #fff4f4;
-    border: 1px solid #f5c2c2;
-    color: #b42318;
-    padding: 14px 18px;
-    border-radius: 10px;
+.page-tambah-admin .form-control.is-invalid:focus {
+    border: 2px solid #dc3545 !important;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25) !important;
 }
