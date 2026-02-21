@@ -1,0 +1,115 @@
+.help-float {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+
+    width: 52px;          /* lebih kecil sedikit */
+    height: 52px;
+
+    border-radius: 50%;
+    border: none;
+    background: #facc15;  /* kuning */
+    color: #111827;       /* teks gelap biar kontras */
+    font-size: 20px;      /* sedikit lebih kecil */
+    font-weight: 600;
+    cursor: pointer;
+
+    box-shadow: 0 8px 25px rgba(0,0,0,0.18);
+    transition: all 0.25s ease;
+    z-index: 999;
+}
+
+.help-float:hover {
+    background: #eab308; /* hover lebih gelap */
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+}
+
+.help-modal {
+    display: none; /* default tetap hidden */
+    position: fixed;
+    inset: 0;
+    background: rgba(17, 24, 39, 0.55);
+    backdrop-filter: blur(4px);
+    z-index: 10000;
+    animation: fadeIn 0.25s ease;
+
+    align-items: center;
+    justify-content: center;
+}
+
+
+.help-content {
+    position: relative; /* penting untuk tombol close */
+    background: #ffffff;
+    width: 480px;
+    max-width: 92%;
+    padding: 28px;
+    border-radius: 16px;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+    animation: slideUp 0.3s ease;
+
+    /* HAPUS ini */
+    /* margin: 6% auto; */
+}
+
+
+.help-section h6 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #111827;
+}
+
+.help-item {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 16px;
+    align-items: flex-start;
+}
+
+.help-icon {
+    font-size: 18px;
+    margin-top: 2px;
+}
+
+.help-item p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #374151;
+}
+
+.help-empty {
+    font-size: 14px;
+    color: #9ca3af;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.help-item:not(:last-child) {
+    border-bottom: 1px solid #f3f4f6;
+    padding-bottom: 12px;
+}
+
+#closeHelp {
+    position: absolute;
+    top: 18px;
+    right: 20px;
+    font-size: 18px;
+    color: #9ca3af;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+#closeHelp:hover {
+    color: #111827;
+}
