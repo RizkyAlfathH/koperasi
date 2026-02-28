@@ -2,7 +2,7 @@ from django.db import models
 from anggota.models import Anggota
 from admin_koperasi.models import User
 from django.conf import settings
-
+from decimal import Decimal
 
 
 # =========================
@@ -108,6 +108,15 @@ class Pinjaman(models.Model):
 
     def __str__(self):
         return f"Pinjaman {self.id_pinjaman} - {self.nomor_anggota.nama}"
+    
+    def hitung_sisa_pinjaman_real(self):
+        cicilan = Angsuran.objects.filter(
+            id_pinjaman=self,
+            tipe_bayar="cicilan"
+        ).count()
+
+        sisa = self.jumlah_pinjaman - (Decimal(cicilan) * self.angsuran_per_bulan)
+        return max(sisa, Decimal("0"))
 
     # =========================
     # LOGIC (SAMA DENGAN CONTOH)

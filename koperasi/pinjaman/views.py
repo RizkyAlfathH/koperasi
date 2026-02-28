@@ -30,8 +30,22 @@ def pinjaman_list(request):
             Q(nomor_anggota__icontains=search_query)
         )
 
+    admin_login = request.user  # 🔥 TAMBAHAN
+
     for anggota in anggotas:
 
+        # 🔥 AUTO BAYAR DARI SUKARELA KE PINJAMAN
+        pinjaman_aktif_qs = Pinjaman.objects.filter(
+            nomor_anggota=anggota,
+            status='aktif'
+        )
+
+        for pinjaman in pinjaman_aktif_qs:
+            cek_auto_sukarela_ke_pinjaman(pinjaman, admin_login)
+
+        # =============================
+        # HITUNG TOTAL PINJAMAN
+        # =============================
         def total_pinjaman(jenis):
             return (
                 Pinjaman.objects.filter(
@@ -168,7 +182,12 @@ def pinjaman_anggota(request, nomor_anggota):
     pinjaman_aktif = []
     riwayat_pinjaman = []
 
+    admin_login = request.user  # 🔥 TAMBAHAN
+
     for pinjaman in pinjaman_qs:
+
+        # 🔥 AUTO BAYAR DARI SUKARELA KE PINJAMAN
+        cek_auto_sukarela_ke_pinjaman(pinjaman, admin_login)
 
         angsuran_pokok = pinjaman.angsuran_per_bulan or Decimal('0')
 
@@ -255,15 +274,21 @@ def detail_pinjaman(request, id_pinjaman):
     page_obj = paginator.get_page(request.GET.get('page'))
 
     # =========================
-    # SISA PINJAMAN
+    # HITUNG JASA (DINAMIS)
     # =========================
-    sisa_pinjaman = pinjaman.sisa_pinjaman
+    jasa_persen = pinjaman.jasa_persen or Decimal('0')
+
+    if pinjaman.id_kategori_jasa.kategori_jasa.lower() == 'turunan':
+        jumlah_jasa = pinjaman.sisa_pinjaman * (jasa_persen / 100)
+    else:
+        jumlah_jasa = pinjaman.jumlah_pinjaman * (jasa_persen / 100)
 
     context = {
         'pinjaman': pinjaman,
         'anggota': anggota,
         'page_obj': page_obj,
-        'sisa_pinjaman': sisa_pinjaman,
+        'sisa_pinjaman': pinjaman.sisa_pinjaman,
+        'jumlah_jasa': round(jumlah_jasa, 2),
     }
 
     return render(request, 'detail/detail_pinjaman.html', context)
@@ -305,7 +330,10 @@ def bayar_pinjaman(request, id_pinjaman):
         nominal_raw = request.POST.get("nominal")
 
         try:
-            nominal = Decimal(nominal_raw.replace(".", "").replace(",", ""))
+            nominal = Decimal(
+                nominal_raw.replace("Rp", "").replace(".", "").replace(",", "").strip()
+            )
+
         except:
             messages.error(request, "Nominal tidak valid.")
             return redirect("pinjaman:bayar_pinjaman", id_pinjaman=id_pinjaman)
@@ -314,28 +342,27 @@ def bayar_pinjaman(request, id_pinjaman):
             messages.error(request, "Tanggal wajib diisi.")
             return redirect("pinjaman:bayar_pinjaman", id_pinjaman=id_pinjaman)
 
-        # CICILAN
         if tipe_bayar == "cicilan":
-            minimal = total_bayar * bulan
+            # HANYA hitung minimal 1 bulan
+            minimal = angsuran_pokok + jasa_rupiah
+
             if nominal < minimal:
                 messages.error(request, f"Minimal bayar Rp {minimal:,.0f}")
                 return redirect("pinjaman:bayar_pinjaman", id_pinjaman=id_pinjaman)
 
-            for _ in range(bulan):
-                if pinjaman.sisa_pinjaman <= 0:
-                    break
+            # 1️⃣ BAYAR BULAN INI SAJA
+            Angsuran.objects.create(
+                id_pinjaman=pinjaman,
+                id_admin=admin_login,
+                tanggal_bayar=tanggal,
+                jumlah_bayar=minimal,
+                tipe_bayar="cicilan"
+            )
 
-                Angsuran.objects.create(
-                    id_pinjaman=pinjaman,
-                    id_admin=admin_login,
-                    tanggal_bayar=tanggal,
-                    jumlah_bayar=total_bayar,
-                    tipe_bayar="cicilan"
-                )
+            pinjaman.sisa_pinjaman -= angsuran_pokok
+            pinjaman.save(update_fields=["sisa_pinjaman"])
 
-                pinjaman.sisa_pinjaman -= angsuran_pokok
-
-            # Kelebihan → masuk Sukarela
+            # 2️⃣ SISANYA MASUK SUKARELA
             kelebihan = nominal - minimal
             if kelebihan > 0:
                 jenis, _ = JenisSimpanan.objects.get_or_create(
@@ -345,8 +372,8 @@ def bayar_pinjaman(request, id_pinjaman):
                     anggota=pinjaman.nomor_anggota,
                     admin=admin_login,
                     jenis_simpanan=jenis,
-                    tanggal_menyimpan=tanggal,
-                    jumlah_menyimpan=kelebihan
+                    tanggal=tanggal,
+                    jumlah=kelebihan
                 )
 
         # JASA SAJA
@@ -394,84 +421,110 @@ def bayar_pinjaman(request, id_pinjaman):
 
 def cek_auto_sukarela_ke_pinjaman(pinjaman, admin_login):
     today = date.today()
+    bulan_ini = today.month
+    tahun_ini = today.year
 
-    # STOP kalau lunas
-    if pinjaman.status.lower() == 'lunas':
+    # ❌ Jangan auto bayar di bulan yang sama saat pinjaman dibuat
+    if (
+        pinjaman.tanggal_meminjam.month == bulan_ini and
+        pinjaman.tanggal_meminjam.year == tahun_ini
+    ):
         return
 
-    angsuran_pokok = pinjaman.angsuran_per_bulan
-    jasa_persen = pinjaman.jasa_persen or Decimal('0')
+    # ❌ Stop kalau sudah lunas
+    if pinjaman.status.lower() == "lunas":
+        return
 
-    # HITUNG CICILAN TERBAYAR
-    total_cicilan = Angsuran.objects.filter(
+    angsuran_pokok = Decimal(pinjaman.angsuran_per_bulan or 0)
+    jasa_persen = Decimal(pinjaman.jasa_persen or 0)
+
+    # =========================
+    # HITUNG SISA PINJAMAN
+    # =========================
+    cicilan_terbayar = Angsuran.objects.filter(
         id_pinjaman=pinjaman,
-        tipe_bayar='cicilan'
+        tipe_bayar="cicilan"
     ).count()
 
-    sisa_pinjaman = pinjaman.jumlah_pinjaman - (total_cicilan * angsuran_pokok)
+    sisa_pinjaman = Decimal(pinjaman.jumlah_pinjaman) - (
+        cicilan_terbayar * angsuran_pokok
+    )
 
     if sisa_pinjaman <= 0:
-        pinjaman.status = 'Lunas'
+        pinjaman.status = "Lunas"
         pinjaman.sisa_pinjaman = 0
         pinjaman.save()
         return
 
+    # =========================
     # HITUNG JASA BULAN INI
-    if pinjaman.id_kategori_jasa.kategori_jasa.lower() == 'turunan':
-        jasa_rupiah = sisa_pinjaman * (jasa_persen / 100)
+    # =========================
+    if pinjaman.id_kategori_jasa.kategori_jasa.lower() == "turunan":
+        jasa_rupiah = sisa_pinjaman * (jasa_persen / Decimal("100"))
     else:
-        jasa_rupiah = pinjaman.jumlah_pinjaman * (jasa_persen / 100)
+        jasa_rupiah = Decimal(pinjaman.jumlah_pinjaman) * (jasa_persen / Decimal("100"))
 
     total_bulan_ini = angsuran_pokok + jasa_rupiah
 
-    # CEK SUDAH BAYAR BULAN INI
+    # =========================
+    # CEK: SUDAH BAYAR BULAN INI?
+    # =========================
     if Angsuran.objects.filter(
         id_pinjaman=pinjaman,
-        tanggal_bayar__month=today.month,
-        tanggal_bayar__year=today.year,
-        tipe_bayar='cicilan'
+        tanggal_bayar__month=bulan_ini,
+        tanggal_bayar__year=tahun_ini,
+        tipe_bayar="cicilan"
     ).exists():
         return
 
+    # =========================
     # AMBIL SALDO SUKARELA
+    # =========================
     saldo_sukarela = Simpanan.objects.filter(
         anggota=pinjaman.nomor_anggota,
-        jenis_simpanan__nama_jenis__iexact='Simpanan Sukarela'
-    ).aggregate(total=Sum('jumlah_menyimpan'))['total'] or Decimal('0')
+        jenis_simpanan__nama_jenis__iexact="Simpanan Sukarela"
+    ).aggregate(total=Sum("jumlah"))["total"] or Decimal("0")
 
+    # ❌ Kalau saldo tidak cukup → skip
     if saldo_sukarela < total_bulan_ini:
         return
 
-    # POTONG SUKARELA
+    # =========================
+    # POTONG SUKARELA (HANYA 1 BULAN)
+    # =========================
     jenis_sukarela, _ = JenisSimpanan.objects.get_or_create(
-        nama_jenis='Simpanan Sukarela'
+        nama_jenis="Simpanan Sukarela"
     )
 
     Simpanan.objects.create(
         anggota=pinjaman.nomor_anggota,
         admin=admin_login,
         jenis_simpanan=jenis_sukarela,
-        tanggal_menyimpan=today,
-        jumlah_menyimpan=-total_bulan_ini
+        tanggal=today,
+        jumlah=-total_bulan_ini
     )
 
-    # CATAT CICILAN
+    # =========================
+    # CATAT CICILAN BULAN INI SAJA
+    # =========================
     Angsuran.objects.create(
         id_pinjaman=pinjaman,
         id_admin=admin_login,
         tanggal_bayar=today,
         jumlah_bayar=total_bulan_ini,
-        tipe_bayar='cicilan'
+        tipe_bayar="cicilan"
     )
 
-    # UPDATE STATUS
-    pinjaman.sisa_pinjaman -= angsuran_pokok
+    # =========================
+    # UPDATE SISA PINJAMAN
+    # =========================
+    pinjaman.sisa_pinjaman = sisa_pinjaman - angsuran_pokok
     if pinjaman.sisa_pinjaman <= 0:
-        pinjaman.status = 'Lunas'
+        pinjaman.status = "Lunas"
+        pinjaman.sisa_pinjaman = 0
 
     pinjaman.save()
 
-@login_required
 def detail_pembayaran(request, pembayaran_id):
     pembayaran = get_object_or_404(Angsuran, id_pembayaran=pembayaran_id)
     pinjaman = pembayaran.id_pinjaman
@@ -513,7 +566,7 @@ def detail_pembayaran(request, pembayaran_id):
     else:
         jumlah_pembayaran = angsuran_pokok + jasa_rupiah
 
-    return render(request, 'detail_pembayaran.html', {
+    return render(request, 'detail/detail_pembayaran.html', {
         'pembayaran': pembayaran,
         'sisa_sebelum': sisa_sebelum,
         'sisa_setelah': sisa_setelah,

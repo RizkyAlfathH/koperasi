@@ -100,7 +100,7 @@
             <div class="col-md-6">
                 <label>Jumlah Dibayar</label>
                 <input type="text" name="nominal"
-                       class="form-control rupiah-input"
+                       class="form-control rupiah-text rupiah-input"
                        value="{{ total_bayar|floatformat:0 }}"
                        required>
             </div>
@@ -171,7 +171,7 @@ document.addEventListener("DOMContentLoaded", function(){
         }
 
         jumlahBulan.value = bulan;
-        jumlahInput.value = totalBayar;
+        jumlahInput.value = 'Rp ' + formatRupiahNumber(Math.round(totalBayar));
 
         keteranganBulan.innerText = 
         `Cicilan tersisa: ${Math.ceil(tempSisa / angsuranPokok)} bulan`;
