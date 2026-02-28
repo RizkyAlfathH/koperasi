@@ -373,7 +373,8 @@ def bayar_pinjaman(request, id_pinjaman):
                     admin=admin_login,
                     jenis_simpanan=jenis,
                     tanggal=tanggal,
-                    jumlah=kelebihan
+                    jumlah=kelebihan,
+                    sumber_pinjaman=pinjaman
                 )
 
         # JASA SAJA
@@ -482,7 +483,8 @@ def cek_auto_sukarela_ke_pinjaman(pinjaman, admin_login):
     # =========================
     saldo_sukarela = Simpanan.objects.filter(
         anggota=pinjaman.nomor_anggota,
-        jenis_simpanan__nama_jenis__iexact="Simpanan Sukarela"
+        jenis_simpanan__nama_jenis__iexact="Simpanan Sukarela",
+        sumber_pinjaman=pinjaman
     ).aggregate(total=Sum("jumlah"))["total"] or Decimal("0")
 
     # ❌ Kalau saldo tidak cukup → skip
