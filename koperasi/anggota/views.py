@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.http import JsonResponse
+from django.db.models import Q
 
 from .models import Anggota
 from .forms import AnggotaForm, AdminForm
@@ -21,9 +22,12 @@ from reportlab.lib import colors
 from openpyxl import load_workbook
 from datetime import datetime,date
 
+from datetime import date
+from dateutil.relativedelta import relativedelta
+
 import re
 
-from django.db.models import Sum
+from django.db.models import Sum, Count
 from django.db.models.functions import TruncMonth
 
 from simpanan.models import Simpanan, Penarikan
@@ -68,69 +72,90 @@ def ketua_dashboard(request):
     # ===============================
     # INFO CARD
     # ===============================
-    jumlah_admin = User.objects.count()
-    jumlah_anggota = Anggota.objects.count()
+    jumlah_admin = User.objects.filter(
+        is_superuser=False,
+        role__in=["ketua", "sekretaris", "bendahara"]
+    ).count()
+
+    jumlah_anggota = Anggota.objects.filter(status="aktif").count()
 
     jumlah_simpanan = (
         Simpanan.objects.aggregate(total=Sum("jumlah"))["total"] or 0
     )
 
     jumlah_pinjaman = (
-        Pinjaman.objects.aggregate(total=Sum("jumlah_pinjaman"))["total"] or 0
+        Pinjaman.objects
+        .filter(status="aktif")
+        .aggregate(total=Sum("sisa_pinjaman"))["total"] or 0
     )
 
     # ===============================
     # DATA BULANAN
     # ===============================
-    simpanan_bulanan = (
-        Simpanan.objects
-        .annotate(bulan=TruncMonth("tanggal"))
-        .values("bulan")
-        .annotate(total=Sum("jumlah"))
-        .order_by("bulan")
-    )
-
-    pinjaman_bulanan = (
-        Pinjaman.objects
-        .annotate(bulan=TruncMonth("tanggal_meminjam"))
-        .values("bulan")
-        .annotate(total=Sum("jumlah_pinjaman"))
-        .order_by("bulan")
-    )
-
-    # ===============================
-    # GABUNG DATA BIAR LABEL SINKRON
-    # ===============================
-    data_bulanan = defaultdict(lambda: {
-        "simpanan": 0,
-        "pinjaman": 0
-    })
-
-    for x in simpanan_bulanan:
-        key = x["bulan"].strftime("%Y-%m")
-        data_bulanan[key]["simpanan"] = float(x["total"])
-
-    for x in pinjaman_bulanan:
-        key = x["bulan"].strftime("%Y-%m")
-        data_bulanan[key]["pinjaman"] = float(x["total"])
-
-    # ===============================
-    # SORT & FINAL ARRAY
-    # ===============================
     bulan_labels = []
     simpanan_data = []
     pinjaman_data = []
 
-    for key in sorted(data_bulanan.keys()):
-        bulan_labels.append(
-            datetime.strptime(key, "%Y-%m").strftime("%b %Y")
-        )
-        simpanan_data.append(data_bulanan[key]["simpanan"])
-        pinjaman_data.append(data_bulanan[key]["pinjaman"])
+    today = date.today()
+    start = date(today.year - 1, today.month, 1)
 
-    # ===============================
-    # CONTEXT
-    # ===============================
+    for i in range(12):
+
+        bulan = start + relativedelta(months=i)
+
+        akhir_bulan = (
+            bulan + relativedelta(months=1)
+        ) - relativedelta(days=1)
+
+        # ===============================
+        # TOTAL SIMPANAN
+        # ===============================
+        total_simpanan = (
+            Simpanan.objects
+            .filter(tanggal__lte=akhir_bulan)
+            .aggregate(total=Sum("jumlah"))["total"] or 0
+        )
+
+        # ===============================
+        # TOTAL PINJAMAN DIAMBIL
+        # ===============================
+        total_pinjaman = (
+            Pinjaman.objects
+            .filter(tanggal_meminjam__lte=akhir_bulan)
+            .aggregate(total=Sum("jumlah_pinjaman"))["total"] or 0
+        )
+
+        # ===============================
+        # JUMLAH CICILAN SAMPAI BULAN ITU
+        # ===============================
+        total_cicilan = (
+            Angsuran.objects
+            .filter(
+                tanggal_bayar__lte=akhir_bulan,
+                tipe_bayar="cicilan"
+            )
+            .values("id_pinjaman")
+            .annotate(jumlah=Count("id_pembayaran"))
+        )
+
+        total_pokok_terbayar = 0
+
+        for cicilan in total_cicilan:
+            pinjaman = Pinjaman.objects.get(id_pinjaman=cicilan["id_pinjaman"])
+            total_pokok_terbayar += cicilan["jumlah"] * pinjaman.angsuran_per_bulan
+
+        # ===============================
+        # SISA PINJAMAN
+        # ===============================
+        sisa_pinjaman = total_pinjaman - total_pokok_terbayar
+
+        if sisa_pinjaman < 0:
+            sisa_pinjaman = 0
+
+        bulan_labels.append(bulan.strftime("%b %Y"))
+        simpanan_data.append(float(total_simpanan))
+        pinjaman_data.append(float(sisa_pinjaman))
+
     context = {
         "jumlah_admin": jumlah_admin,
         "jumlah_anggota": jumlah_anggota,
@@ -151,69 +176,90 @@ def sekretaris_dashboard(request):
     # ===============================
     # INFO CARD
     # ===============================
-    jumlah_admin = User.objects.count()
-    jumlah_anggota = Anggota.objects.count()
+    jumlah_admin = User.objects.filter(
+        is_superuser=False,
+        role__in=["ketua", "sekretaris", "bendahara"]
+    ).count()
+
+    jumlah_anggota = Anggota.objects.filter(status="aktif").count()
 
     jumlah_simpanan = (
         Simpanan.objects.aggregate(total=Sum("jumlah"))["total"] or 0
     )
 
     jumlah_pinjaman = (
-        Pinjaman.objects.aggregate(total=Sum("jumlah_pinjaman"))["total"] or 0
+        Pinjaman.objects
+        .filter(status="aktif")
+        .aggregate(total=Sum("sisa_pinjaman"))["total"] or 0
     )
 
     # ===============================
     # DATA BULANAN
     # ===============================
-    simpanan_bulanan = (
-        Simpanan.objects
-        .annotate(bulan=TruncMonth("tanggal"))
-        .values("bulan")
-        .annotate(total=Sum("jumlah"))
-        .order_by("bulan")
-    )
-
-    pinjaman_bulanan = (
-        Pinjaman.objects
-        .annotate(bulan=TruncMonth("tanggal_meminjam"))
-        .values("bulan")
-        .annotate(total=Sum("jumlah_pinjaman"))
-        .order_by("bulan")
-    )
-
-    # ===============================
-    # GABUNG DATA BIAR LABEL SINKRON
-    # ===============================
-    data_bulanan = defaultdict(lambda: {
-        "simpanan": 0,
-        "pinjaman": 0
-    })
-
-    for x in simpanan_bulanan:
-        key = x["bulan"].strftime("%Y-%m")
-        data_bulanan[key]["simpanan"] = float(x["total"])
-
-    for x in pinjaman_bulanan:
-        key = x["bulan"].strftime("%Y-%m")
-        data_bulanan[key]["pinjaman"] = float(x["total"])
-
-    # ===============================
-    # SORT & FINAL ARRAY
-    # ===============================
     bulan_labels = []
     simpanan_data = []
     pinjaman_data = []
 
-    for key in sorted(data_bulanan.keys()):
-        bulan_labels.append(
-            datetime.strptime(key, "%Y-%m").strftime("%b %Y")
-        )
-        simpanan_data.append(data_bulanan[key]["simpanan"])
-        pinjaman_data.append(data_bulanan[key]["pinjaman"])
+    today = date.today()
+    start = date(today.year - 1, today.month, 1)
 
-    # ===============================
-    # CONTEXT
-    # ===============================
+    for i in range(12):
+
+        bulan = start + relativedelta(months=i)
+
+        akhir_bulan = (
+            bulan + relativedelta(months=1)
+        ) - relativedelta(days=1)
+
+        # ===============================
+        # TOTAL SIMPANAN
+        # ===============================
+        total_simpanan = (
+            Simpanan.objects
+            .filter(tanggal__lte=akhir_bulan)
+            .aggregate(total=Sum("jumlah"))["total"] or 0
+        )
+
+        # ===============================
+        # TOTAL PINJAMAN DIAMBIL
+        # ===============================
+        total_pinjaman = (
+            Pinjaman.objects
+            .filter(tanggal_meminjam__lte=akhir_bulan)
+            .aggregate(total=Sum("jumlah_pinjaman"))["total"] or 0
+        )
+
+        # ===============================
+        # JUMLAH CICILAN SAMPAI BULAN ITU
+        # ===============================
+        total_cicilan = (
+            Angsuran.objects
+            .filter(
+                tanggal_bayar__lte=akhir_bulan,
+                tipe_bayar="cicilan"
+            )
+            .values("id_pinjaman")
+            .annotate(jumlah=Count("id_pembayaran"))
+        )
+
+        total_pokok_terbayar = 0
+
+        for cicilan in total_cicilan:
+            pinjaman = Pinjaman.objects.get(id_pinjaman=cicilan["id_pinjaman"])
+            total_pokok_terbayar += cicilan["jumlah"] * pinjaman.angsuran_per_bulan
+
+        # ===============================
+        # SISA PINJAMAN
+        # ===============================
+        sisa_pinjaman = total_pinjaman - total_pokok_terbayar
+
+        if sisa_pinjaman < 0:
+            sisa_pinjaman = 0
+
+        bulan_labels.append(bulan.strftime("%b %Y"))
+        simpanan_data.append(float(total_simpanan))
+        pinjaman_data.append(float(sisa_pinjaman))
+
     context = {
         "jumlah_admin": jumlah_admin,
         "jumlah_anggota": jumlah_anggota,
@@ -231,73 +277,93 @@ def bendahara_dashboard(request):
     if request.user.role != "bendahara":
         return redirect("anggota:dashboard_redirect")
 
-
     # ===============================
     # INFO CARD
     # ===============================
-    jumlah_admin = User.objects.count()
-    jumlah_anggota = Anggota.objects.count()
+    jumlah_admin = User.objects.filter(
+        is_superuser=False,
+        role__in=["ketua", "sekretaris", "bendahara"]
+    ).count()
+
+    jumlah_anggota = Anggota.objects.filter(status="aktif").count()
 
     jumlah_simpanan = (
         Simpanan.objects.aggregate(total=Sum("jumlah"))["total"] or 0
     )
 
     jumlah_pinjaman = (
-        Pinjaman.objects.aggregate(total=Sum("jumlah_pinjaman"))["total"] or 0
+        Pinjaman.objects
+        .filter(status="aktif")
+        .aggregate(total=Sum("sisa_pinjaman"))["total"] or 0
     )
 
     # ===============================
     # DATA BULANAN
     # ===============================
-    simpanan_bulanan = (
-        Simpanan.objects
-        .annotate(bulan=TruncMonth("tanggal"))
-        .values("bulan")
-        .annotate(total=Sum("jumlah"))
-        .order_by("bulan")
-    )
-
-    pinjaman_bulanan = (
-        Pinjaman.objects
-        .annotate(bulan=TruncMonth("tanggal_meminjam"))
-        .values("bulan")
-        .annotate(total=Sum("jumlah_pinjaman"))
-        .order_by("bulan")
-    )
-
-    # ===============================
-    # GABUNG DATA BIAR LABEL SINKRON
-    # ===============================
-    data_bulanan = defaultdict(lambda: {
-        "simpanan": 0,
-        "pinjaman": 0
-    })
-
-    for x in simpanan_bulanan:
-        key = x["bulan"].strftime("%Y-%m")
-        data_bulanan[key]["simpanan"] = float(x["total"])
-
-    for x in pinjaman_bulanan:
-        key = x["bulan"].strftime("%Y-%m")
-        data_bulanan[key]["pinjaman"] = float(x["total"])
-
-    # ===============================
-    # SORT & FINAL ARRAY
-    # ===============================
     bulan_labels = []
     simpanan_data = []
     pinjaman_data = []
 
-    for key in sorted(data_bulanan.keys()):
-        bulan_labels.append(
-            datetime.strptime(key, "%Y-%m").strftime("%b %Y")
-        )
-        simpanan_data.append(data_bulanan[key]["simpanan"])
-        pinjaman_data.append(data_bulanan[key]["pinjaman"])
+    today = date.today()
+    start = date(today.year - 1, today.month, 1)
 
-    # ===============================
-    # CONTEXT
-    # ===============================
+    for i in range(12):
+
+        bulan = start + relativedelta(months=i)
+
+        akhir_bulan = (
+            bulan + relativedelta(months=1)
+        ) - relativedelta(days=1)
+
+        # ===============================
+        # TOTAL SIMPANAN
+        # ===============================
+        total_simpanan = (
+            Simpanan.objects
+            .filter(tanggal__lte=akhir_bulan)
+            .aggregate(total=Sum("jumlah"))["total"] or 0
+        )
+
+        # ===============================
+        # TOTAL PINJAMAN DIAMBIL
+        # ===============================
+        total_pinjaman = (
+            Pinjaman.objects
+            .filter(tanggal_meminjam__lte=akhir_bulan)
+            .aggregate(total=Sum("jumlah_pinjaman"))["total"] or 0
+        )
+
+        # ===============================
+        # JUMLAH CICILAN SAMPAI BULAN ITU
+        # ===============================
+        total_cicilan = (
+            Angsuran.objects
+            .filter(
+                tanggal_bayar__lte=akhir_bulan,
+                tipe_bayar="cicilan"
+            )
+            .values("id_pinjaman")
+            .annotate(jumlah=Count("id_pembayaran"))
+        )
+
+        total_pokok_terbayar = 0
+
+        for cicilan in total_cicilan:
+            pinjaman = Pinjaman.objects.get(id_pinjaman=cicilan["id_pinjaman"])
+            total_pokok_terbayar += cicilan["jumlah"] * pinjaman.angsuran_per_bulan
+
+        # ===============================
+        # SISA PINJAMAN
+        # ===============================
+        sisa_pinjaman = total_pinjaman - total_pokok_terbayar
+
+        if sisa_pinjaman < 0:
+            sisa_pinjaman = 0
+
+        bulan_labels.append(bulan.strftime("%b %Y"))
+        simpanan_data.append(float(total_simpanan))
+        pinjaman_data.append(float(sisa_pinjaman))
+
     context = {
         "jumlah_admin": jumlah_admin,
         "jumlah_anggota": jumlah_anggota,

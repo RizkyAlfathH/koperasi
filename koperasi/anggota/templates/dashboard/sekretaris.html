@@ -24,7 +24,7 @@
         <p>JUMLAH ADMIN</p>
         <h2>{{ jumlah_admin }}</h2>
       </div>
-      <span class="icon">👤</span>
+      <span class="icon"><i class="ph-bold ph-user"></i></span>
     </div>
 
     <div class="info-card">
@@ -32,7 +32,7 @@
         <p>JUMLAH ANGGOTA</p>
         <h2>{{ jumlah_anggota }}</h2>
       </div>
-      <span class="icon">👥</span>
+      <span class="icon"><i class="ph-bold ph-users"></i></span>
     </div>
 
     <div class="info-card">
@@ -40,7 +40,7 @@
         <p>JUMLAH SIMPANAN</p>
         <h2 class="rupiah-text">Rp {{ jumlah_simpanan|floatformat:0 }}</h2>
       </div>
-      <span class="icon">💰</span>
+      <span class="icon"><i class="ph-bold ph-wallet"></i></span>
     </div>
 
     <div class="info-card">
@@ -48,7 +48,7 @@
         <p>JUMLAH PINJAMAN</p>
         <h2 class="rupiah-text">Rp {{ jumlah_pinjaman|floatformat:0 }}</h2>
       </div>
-      <span class="icon">💳</span>
+      <span class="icon"><i class="ph-bold ph-credit-card"></i></span>
     </div>
   </div>
 
@@ -91,7 +91,9 @@
         </div>
       </div>
 
-      <canvas id="statistikChart"></canvas>
+      <div class="chart-wrapper">
+          <canvas id="statistikChart"></canvas>
+      </div>
 
     </div>
   </div>
@@ -110,24 +112,28 @@ new Chart(document.getElementById("statistikChart"), {
   data: {
     labels: bulan,
     datasets: [
-      {
+    {
         label: "Pinjaman",
         data: pinjaman,
         fill: true,
         backgroundColor: "rgba(210,210,210,0.7)",
         borderColor: "rgba(210,210,210,1)",
         tension: 0.4,
-        pointRadius: 0
-      },
-      {
+        pointRadius: 4,
+        pointBackgroundColor: "#999",
+        pointBorderWidth: 2
+    },
+    {
         label: "Simpanan",
         data: simpanan,
         fill: true,
         backgroundColor: "rgba(54,162,235,0.7)",
         borderColor: "#3696e6",
         tension: 0.4,
-        pointRadius: 0
-      }
+        pointRadius: 4,
+        pointBackgroundColor: "#3696e6",
+        pointBorderWidth: 2
+    }
     ]
   },
   options: {
@@ -141,6 +147,8 @@ new Chart(document.getElementById("statistikChart"), {
     },
     scales: {
       y: {
+        beginAtZero: true,
+        min: 0,
         ticks: {
           callback: value => "Rp " + value.toLocaleString("id-ID")
         },
