@@ -55,6 +55,43 @@
     {% block content %}{% endblock %}
 </div>
 
+<!-- FLOATING HELP -->
+<button id="helpBtn" class="help-float">
+    ?
+</button>
+
+<div id="helpModal" class="help-modal">
+    <div class="help-content">
+        <span id="closeHelp">&times;</span>
+        <h5 class="mb-3">Panduan Halaman</h5>
+        <div>
+            {{ help_text|default:"Belum ada bantuan untuk halaman ini."|safe }}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const helpBtn = document.getElementById("helpBtn");
+    const helpModal = document.getElementById("helpModal");
+    const closeHelp = document.getElementById("closeHelp");
+
+    helpBtn.addEventListener("click", function() {
+        helpModal.style.display = "flex";
+    });
+
+    closeHelp.addEventListener("click", function() {
+        helpModal.style.display = "none";
+    });
+
+    window.addEventListener("click", function(event) {
+        if (event.target === helpModal) {
+            helpModal.style.display = "none";
+        }
+    });
+});
+</script>
+
 <!-- ACTIVE SIDEBAR + AUTO LOADER -->
 <script>
 document.addEventListener("DOMContentLoaded", function () {
