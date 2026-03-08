@@ -1,4 +1,5 @@
 from django import forms
+from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from .models import Anggota
 
@@ -10,8 +11,11 @@ class AdminForm(forms.ModelForm):
             "placeholder": "Masukkan password",
             "autocomplete": "new-password"
         }),
-        required=False,
-        label="Password"
+        required=True,
+        label="Password",
+        error_messages={
+            "required": "Password wajib diisi."
+        }
     )
 
     class Meta:
@@ -27,7 +31,17 @@ class AdminForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # ROLE DROPDOWN (EMPTY DEFAULT)
+        self.fields["username"].required = True
+        self.fields["role"].required = True
+
+        self.fields["username"].error_messages = {
+            "required": "Username wajib diisi."
+        }
+
+        self.fields["role"].error_messages = {
+            "required": "Silakan pilih role."
+        }
+
         self.fields["role"].choices = [
             ("", "---------"),
             ("ketua", "Ketua"),
@@ -35,104 +49,137 @@ class AdminForm(forms.ModelForm):
             ("bendahara", "Bendahara"),
         ]
 
-        self.fields["role"].required = True
+    # ================= VALIDASI =================
 
-        # OPTIONAL: styling konsisten
-        self.fields["role"].widget.attrs.update({
-            "class": "form-control"
-        })
+    def clean_username(self):
+        username = self.cleaned_data.get("username")
+
+        if not username:
+            return username
+
+        # Ambil queryset user dengan username sama
+        qs = User.objects.filter(username=username)
+
+        # Jika sedang edit (ada instance pk)
+        if self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+
+        if qs.exists():
+            raise ValidationError("Username sudah digunakan.")
+
+        if len(username) < 4:
+            raise ValidationError("Username minimal 4 karakter.")
+
+        return username
+    
+
+    def clean_password(self):
+        password = self.cleaned_data.get("password")
+
+        if not password:
+            raise ValidationError("Password wajib diisi.")
+
+        if len(password) < 6:
+            raise ValidationError("Password minimal 6 karakter.")
+
+        return password
 
     def clean_role(self):
         role = self.cleaned_data.get("role")
 
-        if not role:
-            raise forms.ValidationError("Silakan pilih role.")
-
-        if role not in ["ketua", "sekretaris", "bendahara"]:
-            raise forms.ValidationError("Role tidak diizinkan.")
+        if role and role not in ["ketua", "sekretaris", "bendahara"]:
+            raise ValidationError("Role tidak diizinkan.")
 
         return role
 
+
     def save(self, commit=True):
         user = super().save(commit=False)
-
-        password = self.cleaned_data.get("password")
-        if password:
-            user.set_password(password)
-
+        user.set_password(self.cleaned_data["password"])
+        user.is_staff = True  # otomatis staff
         if commit:
             user.save()
-
         return user
 
 
 class AnggotaForm(forms.ModelForm):
     password = forms.CharField(
-        widget=forms.PasswordInput(attrs={
-            "placeholder": "Masukkan password",
-            "autocomplete": "new-password"
-        }),
+        widget=forms.PasswordInput(render_value=False),
         required=False,
-        label="Password"
+        label="Password Baru"
     )
 
     class Meta:
         model = Anggota
-        fields = [
-            "nomor_anggota",
-            "nama",
-            "umur",
-            "nip",
-            "alamat",
-            "no_telp",
-            "email",
-            "jenis_kelamin",
-            "pekerjaan",
-            "tanggal_daftar",
-            "status",
-            "alasan_nonaktif",
-            "tanggal_nonaktif",
-        ]
-
+        exclude = ["password_hash"]
         widgets = {
-            "tanggal_daftar": forms.DateInput(attrs={
-                "type": "date",
-                "placeholder": "Tanggal daftar"
-            }),
-            "tanggal_nonaktif": forms.DateInput(attrs={
-                "type": "date",
-                "placeholder": "Tanggal nonaktif"
-            }),
+            "tanggal_daftar": forms.DateInput(
+                format="%Y-%m-%d",
+                attrs={"type": "date"}
+            ),
+            "tanggal_nonaktif": forms.DateInput(
+                format="%Y-%m-%d",
+                attrs={"type": "date"}
+            ),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        for name, field in self.fields.items():
+            if field.required:
+                field.error_messages.update({
+                    "required": f"{field.label} wajib diisi."
+                })
+
+
+        # ===============================
+        # PLACEHOLDER
+        # ===============================
         self.fields["nomor_anggota"].widget.attrs.update({
-            "placeholder": "Nomor anggota",
+            "placeholder": "Masukkan Nomor anggota",
             "inputmode": "numeric"
         })
         self.fields["nama"].widget.attrs.update({
-            "placeholder": "Nama lengkap"
+            "placeholder": "Masukkan Nama lengkap"
         })
         self.fields["umur"].widget.attrs.update({
-            "placeholder": "Umur"
+            "placeholder": "Masukkan Umur"
         })
         self.fields["nip"].widget.attrs.update({
-            "placeholder": "NIP"
+            "placeholder": "Masukkan NIP"
         })
         self.fields["alamat"].widget.attrs.update({
-            "placeholder": "Alamat lengkap"
+            "placeholder": "Masukkan Alamat lengkap"
         })
         self.fields["no_telp"].widget.attrs.update({
-            "placeholder": "Nomor telepon"
+            "placeholder": "Masukkan Nomor telepon"
         })
         self.fields["email"].widget.attrs.update({
-            "placeholder": "Email aktif"
+            "placeholder": "Masukkan Email aktif"
         })
         self.fields["pekerjaan"].widget.attrs.update({
-            "placeholder": "Pekerjaan"
+            "placeholder": "Masukkan Pekerjaan"
         })
+        self.fields["tanggal_daftar"].input_formats = ["%Y-%m-%d"]
+        self.fields["tanggal_nonaktif"].input_formats = ["%Y-%m-%d"]
+
+        if not self.instance.pk:
+            self.fields["password"].required = True
+
+    def clean(self):
+        cleaned_data = super().clean()
+        status = cleaned_data.get("status")
+        alasan = cleaned_data.get("alasan_nonaktif")
+        tanggal = cleaned_data.get("tanggal_nonaktif")
+
+        if status and status.lower() == "nonaktif":
+            if not alasan:
+                self.add_error("alasan_nonaktif", "Alasan nonaktif wajib diisi.")
+            if not tanggal:
+                self.add_error("tanggal_nonaktif", "Tanggal nonaktif wajib diisi.")
+
+        return cleaned_data
 
     def save(self, commit=True):
         anggota = super().save(commit=False)

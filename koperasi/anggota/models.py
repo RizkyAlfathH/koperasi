@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.hashers import make_password, check_password
 from datetime import datetime
 from django.db.models import Sum
+from django.utils import timezone
 
 class Anggota(models.Model):
     JK_CHOICES = [
@@ -15,14 +16,14 @@ class Anggota(models.Model):
 
     nomor_anggota = models.CharField(max_length=20, unique=True, primary_key=True)
     nama = models.CharField(max_length=100)
-    umur = models.IntegerField(blank=True, null=True)
-    nip = models.CharField(max_length=30, unique=False, blank=True, null=True)
-    alamat = models.CharField(max_length=255, blank=True, null=True)
-    no_telp = models.CharField(max_length=40, blank=True, null=True)
-    email = models.CharField(max_length=255, blank=True, null=True)
+    umur = models.IntegerField(null=True)
+    nip = models.CharField(max_length=30, unique=False, null=True)
+    alamat = models.CharField(max_length=255, null=True)
+    no_telp = models.CharField(max_length=40, null=True)
+    email = models.CharField(max_length=255, null=True)
     jenis_kelamin = models.CharField(max_length=10, choices=JK_CHOICES)
-    pekerjaan = models.CharField(max_length=255, blank=True, null=True)  
-    tanggal_daftar = models.DateField(default=datetime.now)
+    pekerjaan = models.CharField(max_length=255, null=True)  
+    tanggal_daftar = models.DateField(default=timezone.now)
     status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='aktif')
     alasan_nonaktif = models.CharField(max_length=255, blank=True, null=True)
     tanggal_nonaktif = models.DateField(blank=True, null=True)

@@ -130,10 +130,15 @@ def tambah_pinjaman(request):
                     total=Sum('sisa_pinjaman')
                 )['total'] or Decimal('0')
 
+                # tambahkan sisa pinjaman lama ke pinjaman baru
                 pinjaman_baru.jumlah_pinjaman += total_sisa
                 pinjaman_baru.sisa_pinjaman = pinjaman_baru.jumlah_pinjaman
 
-                pinjaman_lama.update(status='digabung')
+                # pinjaman lama dianggap selesai / digabung
+                pinjaman_lama.update(
+                    status='digabung',
+                    sisa_pinjaman=0
+                )
 
             pinjaman_baru.save()
 
@@ -176,7 +181,7 @@ def pinjaman_anggota(request, nomor_anggota):
     )
 
     pinjaman_qs = Pinjaman.objects.filter(
-        nomor_anggota=anggota
+    nomor_anggota=anggota
     ).select_related(
         'id_jenis_pinjaman',
         'id_kategori_jasa'
@@ -207,21 +212,30 @@ def pinjaman_anggota(request, nomor_anggota):
             sisa_pinjaman = Decimal('0')
 
         # ===== STATUS AMAN =====
-        if sisa_pinjaman <= 0:
-            status = 'Lunas'
-        else:
-            status = 'aktif'
+        if pinjaman.status == "digabung":
+            status = "digabung"
 
-        if pinjaman.status != status:
+        elif sisa_pinjaman <= 0:
+            status = "Lunas"
+
+        else:
+            status = "aktif"
+
+        # UPDATE DATABASE HANYA JIKA BUKAN DIGABUNG
+        if pinjaman.status != status and pinjaman.status != "digabung":
             pinjaman.status = status
             pinjaman.sisa_pinjaman = sisa_pinjaman
             pinjaman.save(update_fields=['status', 'sisa_pinjaman'])
 
         # ===== HITUNG JASA =====
-        if pinjaman.id_kategori_jasa.kategori_jasa.lower() == 'turunan':
+        if status == "digabung":
+            jasa_rupiah = Decimal("0")
+
+        elif pinjaman.id_kategori_jasa.kategori_jasa.lower() == 'turunan':
             jasa_rupiah = sisa_pinjaman * (
                 pinjaman.jasa_persen / 100 if pinjaman.jasa_persen else 0
             )
+
         else:
             jasa_rupiah = pinjaman.jumlah_pinjaman * (
                 pinjaman.jasa_persen / 100 if pinjaman.jasa_persen else 0
@@ -230,7 +244,7 @@ def pinjaman_anggota(request, nomor_anggota):
         pinjaman.jasa_rupiah = jasa_rupiah
         pinjaman.sisa_pinjaman = sisa_pinjaman
 
-        if status == 'Lunas':
+        if status in ["Lunas", "digabung"]:
             riwayat_pinjaman.append(pinjaman)
         else:
             pinjaman_aktif.append(pinjaman)
@@ -368,9 +382,7 @@ def bayar_pinjaman(request, id_pinjaman):
             # 2️⃣ SISANYA MASUK SUKARELA
             kelebihan = nominal - minimal
             if kelebihan > 0:
-                jenis, _ = JenisSimpanan.objects.get_or_create(
-                    nama_jenis="Simpanan Sukarela"
-                )
+                jenis = JenisSimpanan.objects.get(nama_jenis__iexact="SUKARELA")
                 Simpanan.objects.create(
                     anggota=pinjaman.nomor_anggota,
                     admin=admin_login,
@@ -486,7 +498,7 @@ def cek_auto_sukarela_ke_pinjaman(pinjaman, admin_login):
     # =========================
     saldo_sukarela = Simpanan.objects.filter(
         anggota=pinjaman.nomor_anggota,
-        jenis_simpanan__nama_jenis__iexact="Simpanan Sukarela",
+        jenis_simpanan__nama_jenis__iexact="SUKARELA",
         sumber_pinjaman=pinjaman
     ).aggregate(total=Sum("jumlah"))["total"] or Decimal("0")
 
@@ -498,7 +510,7 @@ def cek_auto_sukarela_ke_pinjaman(pinjaman, admin_login):
     # POTONG SUKARELA (HANYA 1 BULAN)
     # =========================
     jenis_sukarela, _ = JenisSimpanan.objects.get_or_create(
-        nama_jenis="Simpanan Sukarela"
+        nama_jenis="SUKARELA"
     )
 
     Simpanan.objects.create(
@@ -506,7 +518,8 @@ def cek_auto_sukarela_ke_pinjaman(pinjaman, admin_login):
         admin=admin_login,
         jenis_simpanan=jenis_sukarela,
         tanggal=today,
-        jumlah=-total_bulan_ini
+        jumlah=-total_bulan_ini,
+        sumber_pinjaman=pinjaman
     )
 
     # =========================
