@@ -382,9 +382,7 @@ def bayar_pinjaman(request, id_pinjaman):
             # 2️⃣ SISANYA MASUK SUKARELA
             kelebihan = nominal - minimal
             if kelebihan > 0:
-                jenis, _ = JenisSimpanan.objects.get_or_create(
-                    nama_jenis="Simpanan Sukarela"
-                )
+                jenis = JenisSimpanan.objects.get(nama_jenis__iexact="SUKARELA")
                 Simpanan.objects.create(
                     anggota=pinjaman.nomor_anggota,
                     admin=admin_login,
