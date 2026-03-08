@@ -115,6 +115,11 @@ select.is-invalid {
     margin-top: 6px;
 }
 
+.form-control.is-invalid {
+    background-image: none !important;
+    padding-right: 14px !important;
+}
+
 /* ===============================
    ERROR FOCUS OVERRIDE
 ================================ */

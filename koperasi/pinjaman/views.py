@@ -130,10 +130,15 @@ def tambah_pinjaman(request):
                     total=Sum('sisa_pinjaman')
                 )['total'] or Decimal('0')
 
+                # tambahkan sisa pinjaman lama ke pinjaman baru
                 pinjaman_baru.jumlah_pinjaman += total_sisa
                 pinjaman_baru.sisa_pinjaman = pinjaman_baru.jumlah_pinjaman
 
-                pinjaman_lama.update(status='digabung')
+                # pinjaman lama dianggap selesai / digabung
+                pinjaman_lama.update(
+                    status='digabung',
+                    sisa_pinjaman=0
+                )
 
             pinjaman_baru.save()
 
@@ -176,7 +181,7 @@ def pinjaman_anggota(request, nomor_anggota):
     )
 
     pinjaman_qs = Pinjaman.objects.filter(
-        nomor_anggota=anggota
+    nomor_anggota=anggota
     ).select_related(
         'id_jenis_pinjaman',
         'id_kategori_jasa'
@@ -207,21 +212,30 @@ def pinjaman_anggota(request, nomor_anggota):
             sisa_pinjaman = Decimal('0')
 
         # ===== STATUS AMAN =====
-        if sisa_pinjaman <= 0:
-            status = 'Lunas'
-        else:
-            status = 'aktif'
+        if pinjaman.status == "digabung":
+            status = "digabung"
 
-        if pinjaman.status != status:
+        elif sisa_pinjaman <= 0:
+            status = "Lunas"
+
+        else:
+            status = "aktif"
+
+        # UPDATE DATABASE HANYA JIKA BUKAN DIGABUNG
+        if pinjaman.status != status and pinjaman.status != "digabung":
             pinjaman.status = status
             pinjaman.sisa_pinjaman = sisa_pinjaman
             pinjaman.save(update_fields=['status', 'sisa_pinjaman'])
 
         # ===== HITUNG JASA =====
-        if pinjaman.id_kategori_jasa.kategori_jasa.lower() == 'turunan':
+        if status == "digabung":
+            jasa_rupiah = Decimal("0")
+
+        elif pinjaman.id_kategori_jasa.kategori_jasa.lower() == 'turunan':
             jasa_rupiah = sisa_pinjaman * (
                 pinjaman.jasa_persen / 100 if pinjaman.jasa_persen else 0
             )
+
         else:
             jasa_rupiah = pinjaman.jumlah_pinjaman * (
                 pinjaman.jasa_persen / 100 if pinjaman.jasa_persen else 0
@@ -230,7 +244,7 @@ def pinjaman_anggota(request, nomor_anggota):
         pinjaman.jasa_rupiah = jasa_rupiah
         pinjaman.sisa_pinjaman = sisa_pinjaman
 
-        if status == 'Lunas':
+        if status in ["Lunas", "digabung"]:
             riwayat_pinjaman.append(pinjaman)
         else:
             pinjaman_aktif.append(pinjaman)

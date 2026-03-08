@@ -8,6 +8,9 @@ class PinjamanForm(forms.ModelForm):
     # ================= FIELD STRING (INPUT RUPIAH) =================
     jumlah_pinjaman = forms.CharField(
         required=True,
+        error_messages={
+            "required": "Jumlah pinjaman wajib diisi."
+        },
         widget=forms.TextInput(attrs={
             'class': 'form-control',
             'placeholder': 'Masukkan jumlah pinjaman'
@@ -16,6 +19,9 @@ class PinjamanForm(forms.ModelForm):
 
     angsuran_per_bulan = forms.CharField(
         required=True,
+        error_messages={
+            "required": "Angsuran per bulan wajib diisi."
+        },
         widget=forms.TextInput(attrs={
             'class': 'form-control',
             'placeholder': 'Masukkan jumlah angsuran per bulan'
@@ -44,6 +50,21 @@ class PinjamanForm(forms.ModelForm):
             'jasa_rupiah',
         ]
 
+        error_messages = {
+            'nomor_anggota': {
+                'required': 'Nama Anggota wajib diisi.'
+            },
+            'id_jenis_pinjaman': {
+                'required': 'Jenis Pinjaman wajib diisi.'
+            },
+            'tanggal_meminjam': {
+                'required': 'Tanggal Pinjam wajib diisi.'
+            },
+            'jatuh_tempo': {
+                'required': 'Lama Pinjaman wajib diisi.'
+            },
+        }
+
         widgets = {
             'nomor_anggota': forms.Select(attrs={'class': 'form-control select2'}),
             'id_jenis_pinjaman': forms.Select(attrs={'class': 'form-control'}),
@@ -68,31 +89,65 @@ class PinjamanForm(forms.ModelForm):
             }),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        for name, field in self.fields.items():
+            if field.required and "required" not in field.error_messages:
+                field.error_messages["required"] = f"{field.label} wajib diisi."
+
     # ================= HELPER =================
     def _rupiah_to_decimal(self, value):
-        """
-        'Rp 1.000.000' -> Decimal('1000000')
-        """
         if not value:
-            return Decimal('0')
+            return None
 
-        return Decimal(
-            value.replace('Rp', '')
-                 .replace('.', '')
-                 .replace(',', '')
-                 .strip()
-        )
+        try:
+            return Decimal(
+                value.replace('Rp', '')
+                    .replace('.', '')
+                    .replace(',', '')
+                    .strip()
+            )
+        except:
+            raise forms.ValidationError("Format rupiah tidak valid.")
 
     # ================= CLEAN PER FIELD =================
+    def clean_jatuh_tempo(self):
+        jatuh_tempo = self.cleaned_data.get("jatuh_tempo")
+
+        if jatuh_tempo and (jatuh_tempo < 1 or jatuh_tempo > 36):
+            raise forms.ValidationError(
+                "Lama pinjaman harus antara 1 sampai 36 bulan."
+            )
+
+        return jatuh_tempo
+    
     def clean_jumlah_pinjaman(self):
-        return self._rupiah_to_decimal(
-            self.cleaned_data.get('jumlah_pinjaman')
-        )
+        raw = self.cleaned_data.get('jumlah_pinjaman')
+
+        if not raw:
+            raise forms.ValidationError("Jumlah pinjaman wajib diisi.")
+
+        value = self._rupiah_to_decimal(raw)
+
+        if value <= 0:
+            raise forms.ValidationError(
+                "Jumlah pinjaman harus lebih dari 0."
+            )
+
+        return value
 
     def clean_angsuran_per_bulan(self):
-        return self._rupiah_to_decimal(
+        value = self._rupiah_to_decimal(
             self.cleaned_data.get('angsuran_per_bulan')
         )
+
+        if value <= 0:
+            raise forms.ValidationError(
+                "Angsuran per bulan harus lebih dari 0."
+            )
+
+        return value
 
     def clean_jasa_rupiah(self):
         return self._rupiah_to_decimal(
@@ -103,23 +158,27 @@ class PinjamanForm(forms.ModelForm):
         jasa_persen = self.cleaned_data.get('jasa_persen')
 
         if jasa_persen is None:
-            return jasa_persen
+            raise forms.ValidationError("Persentase jasa wajib diisi.")
 
-        try:
-            return Decimal(str(jasa_persen).replace(',', '.'))
-        except Exception:
-            raise forms.ValidationError(
-                "Persentase jasa tidak valid, gunakan format angka."
-            )
+        if jasa_persen < 0:
+            raise forms.ValidationError("Persentase tidak boleh minus.")
+
+        if jasa_persen > 100:
+            raise forms.ValidationError("Persentase tidak boleh lebih dari 100%.")
+
+        return jasa_persen
 
     # ================= CLEAN GLOBAL =================
     def clean(self):
         cleaned_data = super().clean()
 
-        jumlah = cleaned_data.get('jumlah_pinjaman')   # Decimal
-        persen = cleaned_data.get('jasa_persen')       # Decimal
+        jumlah = cleaned_data.get('jumlah_pinjaman')
+        persen = cleaned_data.get('jasa_persen')
 
         if jumlah and persen is not None:
+            if persen < 0:
+                self.add_error("jasa_persen", "Persentase tidak boleh minus.")
+
             jasa = jumlah * (persen / Decimal('100'))
             cleaned_data['jasa_rupiah'] = jasa.quantize(Decimal('1'))
 

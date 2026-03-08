@@ -103,19 +103,24 @@ class AdminForm(forms.ModelForm):
 
 
 class AnggotaForm(forms.ModelForm):
+    password = forms.CharField(
+        widget=forms.PasswordInput(render_value=False),
+        required=False,
+        label="Password Baru"
+    )
 
     class Meta:
         model = Anggota
-        fields = "__all__"
+        exclude = ["password_hash"]
         widgets = {
-            "tanggal_daftar": forms.DateInput(attrs={
-                "type": "date",
-                "placeholder": "Tanggal daftar"
-            }),
-            "tanggal_nonaktif": forms.DateInput(attrs={
-                "type": "date",
-                "placeholder": "Tanggal nonaktif"
-            }),
+            "tanggal_daftar": forms.DateInput(
+                format="%Y-%m-%d",
+                attrs={"type": "date"}
+            ),
+            "tanggal_nonaktif": forms.DateInput(
+                format="%Y-%m-%d",
+                attrs={"type": "date"}
+            ),
         }
 
     def __init__(self, *args, **kwargs):
@@ -156,6 +161,11 @@ class AnggotaForm(forms.ModelForm):
         self.fields["pekerjaan"].widget.attrs.update({
             "placeholder": "Masukkan Pekerjaan"
         })
+        self.fields["tanggal_daftar"].input_formats = ["%Y-%m-%d"]
+        self.fields["tanggal_nonaktif"].input_formats = ["%Y-%m-%d"]
+
+        if not self.instance.pk:
+            self.fields["password"].required = True
 
     def clean(self):
         cleaned_data = super().clean()
