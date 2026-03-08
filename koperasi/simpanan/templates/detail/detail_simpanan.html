@@ -81,7 +81,15 @@
     <div class="angsuran-card">
 
         <div class="angsuran-info">
-            <strong>{{ h.get_jenis_transaksi_display }}</strong><br>
+            <strong>
+            {% if h.sumber_pinjaman and h.jumlah < 0 %}
+                Bayar Pinjaman {{ h.sumber_pinjaman.id_jenis_pinjaman.nama_jenis }}
+            {% elif h.sumber_pinjaman and h.jumlah > 0 %}
+                Dari Pinjaman {{ h.sumber_pinjaman.id_jenis_pinjaman.nama_jenis }}
+            {% else %}
+                {{ h.get_jenis_transaksi_display }}
+            {% endif %}
+            </strong><br>
             <small>{{ h.tanggal|date:"d M Y" }}</small>
         </div>
 

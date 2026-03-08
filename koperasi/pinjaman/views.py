@@ -498,7 +498,7 @@ def cek_auto_sukarela_ke_pinjaman(pinjaman, admin_login):
     # =========================
     saldo_sukarela = Simpanan.objects.filter(
         anggota=pinjaman.nomor_anggota,
-        jenis_simpanan__nama_jenis__iexact="Simpanan Sukarela",
+        jenis_simpanan__nama_jenis__iexact="SUKARELA",
         sumber_pinjaman=pinjaman
     ).aggregate(total=Sum("jumlah"))["total"] or Decimal("0")
 
@@ -510,7 +510,7 @@ def cek_auto_sukarela_ke_pinjaman(pinjaman, admin_login):
     # POTONG SUKARELA (HANYA 1 BULAN)
     # =========================
     jenis_sukarela, _ = JenisSimpanan.objects.get_or_create(
-        nama_jenis="Simpanan Sukarela"
+        nama_jenis="SUKARELA"
     )
 
     Simpanan.objects.create(
@@ -518,7 +518,8 @@ def cek_auto_sukarela_ke_pinjaman(pinjaman, admin_login):
         admin=admin_login,
         jenis_simpanan=jenis_sukarela,
         tanggal=today,
-        jumlah=-total_bulan_ini
+        jumlah=-total_bulan_ini,
+        sumber_pinjaman=pinjaman
     )
 
     # =========================
