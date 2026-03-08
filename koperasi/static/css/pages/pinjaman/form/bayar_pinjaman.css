@@ -102,3 +102,31 @@ select.form-control:focus {
 .flatpickr-day:hover {
     background: #fff3cd;
 }
+
+/* ===============================
+   READONLY FIELD STYLE
+================================ */
+.form-control[readonly] {
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    color: #6c757d;
+    cursor: not-allowed;
+}
+
+/* icon rupiah readonly */
+.rupiah-text[readonly] {
+    background-color: #f5f5f5;
+}
+
+/* readonly select */
+select[readonly],
+select:disabled {
+    background-color: #f5f5f5;
+    color: #6c757d;
+}
+
+/* hilangkan focus effect */
+.form-control[readonly]:focus {
+    border-color: #ddd !important;
+    box-shadow: none !important;
+}

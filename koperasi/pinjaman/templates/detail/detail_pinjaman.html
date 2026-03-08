@@ -45,11 +45,11 @@
     <div class="row mb-3">
         <div class="col-md-6">
             <label>Jumlah Pinjaman</label>
-            <input type="text" class="form-control" readonly
+            <input type="text" class="form-control rupiah-text" readonly
                    value="Rp {{ pinjaman.jumlah_pinjaman|floatformat:0 }}">
         </div>
         <div class="col-md-6">
-            <label>Angsuran / Bulan</label>
+            <label>Angsuran Per Bulan</label>
             <input type="text" class="form-control rupiah-text" readonly
                    value="Rp {{ pinjaman.angsuran_per_bulan|floatformat:0 }}">
         </div>
@@ -85,9 +85,17 @@
         <div class="col-md-12">
             <label>Status</label>
             <input type="text" readonly
-                   class="form-control status-input 
-                   {% if pinjaman.status == 'Lunas' %}status-lunas{% else %}status-belum{% endif %}"
-                   value="{% if pinjaman.status == 'Lunas' %}Lunas{% else %}Belum Lunas{% endif %}">
+                class="form-control status-input 
+                {% if pinjaman.status == 'Lunas' or pinjaman.status == 'digabung' %}
+                        status-lunas
+                {% else %}
+                        status-belum
+                {% endif %}"
+                value="{% if pinjaman.status == 'Lunas' or pinjaman.status == 'digabung' %}
+                        Lunas
+                {% else %}
+                        Belum Lunas
+                {% endif %}">
         </div>
     </div>
 </div>

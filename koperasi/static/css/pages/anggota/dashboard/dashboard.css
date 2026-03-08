@@ -43,9 +43,19 @@
   font-weight: 700;
 }
 
-.icon {
-  font-size: 28px;
-  opacity: .7;
+.info-card .icon {
+    background: #f4f6fb;
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.info-card .icon i {
+    font-size: 26px;
+    color: #2f3a4a;
 }
 
 /* ================= MIDDLE GRID ================= */
@@ -116,6 +126,16 @@
 
 .chart-full {
   height: 360px;
+}
+
+.chart-full canvas {
+  width: 100% !important;
+}
+
+.chart-wrapper {
+  position: relative;
+  height: 280px;
+  width: 100%;
 }
 
 .chart-header {
