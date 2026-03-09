@@ -202,5 +202,102 @@ document.getElementById("excelInput").addEventListener("change", function () {
         document.getElementById("submitExcel").click();
     }
 });
+
+document.querySelectorAll(".action-delete").forEach(function(btn){
+
+    btn.addEventListener("click", function(e){
+
+        e.preventDefault();
+
+        const url = this.getAttribute("href");
+        const name = this.dataset.name;
+        const type = this.dataset.type;
+
+        Swal.fire({
+            icon: "warning",
+            title: "Konfirmasi Penghapusan",
+            customClass: {
+                popup: "swal-small",
+                title: "swal-small-title",
+                input: "swal-small-input",
+                confirmButton: "swal-small-btn",
+                cancelButton: "swal-small-btn"
+            },
+            html: `
+                <div style="margin-top:10px">
+                    <p style="margin-bottom:8px">
+                        Anda akan menghapus <b>${type}</b> berikut:
+                    </p>
+
+                    <div style="
+                        background:#f8f9fa;
+                        border:1px solid #e5e7eb;
+                        padding:10px;
+                        border-radius:6px;
+                        font-weight:600;
+                        margin-bottom:15px;
+                    ">
+                        ${name}
+                    </div>
+
+                    <p style="font-size:14px;color:#666">
+                        Untuk melanjutkan ketik 
+                        <b style="color:#dc3545;">hapus</b> di bawah ini
+                    </p>
+                </div>
+            `,
+            input: "text",
+            inputPlaceholder: "ketik 'hapus'",
+            inputAttributes: {
+                autocapitalize: "off",
+                autocomplete: "off"
+            },
+            showCancelButton: true,
+            confirmButtonText: "Hapus Data",
+            cancelButtonText: "Batal",
+            confirmButtonColor: "#dc3545",
+            cancelButtonColor: "#6c757d",
+            focusConfirm: false,
+
+            preConfirm: (value) => {
+
+                if (!value) {
+                    Swal.showValidationMessage("Silakan ketik 'hapus' terlebih dahulu");
+                    return false;
+                }
+
+                if (value.toLowerCase() !== "hapus") {
+                    Swal.showValidationMessage("Kata konfirmasi harus 'hapus'");
+                    return false;
+                }
+
+                return true;
+            }
+
+        }).then((result)=>{
+
+            if(result.isConfirmed){
+
+                Swal.fire({
+                    title: "Menghapus Data...",
+                    text: "Mohon tunggu sebentar",
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                setTimeout(() => {
+                    window.location.href = url;
+                }, 600);
+
+            }
+
+        });
+
+    });
+
+});
 </script>
 {% endblock %}

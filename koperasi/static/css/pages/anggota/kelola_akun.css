@@ -72,3 +72,45 @@
     background-color: #9ca3af;
     color: #fff;
 }
+
+
+/* ===============================
+   SWEETALERT SMALL MODAL
+================================ */
+
+.swal-small {
+    width: 475px !important;
+    padding: 18px 20px !important;
+    border-radius: 10px !important;
+}
+
+/* title */
+.swal-small-title {
+    font-size: 18px !important;
+    margin-bottom: 5px !important;
+}
+
+/* isi html */
+.swal-small .swal2-html-container {
+    font-size: 13px !important;
+    margin-top: 6px !important;
+}
+
+/* input konfirmasi */
+.swal-small-input {
+    height: 34px !important;
+    font-size: 13px !important;
+    padding: 6px 10px !important;
+    border-radius: 6px !important;
+}
+
+/* tombol */
+.swal-small-btn {
+    font-size: 13px !important;
+    padding: 6px 12px !important;
+}
+
+/* jarak tombol */
+.swal-small .swal2-actions {
+    margin-top: 10px !important;
+}

@@ -6,6 +6,7 @@ from .models import Anggota
 User = get_user_model()
 
 class AdminForm(forms.ModelForm):
+
     password = forms.CharField(
         widget=forms.PasswordInput(attrs={
             "placeholder": "Masukkan password",
@@ -28,6 +29,7 @@ class AdminForm(forms.ModelForm):
             }),
         }
 
+    # ================= INIT =================
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -49,6 +51,19 @@ class AdminForm(forms.ModelForm):
             ("bendahara", "Bendahara"),
         ]
 
+        # ================= MODE EDIT =================
+        if self.instance.pk:
+
+            # password tidak wajib
+            self.fields["password"].required = False
+
+            # ubah label
+            self.fields["password"].label = "Password Baru"
+
+            # ubah placeholder
+            self.fields["password"].widget.attrs["placeholder"] = \
+                "Masukkan password baru (opsional)"
+
     # ================= VALIDASI =================
 
     def clean_username(self):
@@ -57,10 +72,8 @@ class AdminForm(forms.ModelForm):
         if not username:
             return username
 
-        # Ambil queryset user dengan username sama
         qs = User.objects.filter(username=username)
 
-        # Jika sedang edit (ada instance pk)
         if self.instance.pk:
             qs = qs.exclude(pk=self.instance.pk)
 
@@ -71,10 +84,13 @@ class AdminForm(forms.ModelForm):
             raise ValidationError("Username minimal 4 karakter.")
 
         return username
-    
 
     def clean_password(self):
         password = self.cleaned_data.get("password")
+
+        # jika edit dan kosong → tidak diubah
+        if self.instance.pk and not password:
+            return password
 
         if not password:
             raise ValidationError("Password wajib diisi.")
@@ -92,13 +108,22 @@ class AdminForm(forms.ModelForm):
 
         return role
 
+    # ================= SAVE =================
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.set_password(self.cleaned_data["password"])
-        user.is_staff = True  # otomatis staff
+
+        password = self.cleaned_data.get("password")
+
+        # hanya update password jika diisi
+        if password:
+            user.set_password(password)
+
+        user.is_staff = True
+
         if commit:
             user.save()
+
         return user
 
 

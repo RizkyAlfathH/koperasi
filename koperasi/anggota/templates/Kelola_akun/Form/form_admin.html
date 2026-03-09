@@ -14,7 +14,7 @@
 
             <h2>{{ judul }}</h2>
 
-            <form method="post" novalidate>
+            <form method="post" id="formAdmin" novalidate>
                 {% csrf_token %}
 
                 <div class="row g-3">
@@ -75,6 +75,39 @@ $(document).on('click', '.toggle-password', function () {
         icon.removeClass('bi-eye-fill')
             .addClass('bi-eye-slash-fill');
     }
+});
+
+$("#formAdmin").on("submit", function(e){
+
+    e.preventDefault();
+
+    Swal.fire({
+        title: "Konfirmasi",
+        text: "Apakah data ingin disimpan?",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Ya, Simpan",
+        cancelButtonText: "Batal"
+    }).then((result) => {
+
+        if(result.isConfirmed){
+
+            Swal.fire({
+                title: "Menyimpan...",
+                text: "Mohon tunggu",
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            this.submit();
+        }
+
+    });
+
 });
 </script>
 {% endblock %}
