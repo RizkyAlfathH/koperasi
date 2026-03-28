@@ -36,15 +36,13 @@ from collections import defaultdict
 
 User = get_user_model()
 
-# ===============================
-# KONFIG ROLE
-# ===============================
+
+# -- KONFIG ROLE -- #
 ROLE_ADMIN = ["admin", "ketua", "sekretaris", "bendahara"]
 ROLE_PENGURUS = ["ketua", "sekretaris", "bendahara"]
 
-# ===============================
-# REDIRECT UTAMA SETELAH LOGIN
-# ===============================
+
+# --REDIRECT UTAMA SETELAH LOGIN -- #
 @login_required
 def dashboard_redirect(request):
     role = request.user.role
@@ -61,17 +59,13 @@ def dashboard_redirect(request):
         return redirect("admin_koperasi:admin_login")
 
 
-# ===============================
-# DASHBOARD PER ROLE
-# ===============================
+# -- DASHBOARD PER ROLE --#
 @login_required
 def ketua_dashboard(request):
     if request.user.role != "ketua":
         return redirect("anggota:dashboard_redirect")
 
-    # ===============================
     # INFO CARD
-    # ===============================
     jumlah_admin = User.objects.filter(
         is_superuser=False,
         role__in=["ketua", "sekretaris", "bendahara"]
@@ -89,9 +83,7 @@ def ketua_dashboard(request):
         .aggregate(total=Sum("sisa_pinjaman"))["total"] or 0
     )
 
-    # ===============================
     # DATA BULANAN
-    # ===============================
     bulan_labels = []
     simpanan_data = []
     pinjaman_data = []
@@ -106,28 +98,22 @@ def ketua_dashboard(request):
         akhir_bulan = (
             bulan + relativedelta(months=1)
         ) - relativedelta(days=1)
-
-        # ===============================
+    
         # TOTAL SIMPANAN
-        # ===============================
         total_simpanan = (
             Simpanan.objects
             .filter(tanggal__lte=akhir_bulan)
             .aggregate(total=Sum("jumlah"))["total"] or 0
         )
 
-        # ===============================
         # TOTAL PINJAMAN DIAMBIL
-        # ===============================
         total_pinjaman = (
             Pinjaman.objects
             .filter(tanggal_meminjam__lte=akhir_bulan)
             .aggregate(total=Sum("jumlah_pinjaman"))["total"] or 0
         )
 
-        # ===============================
         # JUMLAH CICILAN SAMPAI BULAN ITU
-        # ===============================
         total_cicilan = (
             Angsuran.objects
             .filter(
@@ -144,9 +130,7 @@ def ketua_dashboard(request):
             pinjaman = Pinjaman.objects.get(id_pinjaman=cicilan["id_pinjaman"])
             total_pokok_terbayar += cicilan["jumlah"] * pinjaman.angsuran_per_bulan
 
-        # ===============================
         # SISA PINJAMAN
-        # ===============================
         sisa_pinjaman = total_pinjaman - total_pokok_terbayar
 
         if sisa_pinjaman < 0:
@@ -168,14 +152,13 @@ def ketua_dashboard(request):
 
     return render(request, "dashboard/ketua.html", context)
 
+
 @login_required
 def sekretaris_dashboard(request):
     if request.user.role != "sekretaris":
         return redirect("anggota:dashboard_redirect")
 
-    # ===============================
     # INFO CARD
-    # ===============================
     jumlah_admin = User.objects.filter(
         is_superuser=False,
         role__in=["ketua", "sekretaris", "bendahara"]
@@ -193,9 +176,7 @@ def sekretaris_dashboard(request):
         .aggregate(total=Sum("sisa_pinjaman"))["total"] or 0
     )
 
-    # ===============================
     # DATA BULANAN
-    # ===============================
     bulan_labels = []
     simpanan_data = []
     pinjaman_data = []
@@ -211,27 +192,21 @@ def sekretaris_dashboard(request):
             bulan + relativedelta(months=1)
         ) - relativedelta(days=1)
 
-        # ===============================
         # TOTAL SIMPANAN
-        # ===============================
         total_simpanan = (
             Simpanan.objects
             .filter(tanggal__lte=akhir_bulan)
             .aggregate(total=Sum("jumlah"))["total"] or 0
         )
 
-        # ===============================
         # TOTAL PINJAMAN DIAMBIL
-        # ===============================
         total_pinjaman = (
             Pinjaman.objects
             .filter(tanggal_meminjam__lte=akhir_bulan)
             .aggregate(total=Sum("jumlah_pinjaman"))["total"] or 0
         )
 
-        # ===============================
         # JUMLAH CICILAN SAMPAI BULAN ITU
-        # ===============================
         total_cicilan = (
             Angsuran.objects
             .filter(
@@ -248,9 +223,7 @@ def sekretaris_dashboard(request):
             pinjaman = Pinjaman.objects.get(id_pinjaman=cicilan["id_pinjaman"])
             total_pokok_terbayar += cicilan["jumlah"] * pinjaman.angsuran_per_bulan
 
-        # ===============================
         # SISA PINJAMAN
-        # ===============================
         sisa_pinjaman = total_pinjaman - total_pokok_terbayar
 
         if sisa_pinjaman < 0:
@@ -272,14 +245,13 @@ def sekretaris_dashboard(request):
 
     return render(request, "dashboard/sekretaris.html", context)
 
+
 @login_required
 def bendahara_dashboard(request):
     if request.user.role != "bendahara":
         return redirect("anggota:dashboard_redirect")
 
-    # ===============================
     # INFO CARD
-    # ===============================
     jumlah_admin = User.objects.filter(
         is_superuser=False,
         role__in=["ketua", "sekretaris", "bendahara"]
@@ -297,9 +269,7 @@ def bendahara_dashboard(request):
         .aggregate(total=Sum("sisa_pinjaman"))["total"] or 0
     )
 
-    # ===============================
     # DATA BULANAN
-    # ===============================
     bulan_labels = []
     simpanan_data = []
     pinjaman_data = []
@@ -315,27 +285,21 @@ def bendahara_dashboard(request):
             bulan + relativedelta(months=1)
         ) - relativedelta(days=1)
 
-        # ===============================
         # TOTAL SIMPANAN
-        # ===============================
         total_simpanan = (
             Simpanan.objects
             .filter(tanggal__lte=akhir_bulan)
             .aggregate(total=Sum("jumlah"))["total"] or 0
         )
 
-        # ===============================
         # TOTAL PINJAMAN DIAMBIL
-        # ===============================
         total_pinjaman = (
             Pinjaman.objects
             .filter(tanggal_meminjam__lte=akhir_bulan)
             .aggregate(total=Sum("jumlah_pinjaman"))["total"] or 0
         )
 
-        # ===============================
         # JUMLAH CICILAN SAMPAI BULAN ITU
-        # ===============================
         total_cicilan = (
             Angsuran.objects
             .filter(
@@ -352,9 +316,7 @@ def bendahara_dashboard(request):
             pinjaman = Pinjaman.objects.get(id_pinjaman=cicilan["id_pinjaman"])
             total_pokok_terbayar += cicilan["jumlah"] * pinjaman.angsuran_per_bulan
 
-        # ===============================
         # SISA PINJAMAN
-        # ===============================
         sisa_pinjaman = total_pinjaman - total_pokok_terbayar
 
         if sisa_pinjaman < 0:
@@ -377,15 +339,14 @@ def bendahara_dashboard(request):
     return render(request, "dashboard/bendahara.html", context)
 
 
-# ===============================
-# KELOLA AKUN (ROLE-BASED)
-# ===============================
+
+# -- KELOLA AKUN (ROLE-BASED) -- #
 from admin_koperasi.utils import has_page_permission
 
 @login_required
 def kelola_akun(request):
     if not has_page_permission(request.user, "kelola_anggota"):
-        return redirect("dashboard")  # atau halaman 403
+        return redirect("dashboard")
 
     role = request.user.role
 
@@ -429,9 +390,7 @@ def kelola_akun(request):
     })
 
 
-# ===============================
-# CRUD ADMIN (KETUA / SEKRETARIS / BENDAHARA)
-# ===============================
+# -- CRUD ADMIN (KETUA / SEKRETARIS / BENDAHARA) -- #
 @login_required
 def tambah_admin(request):
     if request.user.role not in ROLE_ADMIN:
@@ -494,9 +453,7 @@ def detail_admin(request, user_id):
     return render(request, "kelola_akun/detail/detail_admin.html", context)
 
 
-# ===============================
-# CRUD ANGGOTA
-# ===============================
+# -- CRUD ANGGOTA -- #
 @login_required
 def tambah_anggota(request):
     if request.user.role not in ROLE_ADMIN:
@@ -555,9 +512,7 @@ def detail_anggota(request, nomor_anggota):
     return render(request, "kelola_akun/detail/detail_anggota.html", context)
 
 
-# ===============================
-# API VALIDASI
-# ===============================
+# -- API VALIDASI -- #
 @login_required
 def cek_email(request):
     email = request.GET.get("email", "")
@@ -565,10 +520,8 @@ def cek_email(request):
         "exists": Anggota.objects.filter(email=email).exists()
     })
 
-# ===============================
-# EXPORT EXCEL DATA ANGGOTA
-# ===============================
 
+# -- EXPORT EXCEL DATA ANGGOTA -- #
 @login_required
 def export_excel_anggota(request):
     if request.user.role not in ROLE_ADMIN:
@@ -623,10 +576,8 @@ def export_excel_anggota(request):
     wb.save(response)
     return response
 
-# ===============================
-# EXPORT PDF DATA ANGGOTA
-# ===============================
 
+# -- EXPORT PDF DATA ANGGOTA -- #
 @login_required
 def export_pdf_anggota(request):
     if request.user.role not in ROLE_ADMIN:
@@ -678,10 +629,7 @@ def export_pdf_anggota(request):
     return response
 
 
-# ===============================
-# IMPORT EXCEL DATA ANGGOTA
-# ===============================
-
+# -- IMPORT EXCEL DATA ANGGOTA -- #
 @login_required
 def import_excel_anggota(request):
     if request.user.role not in ROLE_ADMIN:
@@ -701,7 +649,7 @@ def import_excel_anggota(request):
         # mulai dari baris ke-4 (header sampai baris 3)
         for idx, row in enumerate(ws.iter_rows(min_row=4), start=4):
             try:
-                # ===== NOMOR ANGGOTA =====
+                # Nomor Anggota
                 nomor_anggota = str(row[1].value).strip() if row[1].value else None
                 nama = row[2].value
 
@@ -712,7 +660,7 @@ def import_excel_anggota(request):
                 if not re.match(r"^NA\s*\d+", nomor_anggota):
                     continue
 
-                # ===== JENIS KELAMIN =====
+                # Jenis Kelamin
                 jk_excel = str(row[4].value).strip().upper() if row[4].value else ""
 
                 if jk_excel == "L":
@@ -722,33 +670,33 @@ def import_excel_anggota(request):
                 else:
                     jenis_kelamin = "Laki-laki"
 
-                # ===== UMUR =====
+                # Umur
                 umur = row[3].value if isinstance(row[3].value, int) else None
 
-                # ===== PEKERJAAN =====
+                # Pekerjaan
                 pekerjaan = row[5].value or "-"
 
-                # ===== ALAMAT =====
+                # Alamat
                 alamat = row[6].value or "-"
 
-                # ===== TANGGAL DAFTAR =====
+                # Tanggal Daftar
                 tgl_daftar = row[8].value
                 if isinstance(tgl_daftar, datetime):
                     tgl_daftar = tgl_daftar.date()
                 else:
                     tgl_daftar = date.today()
 
-                # ===== TANGGAL NONAKTIF =====
+                # Tanggal Nonaktif
                 tgl_nonaktif = row[12].value
                 if isinstance(tgl_nonaktif, datetime):
                     tgl_nonaktif = tgl_nonaktif.date()
                 else:
                     tgl_nonaktif = None
 
-                # ===== ALASAN NONAKTIF =====
+                # Alasan Nonaktif
                 alasan_nonaktif = row[13].value or "-"
 
-                # ===== SIMPAN / UPDATE =====
+                # Simpan dan Update
                 anggota, created = Anggota.objects.update_or_create(
                     nomor_anggota=nomor_anggota,
                     defaults={
@@ -769,7 +717,7 @@ def import_excel_anggota(request):
                     }
                 )
 
-                # 🔐 PASSWORD DEFAULT (HANYA JIKA BARU)
+                # Password default (HANYA JIKA BARU)
                 if created:
                     anggota.set_password("12345")
                     anggota.save()
