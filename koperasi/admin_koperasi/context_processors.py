@@ -61,7 +61,7 @@ def help_context(request):
     help_data = {
 
         # ================= DASHBOARD =================
-        'dashboard_ketua': """
+        'dashboard': """
         <div class="help-section">
             <h6>📊 Ringkasan Dashboard</h6>
             <div class="help-item">
