@@ -7,7 +7,7 @@
 {% block content %}
 
 <div class="content-card">
-    <h1>Penarikan Simpanan</h1>
+    <h2 style="margin-bottom: 15px;">Form Penarikan Simpanan</h2>
 
     <form method="post">
         {% csrf_token %}
@@ -24,16 +24,16 @@
             <div class="col-md-6">
                 <label class="form-label">Nama Anggota</label>
                 <input type="text"
-                       value="{{ anggota.nama }}"
+                       value="{{ anggota.nama }} - {{ anggota.nomor_anggota }}"
                        class="form-control"
                        disabled>
             </div>
 
             <!-- NOMOR ANGGOTA -->
             <div class="col-md-6">
-                <label class="form-label">Nomor Anggota</label>
+                <label class="form-label">Jenis Simpanan</label>
                 <input type="text"
-                       value="{{ anggota.nomor_anggota }}"
+                       value="{{ jenis_simpanan }}"
                        class="form-control"
                        disabled>
             </div>

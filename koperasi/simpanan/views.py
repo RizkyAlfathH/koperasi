@@ -264,6 +264,7 @@ def tambah_penarikan(request, nomor_anggota, jenis):
         "form": form,
         "anggota": anggota,
         "saldo": saldo,
+        "jenis_simpanan": jenis_obj.nama_jenis,
     })
 
 @login_required
@@ -312,8 +313,8 @@ def download_kwitansi(request, history_id):
     if trx.jenis_transaksi == HistoryTabungan.SETOR:
         judul = "BUKTI PENERIMAAN KAS"
         pihak_label = "Diterima dari"
-        pemberi = f"({anggota.nama})"
-        penerima = "(...........................)"
+        pemberi = "(...........................)"
+        penerima =  f"({ anggota.nama })"
         filename = f"kwitansi_setoran_{anggota.nama}"
 
     elif trx.jenis_transaksi == HistoryTabungan.TARIK:

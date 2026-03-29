@@ -9,16 +9,12 @@
 
 {% block content %}
 <div class="content-card">
-  <h1>Simpanan {{ anggota.nama }}</h1>
-
-  <div class="section-header">
-    <h2 class="section-title">Riwayat Transaksi Simpanan</h2>
-  </div>
+  <h2 style="margin-bottom: 25px;">Simpanan {{ anggota.nama }} ({{ anggota.nomor_anggota }})</h2>
 
   <table class="data-table">
     <thead>
       <tr>
-        <th>No. Anggota</th>
+        <th>Nomor Anggota</th>
         <th>Nama</th>
         <th>Jenis Simpanan</th>
         <th>Total Saldo</th>
