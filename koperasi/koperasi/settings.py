@@ -44,10 +44,7 @@ INSTALLED_APPS = [
     'simpanan',
     'pinjaman',
     'static',
-<<<<<<< HEAD
-=======
     'api',
->>>>>>> 2855956159c53b59e42795432246a71d365e4a30
 
     'widget_tweaks',
     "django_extensions",
