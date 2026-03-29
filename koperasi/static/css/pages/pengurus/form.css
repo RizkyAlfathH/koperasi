@@ -1,0 +1,48 @@
+.page-tambah-admin {
+    display: flex;
+    justify-content: center;
+    padding: 30px;
+}
+
+.form-card {
+    background: #fff;
+    padding: 30px;
+    border-radius: 14px;
+    width: 100%;
+    max-width: 700px;
+    box-shadow: 0 10px 25px rgba(0,0,0,.08);
+}
+
+.form-card h2 {
+    margin-bottom: 25px;
+    font-weight: 600;
+}
+
+.input-wrapper {
+    position: relative;
+}
+
+.input-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+}
+
+.btn-simpan {
+    background: #164863;
+    color: white;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 6px;
+}
+
+.btn-outline {
+    border: 1px solid #ccc;
+    padding: 8px 18px;
+    border-radius: 6px;
+    margin-right: 8px;
+    text-decoration: none;
+    color: #333;
+}

@@ -1,0 +1,158 @@
+/* ===============================
+   FORM CARD
+================================ */
+.content-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+}
+
+/* ===============================
+   JUDUL
+================================ */
+.content-card h2 {
+    font-weight: 600;
+    margin-bottom: 25px;
+    color: #4A2C2A;
+}
+
+/* ===============================
+   LABEL
+================================ */
+label {
+    font-weight: 500;
+    color: #4A2C2A;
+    margin-bottom: 6px;
+    display: block;
+    font-size: 14px;
+}
+
+/* ===============================
+   INPUT & SELECT
+================================ */
+.form-control,
+.select2-container--default .select2-selection--single {
+    border-radius: 8px;
+    font-size: 14px;
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+}
+
+/* ===============================
+   SELECT2 STYLE
+================================ */
+.select2-container--default .select2-selection--single {
+    height: 40px !important;
+    display: flex;
+    align-items: center;
+    background-color: #fff;
+}
+
+.select2-selection__arrow {
+    top: 7px !important;
+    right: 10px !important;
+}
+
+/* ===============================
+   SELECT DROPDOWN ICON
+================================ */
+select.form-control {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 9L12 15L18 9' stroke='%23666666' stroke-width='2'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+}
+
+/* ===============================
+   FOCUS (WARNA KUNING, BUKAN BIRU)
+================================ */
+.form-control:focus,
+select.form-control:focus {
+    border-color: #FFD700 !important;
+    box-shadow: 0 0 0 0.15rem rgba(255, 215, 0, 0.4) !important;
+    outline: none;
+}
+
+/* Untuk input readonly / disabled juga konsisten */
+.form-control:focus-visible {
+    outline: none;
+}
+
+/* ===============================
+   FLATPICKR STYLE
+================================ */
+.flatpickr-calendar {
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    font-family: 'Poppins', sans-serif;
+}
+
+.flatpickr-day {
+    border-radius: 6px;
+}
+
+.flatpickr-day.selected {
+    background: #FFD700;
+    border-color: #FFD700;
+    color: #4A2C2A;
+}
+
+.flatpickr-day:hover {
+    background: #fff3cd;
+}
+
+/* ===============================
+   DISABLED FIELD STYLE
+================================ */
+.form-control:disabled {
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    color: #6c757d;
+    cursor: not-allowed;
+}
+
+/* ===============================
+   SELECT2 ERROR STYLE
+================================ */
+
+select.is-invalid + .select2 .select2-selection--single {
+    border: 2px solid #dc3545 !important;
+    background-color: #fff5f5 !important;
+}
+
+/* Focus saat error */
+select.is-invalid + .select2 .select2-selection--single:focus,
+select.is-invalid + .select2.select2-container--focus .select2-selection--single {
+    border: 2px solid #dc3545 !important;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25) !important;
+}
+
+/* FORCE ERROR STYLE */
+input.is-invalid,
+select.is-invalid {
+    border: 2px solid #dc3545 !important;
+    background-color: #fff5f5;
+}
+
+/* error text */
+.invalid-feedback {
+    display: block;
+    color: #dc3545;
+    font-size: 13px;
+    margin-top: 6px;
+}
+
+.form-control.is-invalid {
+    background-image: none !important;
+    padding-right: 14px !important;
+}
+
+/* ===============================
+   ERROR FOCUS OVERRIDE
+================================ */
+.form-control.is-invalid:focus {
+    border: 2px solid #dc3545 !important;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25) !important;
+}

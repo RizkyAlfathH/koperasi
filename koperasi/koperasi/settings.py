@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-0ffvy-6-nulj40g(=yma$6v=q(+n_-#96bslekesmi(@4&8m#4
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -44,8 +44,15 @@ INSTALLED_APPS = [
     'simpanan',
     'pinjaman',
     'static',
+<<<<<<< HEAD
+=======
+    'api',
+>>>>>>> 2855956159c53b59e42795432246a71d365e4a30
 
     'widget_tweaks',
+    "django_extensions",
+    'rest_framework',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -55,8 +62,11 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
 ]
 
+CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = 'koperasi.urls'
 
@@ -71,6 +81,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                'admin_koperasi.context_processors.sidebar_active',
             ],
         },
     },
@@ -150,3 +161,8 @@ STATICFILES_DIRS = [
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'admin_koperasi.User'
+
+LANGUAGE_CODE = 'id'
+USE_L10N = True
+LOGIN_REDIRECT_URL = "anggota:dashboard_redirect"
+LOGOUT_REDIRECT_URL = "admin_koperasi:admin_login"

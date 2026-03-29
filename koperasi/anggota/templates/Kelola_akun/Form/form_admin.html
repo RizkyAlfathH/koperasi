@@ -14,45 +14,46 @@
 
             <h2>{{ judul }}</h2>
 
-            <form method="post">
+            <form method="post" novalidate>
                 {% csrf_token %}
 
-                <div class="row g-2">
+                <div class="row g-3">
                     {% for field in form %}
-                        {% if "password" in field.name %}
-                            <div class="col-12 col-md-6">
-                                <label>{{ field.label }}</label>
+                        <div class="col-md-4">
+                            <label>{{ field.label }}</label>
+
+                            {% if "password" in field.name %}
                                 <div class="input-wrapper">
-                                    {{ field|add_class:"form-control" }}
+                                    {% if field.errors %}
+                                        {{ field|add_class:"form-control is-invalid" }}
+                                    {% else %}
+                                        {{ field|add_class:"form-control" }}
+                                    {% endif %}
                                     <i class="bi bi-eye-slash-fill input-icon toggle-password"></i>
                                 </div>
-                            </div>
-                        {% else %}
-                            <div class="col-12 col-md-6">
-                                <label>{{ field.label }}</label>
-                                {{ field|add_class:"form-control" }}
-                            </div>
-                        {% endif %}
+                            {% else %}
+                                {% if field.errors %}
+                                    {{ field|add_class:"form-control is-invalid" }}
+                                {% else %}
+                                    {{ field|add_class:"form-control" }}
+                                {% endif %}
+                            {% endif %}
+
+                            {% if field.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in field.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
                     {% endfor %}
                 </div>
 
-
                 <div class="text-end mt-4">
-                    <a href="{% url 'kelola_akun' %}" class="btn-outline">Batal</a>
+                    <a href="{% url 'anggota:kelola_akun' %}" class="btn-outline">Batal</a>
                     <button type="submit" class="btn-simpan">Simpan</button>
                 </div>
-
-                {% if form.errors %}
-                <div class="alert mt-4">
-                    <ul class="mb-0">
-                        {% for field in form %}
-                            {% for error in field.errors %}
-                                <li>{{ error }}</li>
-                            {% endfor %}
-                        {% endfor %}
-                    </ul>
-                </div>
-                {% endif %}
             </form>
 
         </div>

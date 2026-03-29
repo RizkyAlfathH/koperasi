@@ -1,11 +1,4 @@
 /* ===============================
-   PAGE WRAPPER
-================================ */
-.page-tambah-admin {
-    padding: 24px;
-}
-
-/* ===============================
    FORM CARD
 ================================ */
 .page-tambah-admin .form-card {
@@ -38,12 +31,29 @@
 /* ===============================
    INPUT
 ================================ */
-.page-tambah-admin .form-control {
+/* untuk select */
+.page-tambah-admin select.form-control {
     width: 100%;
     padding: 10px 14px;
     border-radius: 10px;
     border: 1px solid #d0d0d0;
     font-size: 14px;
+    appearance: none;
+
+    background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 9L12 15L18 9' stroke='%23666666' stroke-width='2'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+}
+
+.page-tambah-admin input.form-control {
+    background-image: none;
+     width: 100%;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid #d0d0d0;
+    font-size: 14px;
+    appearance: none;
 }
 
 .page-tambah-admin .form-control:focus {
@@ -69,13 +79,25 @@
     color: #888;
 }
 
+/* FORCE ERROR STYLE */
+.page-tambah-admin input.is-invalid,
+.page-tambah-admin select.is-invalid {
+    border: 2px solid #dc3545 !important;
+    background-color: #fff5f5;
+}
+
+/* error text */
+.page-tambah-admin .invalid-feedback {
+    display: block;
+    color: #dc3545;
+    font-size: 13px;
+    margin-top: 6px;
+}
+
 /* ===============================
-   ERROR
+   ERROR FOCUS OVERRIDE
 ================================ */
-.page-tambah-admin .alert {
-    background: #fff4f4;
-    border: 1px solid #f5c2c2;
-    color: #b42318;
-    padding: 14px 18px;
-    border-radius: 10px;
+.page-tambah-admin .form-control.is-invalid:focus {
+    border: 2px solid #dc3545 !important;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25) !important;
 }

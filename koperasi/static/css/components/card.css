@@ -14,6 +14,7 @@ h1 {
 
 /* HEADER SECTION */
 .section-header {
+    color: #4A2C2A;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -25,6 +26,7 @@ h1 {
 .section-title {
     font-size: 20px;
     font-weight: 600;
+    color: #4A2C2A;
 }
 
 .header-right {

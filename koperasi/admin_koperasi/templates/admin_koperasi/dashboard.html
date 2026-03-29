@@ -1,24 +1,34 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Dashboard Administrator</title>
-</head>
-<body>
+{% extends "base.html" %}
+{% load static %}
 
-<h2>Dashboard Administrator Sistem</h2>
+{% block title %}Dashboard Administrator{% endblock %}
 
-<p>Selamat datang, {{ request.user.username }}</p>
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/admin_koperasi/dashboard_admin.css' %}">
+{% endblock %}
 
-<ul>
-    <li>
-        <a href="{% url 'createpengurus' %}">
-            ➕ Tambah Ketua / Sekretaris / Bendahara
+{% block content %}
+<div class="admin-dashboard">
+
+    <div class="dashboard-header">
+        <h2>Administrator Sistem</h2>
+        <p>Selamat datang, <strong>{{ request.user.username }}</strong></p>
+    </div>
+
+    <div class="dashboard-grid">
+
+        <a href="{% url 'admin_koperasi:role_hakakses' %}" class="card">
+            <span class="icon">🔐</span>
+            <h3>Role & Hak Akses</h3>
+            <p>Kelola peran sistem</p>
         </a>
-    </li>
-    <li>
-        <a href="{% url 'admin_logout' %}">Logout</a>
-    </li>
-</ul>
 
-</body>
-</html>
+        <a href="{% url 'admin_koperasi:pengurus_list' %}" class="card">
+            <span class="icon">🏢</span>
+            <h3>Pengurus</h3>
+            <p>CRUD akun pengurus</p>
+        </a>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %} <script src="{% static 'js/admin_koperasi/dashboard_admin.js' %}"></script> {% endblock %}

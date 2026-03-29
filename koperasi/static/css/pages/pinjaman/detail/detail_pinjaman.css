@@ -1,0 +1,167 @@
+/* ===============================
+   FORM CARD
+================================ */
+.content-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+}
+
+/* ===============================
+   JUDUL
+================================ */
+.content-card h2 {
+    font-weight: 600;
+    margin-bottom: 25px;
+    color: #4A2C2A;
+}
+
+/* ===============================
+   LABEL
+================================ */
+label {
+    font-weight: 500;
+    color: #4A2C2A;
+    margin-bottom: 6px;
+    display: block;
+    font-size: 14px;
+}
+
+
+/* ===============================
+   INPUT / FORM
+================================ */
+.form-control {
+    border-radius: 8px;
+    font-size: 14px;
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+}
+
+.form-control:focus {
+    border-color: #FFD700 !important;
+    box-shadow: 0 0 0 0.15rem rgba(255, 215, 0, 0.4) !important;
+    outline: none;
+}
+
+
+/* ===============================
+   STATUS PINJAMAN
+================================ */
+.status-input {
+    font-weight: 600;
+    text-align: center;
+    border-radius: 20px;
+    cursor: default;
+}
+
+.status-lunas {
+    background-color: #dcfce7 !important;
+    border: 1.5px solid #22c55e !important;
+    color: #166534 !important;
+}
+
+.status-belum {
+    background-color: #fee2e2 !important;
+    border: 1.5px solid #ef4444 !important;
+    color: #991b1b !important;
+}
+
+
+/* Riwayat Angsuran */
+.angsuran-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+    border: 1px solid #eee;
+    padding: 12px 16px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    transition: 0.2s;
+}
+.angsuran-card:hover {
+    background: #fff9e6;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.angsuran-info {
+    font-size: 14px;
+}
+
+.angsuran-info i {
+    font-style: normal;
+    font-weight: bold;
+    margin-right: 6px;
+    color: #28a745;
+}
+
+.angsuran-info .text-danger {
+    color: #dc3545;
+}
+
+.angsuran-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.angsuran-actions strong {
+    font-size: 14px;
+}
+
+/* Wrapper tanggal + reset */
+.date-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 15px; 
+}
+
+/* Input tanggal */
+.search-form input[type="date"] {
+    width: 150px;
+    padding: 5px 10px;
+    font-size: 13px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    margin-bottom: 0;
+}
+
+/* Tombol reset */
+.reset-date-btn {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: #f0f0f0;
+    color: #333;
+    text-decoration: none;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    transition: all 0.2s;
+}
+
+.reset-date-btn:hover {
+    background: #FFD700;
+    color: #fff;
+    border-color: #e0b800;
+}
+
+/* ================= SISA PINJAMAN ================= */
+.sisa-pinjaman-card {
+    background-color: #f0fdf4; /* hijau lembut */
+    border: 1.5px solid #22c55e;
+    border-radius: 12px;
+    padding: 15px 20px;
+    font-weight: 600;
+    font-size: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #166534;
+    margin-bottom: 15px;
+}

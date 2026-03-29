@@ -1,0 +1,137 @@
+/* ===============================
+   ADMIN PANEL - CLEAN STYLE
+   =============================== */
+/* ---------- CARD ---------- */
+.admin-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background-color: #ffffff;
+}
+
+.admin-card-header {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+    font-weight: 600;
+    color: #111827;
+}
+
+/* ---------- TABLE ---------- */
+.admin-table {
+    font-size: 14px;
+}
+
+.admin-table thead th {
+    background-color: #f9fafb;
+    color: #374151;
+    font-weight: 600;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.admin-table tbody tr:hover {
+    background-color: #f3f4f6;
+}
+
+.admin-table td {
+    color: #374151;
+}
+
+/* ---------- ROLE BADGE ---------- */
+.badge-role {
+    padding: 6px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 6px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+/* Ketua */
+.badge-ketua {
+    background-color: #1e3a8a;
+    color: #ffffff;
+}
+
+/* Sekretaris */
+.badge-sekretaris {
+    background-color: #334155;
+    color: #ffffff;
+}
+
+/* Bendahara */
+.badge-bendahara {
+    background-color: #111827;
+    color: #ffffff;
+}
+
+/* ---------- BUTTON ---------- */
+.btn {
+    border-radius: 6px;
+    font-size: 13px;
+    padding: 6px 12px;
+}
+
+.btn-outline-secondary {
+    color: #374151;
+    border-color: #9ca3af;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #374151;
+    color: #ffffff;
+}
+
+.btn-outline-danger {
+    color: #7f1d1d;
+    border-color: #fecaca;
+}
+
+.btn-outline-danger:hover {
+    background-color: #7f1d1d;
+    color: #ffffff;
+}
+
+/* ---------- FORM ---------- */
+form label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+}
+
+form input,
+form select {
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    font-size: 14px;
+}
+
+form input:focus,
+form select:focus {
+    border-color: #1e3a8a;
+    box-shadow: none;
+}
+
+/* ---------- PRIMARY ACTION ---------- */
+.btn-admin-primary {
+    background-color: #1e3a8a;
+    border: none;
+    color: #ffffff;
+}
+
+.btn-admin-primary:hover {
+    background-color: #1e40af;
+}
+
+/* ---------- SECONDARY ACTION ---------- */
+.btn-admin-secondary {
+    background-color: #6b7280;
+    border: none;
+    color: #ffffff;
+}
+
+.btn-admin-secondary:hover {
+    background-color: #4b5563;
+}

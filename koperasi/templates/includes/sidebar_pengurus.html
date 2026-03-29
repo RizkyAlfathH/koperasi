@@ -1,0 +1,74 @@
+{% load static %}
+{% load permission_tags %}
+
+<div class="sidebar">
+    <div class="profile">
+        <div class="avatar">
+            {{ request.user.username|slice:":2"|upper }}
+        </div>
+        <div class="username">
+            {{ request.user.username|upper }}
+        </div>
+        <div class="role">
+            {{ request.user.role|capfirst }}
+        </div>
+    </div>
+
+        <ul>
+        <!-- DASHBOARD -->
+        <li>
+            <a href="{% url 'anggota:dashboard_redirect' %}"
+            class="{% if request.resolver_match.url_name in menu_dashboard_urls %}active{% endif %}">
+            Dashboard
+            </a>
+        </li>
+
+        <!-- KELOLA AKUN -->
+        {% can_access request.user "kelola_anggota" as can_kelola %}
+        {% if can_kelola %}
+        <li>
+            <a href="{% url 'anggota:kelola_akun' %}"
+            class="{% if request.resolver_match.url_name in menu_akun_urls %}active{% endif %}">
+            Kelola Akun
+            </a>
+        </li>
+        {% endif %}
+
+        <!-- SIMPANAN -->
+        {% can_access request.user "simpanan" as can_simpanan %}
+        {% if can_simpanan %}
+        <li>
+            <a href="{% url 'simpanan:daftar_simpanan' %}"
+            class="{% if request.resolver_match.app_name == 'simpanan' %}active{% endif %}">
+            Manajemen Simpanan
+            </a>
+        </li>
+        {% endif %}
+
+        <!-- PINJAMAN -->
+        {% can_access request.user "pinjaman" as can_pinjaman %}
+        {% if can_pinjaman %}
+        <li>
+            <a href="{% url 'pinjaman:pinjaman_list' %}"
+            class="{% if request.resolver_match.url_name in menu_pinjaman_urls %}active{% endif %}">
+            Manajemen Pinjaman
+            </a>
+        </li>
+        {% endif %}
+
+        <!-- ================= LAPORAN ================= -->
+        {% if request.user.role in "admin ketua sekretaris bendahara" %}
+        <li>
+            <a href="{% url 'laporan:laporan' %}"
+            class="{% if request.resolver_match.app_name == 'laporan' %}active{% endif %}">
+            Laporan
+            </a>
+        </li>
+        {% endif %}
+
+    </ul>
+
+    <div class="logout-btn">
+        <a href="{% url 'admin_koperasi:admin_logout' %}">Logout</a>
+    </div>
+</div>

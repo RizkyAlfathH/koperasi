@@ -1,41 +1,91 @@
+{% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
+    <meta charset="UTF-8">
     <title>KOPASMEN</title>
 
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- FONT -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Load CSS eksternal -->
-    {% load static %}
+    <!-- PHOSPHOR ICON -->
+    <link rel="stylesheet" href="https://unpkg.com/phosphor-icons@1.4.2/src/css/icons.css">
+
+    <!-- CSS LOGIN -->
     <link rel="stylesheet" href="{% static 'css/pages/admin_koperasi/login.css' %}">
+
+    <!-- CSS LOADER (PAKAI YANG SAMA) -->
+    <link rel="stylesheet" href="{% static 'css/loader/loader.css' %}">
 </head>
 <body>
-    <div class="logo-section">
-            {% load static %}
-            <img src="{% static 'image/logo_kopasmen3.jpg' %}" alt="Logo">
-            <div class="company-title">KOPASMEN</div>
-    </div>
 
-    <div class="login-wrapper">
-        <form method="post">
-            {% csrf_token %}
-            <div class="input-group">
-                <label>Username</label>
-                <div class="input-field">
-                    <span class="input-icon"><i class="fas fa-user"></i></span>
-                    <input type="text" name="username" placeholder="Masukkan username..." required>
-                </div>
+<!-- ✅ GLOBAL LOADER -->
+<div id="global-loader">
+  <div class="loader-content">
+    <div class="spinner"></div>
+    <p>Memuat...</p>
+  </div>
+</div>
+
+<div class="logo-section">
+    <img src="{% static 'image/logo_kopasmen.jpg' %}" alt="Logo">
+    <div class="company-title">KOPASMEN</div>
+</div>
+
+<div class="login-wrapper">
+    <form method="post" onsubmit="showLoader()">
+        {% csrf_token %}
+
+        <div class="input-group">
+            <label>Username</label>
+            <div class="input-field">
+                <span class="input-icon">
+                    <i class="ph ph-user"></i>
+                </span>
+                <input type="text" name="username" placeholder="Masukkan username..." required>
             </div>
-            <div class="input-group">
-                <label>Password</label>
-                <div class="input-field">
-                    <span class="input-icon"><i class="fas fa-lock"></i></span>
-                    <input type="password" name="password" placeholder="Masukkan password..." required>
-                </div>
+        </div>
+
+        <div class="input-group">
+            <label>Password</label>
+            <div class="input-field password-field">
+                <span class="input-icon">
+                    <i class="ph-lock"></i>
+                </span>
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    placeholder="Masukkan password..."
+                    required
+                >
+                <span class="toggle-password" onclick="togglePassword()">
+                    <i class="ph-eye" id="eyeIcon"></i>
+                </span>
             </div>
-            <button type="submit">Login</button>
-        </form>
-    </div>
+        </div>
+
+        <button type="submit">Login</button>
+    </form>
+</div>
+
+<!-- LOADER JS -->
+<script src="{% static 'js/loader/loader.js' %}"></script>
+
+<script>
+function togglePassword() {
+    const password = document.getElementById("password");
+    const icon = document.getElementById("eyeIcon");
+
+    if (password.type === "password") {
+        password.type = "text";
+        icon.classList.replace("ph-eye", "ph-eye-slash");
+    } else {
+        password.type = "password";
+        icon.classList.replace("ph-eye-slash", "ph-eye");
+    }
+}
+</script>
+
 </body>
 </html>

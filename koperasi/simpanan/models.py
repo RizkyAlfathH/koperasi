@@ -1,5 +1,6 @@
 from django.db import models
 from anggota.models import Anggota
+from pinjaman.models import Pinjaman
 from admin_koperasi.models import User
 import datetime
 
@@ -54,6 +55,13 @@ class Simpanan(models.Model):
     jumlah = models.DecimalField(max_digits=18, decimal_places=2)
     dana_sosial = models.DecimalField(max_digits=18, decimal_places=2, default=0)
 
+    sumber_pinjaman = models.ForeignKey(
+        Pinjaman,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL
+    )
+
     class Meta:
         db_table = "simpanan"
         ordering = ["-tanggal"]
@@ -62,14 +70,15 @@ class Simpanan(models.Model):
         return f"{self.anggota} - {self.jenis_simpanan}"
 
     def save(self, *args, **kwargs):
-        # Simpan transaksi
         super().save(*args, **kwargs)
+
         HistoryTabungan.objects.create(
             anggota=self.anggota,
             jenis_simpanan=self.jenis_simpanan,
             tanggal=self.tanggal,
             jenis_transaksi="SETOR",
-            jumlah=self.jumlah
+            jumlah=self.jumlah,
+            sumber_pinjaman=self.sumber_pinjaman
         )
 
 
@@ -130,6 +139,7 @@ class HistoryTabungan(models.Model):
 
     anggota = models.ForeignKey(Anggota, on_delete=models.CASCADE)
     jenis_simpanan = models.ForeignKey(JenisSimpanan, on_delete=models.SET_NULL, null=True, blank=True)
+    sumber_pinjaman = models.ForeignKey(Pinjaman, on_delete=models.SET_NULL, null=True, blank=True)
     tanggal = models.DateField(default=datetime.date.today)
     jenis_transaksi = models.CharField(max_length=10, choices=JENIS_TRANSAKSI)
     jumlah = models.DecimalField(max_digits=18, decimal_places=2)

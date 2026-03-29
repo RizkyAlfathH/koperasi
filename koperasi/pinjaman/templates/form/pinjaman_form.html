@@ -1,105 +1,147 @@
 {% extends "base.html" %}
 {% load static %}
 {% load widget_tweaks %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/pages/pinjaman/form/pinjaman_form.css' %}">
+{% endblock %}
+
 {% block title %}Tambah Pinjaman{% endblock %}
 
-
-
 {% block content %}
+
 <div class="content-card">
+    <h2>Form Tambah Pinjaman</h2>
 
-    <div class="section-header">
-        <h2 class="section-title">Form Tambah Pinjaman</h2>
-    </div>
-
-    <form method="post">
+    <form method="post" novalidate>
         {% csrf_token %}
-
-        {% if form.errors %}
-        <div class="alert alert-danger">
-            {{ form.errors }}
-        </div>
-        {% endif %}
 
         <!-- ROW 1 -->
         <div class="row mb-3">
             <div class="col-md-6">
                 <label>Nama Anggota</label>
-                <select id="id_nomor_anggota" name="nomor_anggota" class="form-control" required></select>
+                {% if form.nomor_anggota.errors %}
+                    {{ form.nomor_anggota|add_class:"form-control is-invalid" }}
+                    <div class="invalid-feedback">
+                        {{ form.nomor_anggota.errors.0 }}
+                    </div>
+                {% else %}
+                    {{ form.nomor_anggota|add_class:"form-control" }}
+                {% endif %}
             </div>
 
             <div class="col-md-6">
                 <label>Jenis Pinjaman</label>
-                {{ form.id_jenis_pinjaman|add_class:"form-control" }}
+                {% if form.id_jenis_pinjaman.errors %}
+                    {{ form.id_jenis_pinjaman|add_class:"form-control is-invalid" }}
+                    <div class="invalid-feedback">
+                        {{ form.id_jenis_pinjaman.errors.0 }}
+                    </div>
+                {% else %}
+                    {{ form.id_jenis_pinjaman|add_class:"form-control" }}
+                {% endif %}
             </div>
         </div>
 
         <!-- ROW 2 -->
         <div class="row mb-3">
             <div class="col-md-6">
-                <label>Admin</label>
-                <input type="text" class="form-control" value="{{ username }}" disabled>
-                {{ form.id_admin }}
+                <label>Tanggal Pinjam</label>
+                {% if form.tanggal_meminjam.errors %}
+                    {{ form.tanggal_meminjam|add_class:"form-control is-invalid" }}
+                    <div class="invalid-feedback">
+                        {{ form.tanggal_meminjam.errors.0 }}
+                    </div>
+                {% else %}
+                    {{ form.tanggal_meminjam|add_class:"form-control"|attr:"autocomplete:off" }}
+                {% endif %}
             </div>
 
             <div class="col-md-6">
-                <label>Tanggal Pinjam</label>
-                {{ form.tanggal_meminjam|add_class:"form-control"|attr:"autocomplete:off" }}
+                <label>Lama Pinjaman (bulan)</label>
+                {% if form.jatuh_tempo.errors %}
+                    {{ form.jatuh_tempo|add_class:"form-control is-invalid" }}
+                    <div class="invalid-feedback">
+                        {{ form.jatuh_tempo.errors.0 }}
+                    </div>
+                {% else %}
+                    {{ form.jatuh_tempo|add_class:"form-control" }}
+                {% endif %}
             </div>
         </div>
 
         <!-- ROW 3 -->
         <div class="row mb-3">
             <div class="col-md-6">
-                <label>Lama Pinjaman (bulan)</label>
-                {{ form.jatuh_tempo|add_class:"form-control" }}
+                <label>Jumlah Pinjaman</label>
+                {% if form.jumlah_pinjaman.errors %}
+                    {{ form.jumlah_pinjaman|add_class:"form-control rupiah-input is-invalid" }}
+                    <div class="invalid-feedback">
+                        {{ form.jumlah_pinjaman.errors.0 }}
+                    </div>
+                {% else %}
+                    {{ form.jumlah_pinjaman|add_class:"form-control rupiah-input" }}
+                {% endif %}
             </div>
 
             <div class="col-md-6">
-                <label>Jumlah Pinjaman</label>
-                <input type="text"
-                       id="id_jumlah_pinjaman"
-                       name="jumlah_pinjaman"
-                       class="form-control rupiah-input"
-                       placeholder="Masukkan jumlah pinjaman"
-                       required>
+                <label>Angsuran per Bulan</label>
+                {% if form.angsuran_per_bulan.errors %}
+                    {{ form.angsuran_per_bulan|add_class:"form-control rupiah-input is-invalid" }}
+                    <div class="invalid-feedback">
+                        {{ form.angsuran_per_bulan.errors.0 }}
+                    </div>
+                {% else %}
+                    {{ form.angsuran_per_bulan|add_class:"form-control rupiah-input" }}
+                {% endif %}
             </div>
         </div>
 
         <!-- ROW 4 -->
         <div class="row mb-3">
             <div class="col-md-6">
-                <label>Angsuran per Bulan</label>
-                {{ form.angsuran_per_bulan|add_class:"form-control rupiah-input" }}
+                <label>Kategori Jasa</label>
+                {% if form.id_kategori_jasa.errors %}
+                    {{ form.id_kategori_jasa|add_class:"form-control is-invalid" }}
+                    <div class="invalid-feedback">
+                        {{ form.id_kategori_jasa.errors.0 }}
+                    </div>
+                {% else %}
+                    {{ form.id_kategori_jasa|add_class:"form-control" }}
+                {% endif %}
             </div>
 
             <div class="col-md-6">
-                <label>Kategori Jasa</label>
-                {{ form.id_kategori_jasa|add_class:"form-control" }}
+                <label>Persentase Jasa (%)</label>
+                {% if form.jasa_persen.errors %}
+                    {{ form.jasa_persen|add_class:"form-control is-invalid" }}
+                    <div class="invalid-feedback">
+                        {{ form.jasa_persen.errors.0 }}
+                    </div>
+                {% else %}
+                    {{ form.jasa_persen|add_class:"form-control" }}
+                {% endif %}
             </div>
         </div>
 
         <!-- ROW 5 -->
         <div class="row mb-4">
             <div class="col-md-6">
-                <label>Persentase Jasa (%)</label>
-                <input type="number"
-                       id="id_jasa_persen"
-                       name="jasa_persen"
-                       class="form-control"
-                       step="0.01"
-                       min="0"
-                       max="100"
-                       required>
+                <label>Jumlah Jasa (Rp)</label>
+                {% if form.jasa_rupiah.errors %}
+                    {{ form.jasa_rupiah|add_class:"form-control is-invalid" }}
+                    <div class="invalid-feedback">
+                        {{ form.jasa_rupiah.errors.0 }}
+                    </div>
+                {% else %}
+                    {{ form.jasa_rupiah|add_class:"form-control" }}
+                {% endif %}
             </div>
 
             <div class="col-md-6">
-                <label>Jumlah Jasa (Rp)</label>
-                <input type="text"
-                       id="id_jasa_rupiah"
-                       name="jasa_rupiah"
-                       class="form-control rupiah-input"
-                       readonly>
+                <label>Admin yang Bertugas</label>
+                <input type="text" class="form-control" value="{{ username }}" disabled>
+                {{ form.id_admin }}
             </div>
         </div>
 
@@ -115,7 +157,6 @@
 <script>
 $(function () {
 
-    // SELECT2 ANGGOTA (DISAMAIN DENGAN SIMPANAN)
     $('#id_nomor_anggota').select2({
         placeholder: 'Cari nama anggota...',
         minimumInputLength: 1,
@@ -130,5 +171,20 @@ $(function () {
     });
 
 });
+
+function hitungJasa() {
+    const jumlah = getRawNumber($('#id_jumlah_pinjaman').val());
+    const persen = parseFloat($('#id_jasa_persen').val()) || 0;
+
+    if (jumlah > 0 && persen > 0) {
+        const jasa = Math.round(jumlah * persen / 100);
+        $('#id_jasa_rupiah').val('Rp ' + jasa.toLocaleString('id-ID'));
+    } else {
+        $('#id_jasa_rupiah').val('');
+    }
+}
+
+$('#id_jumlah_pinjaman, #id_jasa_persen').on('input', hitungJasa);
 </script>
+
 {% endblock %}

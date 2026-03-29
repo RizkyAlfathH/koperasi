@@ -1,0 +1,78 @@
+/* ===============================
+   ADMIN ROLE & PERMISSION STYLE
+   =============================== */
+
+body {
+    background-color: #f4f6f8;
+}
+
+/* ---------- HEADER ---------- */
+h4 {
+    font-weight: 600;
+    color: #111827;
+}
+
+/* ---------- CARD ---------- */
+.admin-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background-color: #ffffff;
+}
+
+.admin-card-header {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+    font-weight: 600;
+    color: #111827;
+    padding: 14px 18px;
+}
+
+/* ---------- CHECKBOX ---------- */
+.admin-check {
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 10px 12px;
+    transition: background-color 0.15s ease;
+}
+
+.admin-check:hover {
+    background-color: #f3f4f6;
+}
+
+.form-check-input {
+    cursor: pointer;
+}
+
+.form-check-label {
+    font-size: 14px;
+    color: #374151;
+    cursor: pointer;
+}
+
+/* disabled (ketua) */
+.form-check-input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ---------- BUTTON ---------- */
+.btn-admin-primary {
+    background-color: #1e3a8a;
+    border: none;
+    color: #ffffff;
+    padding: 8px 18px;
+    font-size: 14px;
+    border-radius: 6px;
+}
+
+.btn-admin-primary:hover {
+    background-color: #1e40af;
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 768px) {
+    .admin-check {
+        margin-bottom: 8px;
+    }
+}

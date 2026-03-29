@@ -1,33 +1,15 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const loader = document.getElementById("global-loader");
+// TAMPILKAN LOADER
+function showLoader() {
+  const loader = document.getElementById("global-loader");
+  if (loader) {
+    loader.classList.remove("hide");
+  }
+}
 
-    // Hilangkan loader setelah halaman siap
-    window.addEventListener("load", () => {
-        setTimeout(() => {
-            loader.classList.add("hide");
-        }, 300);
-    });
-
-    // Tampilkan loader saat klik link
-    document.querySelectorAll("a").forEach(link => {
-        link.addEventListener("click", e => {
-            const href = link.getAttribute("href");
-
-            if (
-                href &&
-                !href.startsWith("#") &&
-                !href.startsWith("javascript") &&
-                !link.hasAttribute("target")
-            ) {
-                loader.classList.remove("hide");
-            }
-        });
-    });
-
-    // Tampilkan loader saat submit form
-    document.querySelectorAll("form").forEach(form => {
-        form.addEventListener("submit", () => {
-            loader.classList.remove("hide");
-        });
-    });
+// MATIKAN LOADER SAAT HALAMAN SELESAI LOAD
+window.addEventListener("load", function () {
+  const loader = document.getElementById("global-loader");
+  if (loader) {
+    loader.classList.add("hide");
+  }
 });

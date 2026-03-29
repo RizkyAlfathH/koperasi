@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Detail Pinjaman{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/pages/pinjaman/detail/detail_pinjaman.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<!-- ================= DETAIL PINJAMAN ================= -->
+<div class="content-card">
+    <h2>Detail Pinjaman</h2>
+
+    <!-- DATA ANGGOTA -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <label>Nomor Anggota</label>
+            <input type="text" class="form-control" readonly
+                   value="{{ anggota.nomor_anggota }}">
+        </div>
+        <div class="col-md-6">
+            <label>Nama Anggota</label>
+            <input type="text" class="form-control" readonly
+                   value="{{ anggota.nama }}">
+        </div>
+    </div>
+
+    <!-- DATA PINJAMAN -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <label>Tanggal Pinjam</label>
+            <input type="text" class="form-control" readonly
+                   value="{{ pinjaman.tanggal_meminjam|date:'d F Y' }}">
+        </div>
+        <div class="col-md-6">
+            <label>Jenis Pinjaman</label>
+            <input type="text" class="form-control" readonly
+                   value="{{ pinjaman.id_jenis_pinjaman.nama_jenis }}">
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <label>Jumlah Pinjaman</label>
+            <input type="text" class="form-control rupiah-text" readonly
+                   value="Rp {{ pinjaman.jumlah_pinjaman|floatformat:0 }}">
+        </div>
+        <div class="col-md-6">
+            <label>Angsuran Per Bulan</label>
+            <input type="text" class="form-control rupiah-text" readonly
+                   value="Rp {{ pinjaman.angsuran_per_bulan|floatformat:0 }}">
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <label>Kategori Jasa</label>
+            <input type="text" class="form-control" readonly
+                   value="{{ pinjaman.id_kategori_jasa.kategori_jasa }}">
+        </div>
+        <div class="col-md-6">
+            <label>Persentase Jasa (%)</label>
+            <input type="text" class="form-control persen-format" readonly
+                   value="{{ pinjaman.jasa_persen }}">
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <label>Jumlah Jasa</label>
+            <input type="text" class="form-control rupiah-text" readonly
+                    value="Rp {{ jumlah_jasa|floatformat:0 }}">
+        </div>
+        <div class="col-md-6">
+            <label>Sisa Pinjaman</label>
+            <input type="text" class="form-control rupiah-text" readonly
+                   value="Rp {{ pinjaman.sisa_pinjaman|floatformat:0 }}">
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <label>Status</label>
+            <input type="text" readonly
+                class="form-control status-input 
+                {% if pinjaman.status == 'Lunas' or pinjaman.status == 'digabung' %}
+                        status-lunas
+                {% else %}
+                        status-belum
+                {% endif %}"
+                value="{% if pinjaman.status == 'Lunas' or pinjaman.status == 'digabung' %}
+                        Lunas
+                {% else %}
+                        Belum Lunas
+                {% endif %}">
+        </div>
+    </div>
+</div>
+
+<!-- ================= RIWAYAT PEMBAYARAN ================= -->
+
+<h2 class="section-title">Riwayat Pembayaran</h2>
+
+<form method="GET" class="search-form" id="date-filter-form">
+    <label for="tanggal">Cari Tanggal:</label>
+
+    <div class="date-input-wrapper" style="display:flex; align-items:center; gap:6px;">
+        <input type="date"
+               name="tanggal"
+               id="tanggal"
+               class="form-control"
+               value="{{ request.GET.tanggal }}"
+               onchange="document.getElementById('date-filter-form').submit();">
+
+        {% if request.GET.tanggal %}
+            <a href="{% url 'pinjaman:detail_pinjaman' pinjaman.id_pinjaman %}"
+               class="reset-date-btn"
+               title="Reset Tanggal">
+                &#x21bb;
+            </a>
+        {% endif %}
+    </div>
+</form>
+
+<!-- LIST PEMBAYARAN -->
+{% if page_obj %}
+    {% for angsuran in page_obj %}
+        <div class="angsuran-card {% if angsuran.tipe_bayar == 'jasa' %}jasa-only{% endif %}">
+
+            <div class="angsuran-info">
+                {% if angsuran.tipe_bayar == 'jasa' %}
+                    <i class="ph-percent text-warning"></i> 
+                    <strong>Pembayaran Jasa</strong><br>
+                    <small>{{ angsuran.tanggal_bayar|date:"d M Y" }}</small>
+                {% else %}
+                    {% if angsuran.jumlah_bayar >= pinjaman.angsuran_per_bulan %}
+                        <i>&#10003;</i>
+                    {% else %}
+                        <i class="text-danger">&#10007;</i>
+                    {% endif %}
+                    <strong>
+                        Pembayaran Cicilan + Jasa bulan {{ angsuran.tanggal_bayar|date:"F" }}
+                    </strong><br>
+                    <small>{{ angsuran.tanggal_bayar|date:"d M Y" }}</small>
+                {% endif %}
+            </div>
+
+            <div class="angsuran-actions">
+                <strong class="rupiah-text">Rp {{ angsuran.jumlah_bayar|floatformat:0 }}</strong>
+
+                <div class="action-group">
+                    <a href="{% url 'pinjaman:detail_pembayaran' angsuran.id_pembayaran %}" 
+                    class="action-view">
+                        <i class="ph-bold ph-eye"></i>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    {% endfor %}
+{% else %}
+    <div class="angsuran-card">
+        Tidak ada riwayat pembayaran.
+    </div>
+{% endif %}
+    {% include "includes/pagination.html" with page_obj=page_obj param="page_angsuran" %}
+<br>
+<!-- ================= SISA PINJAMAN ================= -->
+<div class="sisa-pinjaman-card">
+    <span>Sisa Pinjaman:</span>
+    <span class="rupiah-text">Rp {{ sisa_pinjaman|floatformat:0 }}</span>
+</div>
+
+<!-- ================= TOMBOL KEMBALI ================= -->
+<div class="mt-3">
+    <a href="{% url 'pinjaman:pinjaman_anggota' anggota.nomor_anggota %}"
+    class="btn-kembali">
+        Kembali
+    </a>
+</div>
+
+{% endblock %}

@@ -20,9 +20,12 @@ from reportlab.lib.units import cm
 from num2words import num2words
 from reportlab.lib import colors
 from reportlab.platypus import Table, TableStyle
+from admin_koperasi.utils import has_page_permission
 
 @login_required
 def daftar_simpanan(request):
+    if not has_page_permission(request.user, "simpanan"):
+        return redirect("dashboard")
     data_list = []
 
     search_query = request.GET.get('search', '')
@@ -54,35 +57,34 @@ def daftar_simpanan(request):
         return total_setor - total_tarik
 
     for anggota in anggotas:
-        total_pokok = get_saldo(anggota, 1)
-        total_wajib = get_saldo(anggota, 2)
-        total_sukarela = get_saldo(anggota, 3)
-
-        total_dana_sosial = (
-            Simpanan.objects.filter(anggota=anggota)
-            .aggregate(total=Sum('dana_sosial'))['total'] or 0
-        )
-
         data_list.append({
             'nomor_anggota': anggota.nomor_anggota,
             'nama_anggota': anggota.nama,
-            'total_pokok': total_pokok,
-            'total_wajib': total_wajib,
-            'total_sukarela': total_sukarela,
-            'total_dana_sosial': total_dana_sosial,
+            'total_pokok': get_saldo(anggota, 1),
+            'total_wajib': get_saldo(anggota, 2),
+            'total_sukarela': get_saldo(anggota, 3),
+            'total_dana_sosial': (
+                Simpanan.objects.filter(anggota=anggota)
+                .aggregate(total=Sum('dana_sosial'))['total'] or 0
+            ),
         })
 
+    # SORTING
     if sort_by == 'nama':
         data_list.sort(key=lambda x: x['nama_anggota'])
     else:
         data_list.sort(key=lambda x: x['nomor_anggota'])
 
+    # 🔥 PAGINATION KHUSUS SIMPANAN
     paginator = Paginator(data_list, 10)
-    page_obj = paginator.get_page(request.GET.get('page'))
+    page_simpanan = paginator.get_page(
+        request.GET.get('page_simpanan', 1)
+    )
 
     return render(request, "daftar_simpanan.html", {
-        'data': page_obj,
-        'page_obj': page_obj,
+        'data': page_simpanan,
+        'page_obj': page_simpanan,   # wajib buat pagination.html
+        'param': 'page_simpanan',    # 🔥 ini kuncinya
         'search_query': search_query,
         'sort_by': sort_by,
     })
@@ -184,17 +186,25 @@ def detail_simpanan(request, nomor_anggota, jenis_id):
     # ======================
     # HISTORY (boleh difilter)
     # ======================
-    history = HistoryTabungan.objects.filter(
+    history_qs = HistoryTabungan.objects.filter(
         anggota=anggota,
         jenis_simpanan=jenis_simpanan
-    )
+    ).order_by("-tanggal", "-id")
 
     if tanggal_filter:
         try:
-            tanggal = datetime.datetime.strptime(tanggal_filter, "%Y-%m-%d").date()
-            history = history.filter(tanggal=tanggal)
+            tanggal = datetime.datetime.strptime(
+                tanggal_filter, "%Y-%m-%d"
+            ).date()
+            history_qs = history_qs.filter(tanggal=tanggal)
         except ValueError:
             pass
+
+    # 🔥 PAGINATION RIWAYAT (5 DATA)
+    paginator = Paginator(history_qs, 5)
+    page_history = paginator.get_page(
+        request.GET.get("page_history", 1)
+    )
 
     # ======================
     # SALDO (TIDAK BOLEH KEFILTER)
@@ -217,7 +227,9 @@ def detail_simpanan(request, nomor_anggota, jenis_id):
     context = {
         "anggota": anggota,
         "jenis_simpanan": jenis_simpanan,
-        "history": history,
+        "history": page_history,     # 🔥 SUDAH PAGINATION
+        "page_obj": page_history,    # buat pagination.html
+        "param": "page_history",     # nama query page
         "saldo_jenis": saldo_jenis,
         "tanggal_filter": tanggal_filter,
     }
@@ -314,7 +326,7 @@ def download_kwitansi(request, history_id):
         judul = "BUKTI PENERIMAAN KAS"
         pihak_label = "Diterima dari"
         pemberi = "(...........................)"
-        penerima =  f"({ anggota.nama })"
+        penerima = f"({anggota.nama})"
         filename = f"kwitansi_setoran_{anggota.nama}"
 
     elif trx.jenis_transaksi == HistoryTabungan.TARIK:
