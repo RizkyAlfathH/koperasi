@@ -1,8 +1,9 @@
+/* kartu utama detail */
 .detail-card {
   max-width: 100%;
 }
 
-/* Layout form */
+/* layout baris field */
 .detail-card .row {
   display: flex;
   gap: 10px;
@@ -10,33 +11,55 @@
   margin-bottom: 15px;
 }
 
+/* kolom */
 .detail-card .col {
   flex: 1;
   min-width: 220px;
 }
 
-/* Label */
+/* label field */
 .detail-card label {
   display: block;
   font-weight: 600;
   margin-bottom: 5px;
-  color: #4A2C2A;
-  font-size: 14px;
+  color: #291B18;
+  font-size: 15px;
 }
 
-/* Field Box (readonly look, ganti input[readonly]) */
+/* tampilan seperti input readonly */
 .detail-card .field-box {
   width: 100%;
-  padding: 8px 12px;
-  border-radius: 6px;
+  padding: 10px 14px;
+  border-radius: 10px;
   border: 1px solid #ccc;
-  background: #fffefc;
-  font-size: 14px;
-  color: #333;
+  background: #fff;
+  font-size: 15px;
+  color: #291B18;
 }
 
+/* judul halaman */
 .detail-card h1 {
-  font-size: 26px;
+  font-size: 25px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  color: #291B18;
+}
+
+/* label status */
+.status-box {
   font-weight: 600;
 }
 
+/* status aktif */
+.status-box.aktif {
+  background: #ecfdf5;
+  border: 1px solid #22c55e;
+  color: #166534;
+}
+
+/* status nonaktif */
+.status-box.nonaktif {
+  background: #fef2f2;
+  border: 1px solid #ef4444;
+  color: #7f1d1d;
+}

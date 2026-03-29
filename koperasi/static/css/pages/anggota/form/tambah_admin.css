@@ -1,43 +1,40 @@
-/* ===============================
-   FORM CARD
-================================ */
+/* -- halaman: tambah admin -- */
+
+/* card form */
 .page-tambah-admin .form-card {
     background: #ffffff;
-    border-radius: 14px;
+    border-radius: 18px;
     padding: 28px 32px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.06);
 }
 
-/* ===============================
-   TITLE
-================================ */
+/* judul */
 .page-tambah-admin h2 {
-    font-size: 26px;
+    font-size: 25px;
     font-weight: 700;
     margin-bottom: 24px;
-    color: #4a2c1d;
+    color: #291B18;
 }
 
-/* ===============================
-   LABEL
-================================ */
+/* label */
 .page-tambah-admin label {
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 500;
     margin-bottom: 6px;
     display: inline-block;
+    color: #291B18;
 }
 
-/* ===============================
-   INPUT
-================================ */
-/* untuk select */
+
+/* -- input umum -- */
+
+/* select */
 .page-tambah-admin select.form-control {
     width: 100%;
     padding: 10px 14px;
     border-radius: 10px;
-    border: 1px solid #d0d0d0;
-    font-size: 14px;
+    border: 1px solid #ccc;
+    font-size: 15px;
     appearance: none;
 
     background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 9L12 15L18 9' stroke='%23666666' stroke-width='2'/%3E%3C/svg%3E");
@@ -46,25 +43,25 @@
     background-size: 16px;
 }
 
+/* input text */
 .page-tambah-admin input.form-control {
-    background-image: none;
-     width: 100%;
+    width: 100%;
     padding: 10px 14px;
     border-radius: 10px;
-    border: 1px solid #d0d0d0;
-    font-size: 14px;
-    appearance: none;
+    border: 1px solid #ccc;
+    font-size: 15px;
+    background-image: none;
 }
 
+/* efek saat fokus */
 .page-tambah-admin .form-control:focus {
     outline: none;
-    border-color: #facc15;
+    border-color: #ffd700;
     box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.25);
 }
 
-/* ===============================
-   PASSWORD
-================================ */
+
+/* input password */
 .page-tambah-admin .input-wrapper {
     position: relative;
 }
@@ -79,14 +76,17 @@
     color: #888;
 }
 
-/* FORCE ERROR STYLE */
+
+/* -- validasi error -- */
+
+/* input error */
 .page-tambah-admin input.is-invalid,
 .page-tambah-admin select.is-invalid {
     border: 2px solid #dc3545 !important;
     background-color: #fff5f5;
 }
 
-/* error text */
+/* teks error */
 .page-tambah-admin .invalid-feedback {
     display: block;
     color: #dc3545;
@@ -94,9 +94,7 @@
     margin-top: 6px;
 }
 
-/* ===============================
-   ERROR FOCUS OVERRIDE
-================================ */
+/* efek fokus saat error */
 .page-tambah-admin .form-control.is-invalid:focus {
     border: 2px solid #dc3545 !important;
     box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25) !important;

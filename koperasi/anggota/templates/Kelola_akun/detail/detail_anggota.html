@@ -4,7 +4,7 @@
 {% block title %}Detail Anggota{% endblock %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'css/pages/anggota/detail/detail_anggota.css' %}">
+<link rel="stylesheet" href="{% static 'css/pages/anggota/detail/detail_anggota.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -13,39 +13,43 @@
   <div class="content-card detail-card">
     <h1>Detail Anggota</h1>
 
+    <!-- nomor anggota & nama -->
     <div class="row">
       <div class="col">
-        <label>No Anggota</label>
+        <label>Nomor Anggota</label>
         <div class="field-box">{{ anggota.nomor_anggota }}</div>
       </div>
       <div class="col">
         <label>Nama</label>
         <div class="field-box">{{ anggota.nama }}</div>
-      </div>
+      </div> 
     </div>
 
+    <!-- umur & nip -->
     <div class="row">
       <div class="col">
         <label>Umur</label>
         <div class="field-box">{{ anggota.umur }}</div>
       </div>
       <div class="col">
-        <label>No. Telepon</label>
-        <div class="field-box">{{ anggota.no_telp }}</div>
+        <label>NIP</label>
+        <div class="field-box">{{ anggota.nip|default:"-" }}</div>
       </div>
     </div>
 
+    <!-- alamat & no telp -->
     <div class="row">
-      <div class="col">
-        <label>Pekerjaan</label>
-        <div class="field-box">{{ anggota.pekerjaan }}</div>
-      </div>
       <div class="col">
         <label>Alamat</label>
         <div class="field-box">{{ anggota.alamat }}</div>
       </div>
+      <div class="col">
+        <label>Nomor Telepon</label>
+        <div class="field-box">{{ anggota.no_telp }}</div>
+      </div>
     </div>
 
+    <!-- email & jenis kelamin -->
     <div class="row">
       <div class="col">
         <label>Email</label>
@@ -57,21 +61,29 @@
       </div>
     </div>
 
+    <!-- pekerjaan & tanggal daftar -->
     <div class="row">
+      <div class="col">
+        <label>Pekerjaan</label>
+        <div class="field-box">{{ anggota.pekerjaan }}</div>
+      </div>
       <div class="col">
         <label>Tanggal Daftar</label>
         <div class="field-box">{{ anggota.tanggal_daftar|date:"d F Y" }}</div>
       </div>
-      <div class="col">
+    </div>
+
+    <!-- status -->
+    <div class="row">
+      <div class="col" style="width:100%">
         <label>Status</label>
-        <div class="field-box">
-          <span class="status {{ anggota.status }}">
-            {{ anggota.get_status_display }}
-          </span>
+        <div class="field-box status-box {{ anggota.status }}">
+          {{ anggota.get_status_display }}
         </div>
       </div>
     </div>
 
+    <!-- khusus nonaktif -->
     {% if anggota.status == 'nonaktif' %}
     <div class="row">
       <div class="col">
@@ -88,6 +100,7 @@
       </div>
     </div>
     {% endif %}
+
   </div>
 
   <a href="{% url 'anggota:kelola_akun' %}" class="btn-kembali">Kembali</a>
