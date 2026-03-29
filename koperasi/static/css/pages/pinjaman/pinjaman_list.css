@@ -3,14 +3,14 @@
    =============================== */
 
 /* SEARCH FORM */
-.search-box {
+.content-card .search-box {
     display: flex;
     align-items: center;
     gap: 10px;
     flex-wrap: wrap;
 }
 
-.search-box select {
+.content-card .search-box select {
     appearance: none !important;
     -webkit-appearance: none !important;
     -moz-appearance: none !important;
@@ -26,33 +26,33 @@
     padding-right: 40px !important;
 }
 
-.search-box input,
-.search-box select {
+.content-card .search-box input,
+.content-card .search-box select {
     width: 250px;
     padding: 7px 12px;
     border-radius: 6px;
     border: 1px solid #ccc;
-    font-size: 13px;
+    font-size: 15px;
     background: #fff;
-    color: #333;
+    color: #666;
     outline: none;
     transition: all 0.2s ease;
 }
 
 /* Fokus efek */
-.search-box input:focus,
-.search-box select:focus {
+.content-card .search-box input:focus,
+.content-card .search-box select:focus {
     border-color: #000;
 }
 
 /* RESPONSIVE */
 @media (max-width: 768px) {
-    .search-box {
+    .content-card .search-box {
         width: 100%;
     }
 
-    .search-box input,
-    .search-box select {
+    .content-card .search-box input,
+    .content-card .search-box select {
         width: 100%;
     }
 }

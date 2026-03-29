@@ -19,10 +19,6 @@
 
 /* -- grid dan label -- */
 
-.page-tambah-anggota .row.g-3 {
-    row-gap: 18px;
-}
-
 .page-tambah-anggota .form-card label {
     font-size: 15px;
     font-weight: 500;
@@ -41,6 +37,8 @@
     border: 1px solid #ccc;
     font-size: 15px;
     transition: all 0.2s ease;
+    margin-bottom: 5px;
+    color: #291B18;
 }
 
 /* efek fokus */

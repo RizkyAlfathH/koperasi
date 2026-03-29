@@ -46,6 +46,7 @@ def sidebar_active(request):
             'pinjaman_anggota',
             'detail_pinjaman',
             'bayar_pinjaman',
+            'detail_pembayaran',
         ],
 
         # Tambahkan menu lain jika ada
