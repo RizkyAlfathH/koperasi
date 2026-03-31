@@ -276,6 +276,7 @@ def tambah_penarikan(request, nomor_anggota, jenis):
         "form": form,
         "anggota": anggota,
         "saldo": saldo,
+        "jenis_simpanan": jenis_obj.nama_jenis,
     })
 
 @login_required
