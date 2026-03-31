@@ -1,9 +1,9 @@
 h1 {
-    color: #3b1f1f;
+    color: #291B18;
     margin-bottom: 20px;
 }
 
-/* CARD */
+/* card */
 .content-card {
     background: #fff;
     border-radius: 14px;
@@ -12,9 +12,9 @@ h1 {
     box-shadow: 0 4px 18px rgba(0,0,0,0.08);
 }
 
-/* HEADER SECTION */
+/* header */
 .section-header {
-    color: #4A2C2A;
+    color: #291B18;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -26,7 +26,7 @@ h1 {
 .section-title {
     font-size: 20px;
     font-weight: 600;
-    color: #4A2C2A;
+    color: #291B18;
 }
 
 .header-right {

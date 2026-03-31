@@ -11,13 +11,12 @@
 
 <div class="dashboard-wrapper">
 
-  <!-- ===== HEADER ===== -->
+  <!-- header -->
   <div class="dashboard-header">
-    <span class="header-line"></span>
     <h1>Dashboard Ketua</h1>
   </div>
 
-  <!-- ================= INFO CARDS ================= -->
+  <!-- info cards -->
   <div class="info-cards">
     <div class="info-card">
       <div>
@@ -29,7 +28,7 @@
 
     <div class="info-card">
       <div>
-        <p>JUMLAH ANGGOTA</p>
+        <p>JUMLAH ANGGOTA AKTIF</p>
         <h2>{{ jumlah_anggota }}</h2>
       </div>
       <span class="icon"><i class="ph-bold ph-users"></i></span>
@@ -52,10 +51,10 @@
     </div>
   </div>
 
-  <!-- ================= KALENDER + DONUT ================= -->
+  <!-- kalender dan donut chart -->
   <div class="middle-grid">
 
-    <!-- ===== KALENDER ===== -->
+    <!-- kalender -->
     <div class="calendar-box">
       <div class="calendar-header">
         <h3 id="monthName"></h3>
@@ -71,7 +70,7 @@
       <div class="calendar-info" id="todayInfo"></div>
     </div>
 
-    <!-- ===== DONUT ===== -->
+    <!-- donut chart -->
     <div class="chart-box">
       <h3>Statistik Pengguna</h3>
       <canvas id="userDonutChart"></canvas>
@@ -79,16 +78,12 @@
 
   </div>
 
-  <!-- ================= AREA CHART GABUNGAN ================= -->
+  <!-- area chart -->
   <div class="chart-grid">
     <div class="chart-box chart-full">
 
       <div class="chart-header">
         <h3>Statistik Simpanan & Pinjaman</h3>
-        <div class="chart-toggle">
-          <button class="active">Area</button>
-          <button>Donut</button>
-        </div>
       </div>
 
       <div class="chart-wrapper">
@@ -165,7 +160,7 @@ new Chart(document.getElementById("statistikChart"), {
   }
 });
 
-/* ================= DONUT ================= */
+/* donut */
 new Chart(document.getElementById("userDonutChart"), {
   type: "doughnut",
   data: {
@@ -183,7 +178,7 @@ new Chart(document.getElementById("userDonutChart"), {
   }
 });
 
-/* ================= KALENDER ================= */
+/* kalender */
 const now = new Date();
 const months = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
 const days = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];

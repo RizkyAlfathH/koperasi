@@ -1,20 +1,12 @@
-/* ================= DASHBOARD ================= */
-
+/* dashboard header */
 .dashboard-header {
   display: flex;
   align-items: center;
-  margin-bottom: 25px;
+  margin-bottom: 5px;
 }
 
-.header-line {
-  width: 6px;
-  height: 30px;
-  background: #f5c400;
-  margin-right: 12px;
-  border-radius: 4px;
-}
 
-/* ================= INFO CARDS ================= */
+/* info cards */
 .info-cards {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -29,36 +21,38 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-top: 5px solid #f5c400;
+  border-top: 5px solid #FFD700;
   box-shadow: 0 8px 25px rgba(0,0,0,.06);
 }
 
 .info-card p {
   font-size: 13px;
-  color: #777;
+  color: #888;
 }
 
 .info-card h2 {
   font-size: 22px;
   font-weight: 700;
+  color: #291B18;
 }
 
 .info-card .icon {
-    background: #f4f6fb;
-    width: 50px;
-    height: 50px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  background: #f4f6fb;
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .info-card .icon i {
-    font-size: 26px;
-    color: #2f3a4a;
+  font-size: 26px;
+  color: #2f3a4a;
 }
 
-/* ================= MIDDLE GRID ================= */
+
+/* middle grid (calendar + chart) */
 .middle-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -66,7 +60,17 @@
   margin-bottom: 30px;
 }
 
-/* ================= CALENDAR ================= */
+.middle-grid h3 {
+  color: #291B18;
+  font-size: 25px;
+}
+
+.middle-grid span {
+  color: #291B18;
+  font-size: 15px;
+}
+
+/* calendar */
 .calendar-box {
   background: #fff;
   border-radius: 18px;
@@ -90,9 +94,11 @@
 .calendar-days span {
   font-weight: 600;
   color: #888;
+  font-size: 17px;
 }
 
 .calendar-dates span {
+  font-size: 15px;
   padding: 10px;
   margin: 4px;
   background: #f3f3f3;
@@ -100,21 +106,26 @@
 }
 
 .calendar-dates .today {
-  background: #f5c400;
+  background: #FFD700;
   font-weight: bold;
 }
 
 .calendar-info {
   margin-top: 10px;
-  color: #d33;
-  font-size: 13px;
+  color: #FF0000;
+  font-size: 15px;
 }
 
-/* ================= CHART ================= */
+
+/* chart section */
 .chart-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 25px;
+}
+
+.chart-grid h3 {
+  color: #291B18;
 }
 
 .chart-box {
@@ -145,25 +156,12 @@
   margin-bottom: 10px;
 }
 
-.chart-toggle button {
-  border: none;
-  padding: 6px 14px;
-  border-radius: 8px;
-  background: #f2f2f2;
-  cursor: pointer;
-  font-size: 13px;
-}
-
-.chart-toggle button.active {
-  background: #3696e6;
-  color: #fff;
-}
-
-/* ================= RESPONSIVE ================= */
+/* responsive */
 @media (max-width: 1200px) {
   .info-cards {
     grid-template-columns: repeat(2, 1fr);
   }
+
   .middle-grid {
     grid-template-columns: 1fr;
   }

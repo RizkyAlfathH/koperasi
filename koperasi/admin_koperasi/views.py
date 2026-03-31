@@ -11,29 +11,41 @@ from .decorators import admin_only
 
 User = get_user_model()
 
-
 def admin_login(request):
+    if request.user.is_authenticated:
+        return redirect('anggota:dashboard_redirect')
+
+    errors = {}
+
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
 
-        user = authenticate(request, username=username, password=password)
+        # validasi kosong
+        if not username:
+            errors['username'] = 'Username wajib diisi.'
 
-        if user:
-            login(request, user)
+        if not password:
+            errors['password'] = 'Password wajib diisi.'
 
-            # redirect berdasarkan role
-            if user and user.role == 'admin':
-                login(request, user)
-                return redirect("anggota:dashboard_redirect")
+        # cek login kalau tidak ada error
+        if not errors:
+            user = authenticate(request, username=username, password=password)
+
+            if user is None:
+                # cek username di custom user model
+                if not User.objects.filter(username=username).exists():
+                    errors['username'] = 'Username tidak ditemukan.'
+                else:
+                    errors['password'] = 'Password salah.'
             else:
+                login(request, user)
                 return redirect('anggota:dashboard_redirect')
 
-        messages.error(request, 'Username atau password salah')
+    return render(request, 'admin_koperasi/login.html', {
+        'errors': errors
+    })
 
-    return render(request, 'admin_koperasi/login.html')
-
-@login_required
 def admin_logout(request):
     logout(request)
     return redirect('admin_koperasi:admin_login')
