@@ -18,7 +18,7 @@
         <div class="col-md-6">
             <label>Nama Anggota</label>
             <input type="text" class="form-control" readonly
-                   value="{{ pembayaran.id_pinjaman.nomor_anggota.nama }}">
+                   value="{{ pembayaran.id_pinjaman.nomor_anggota.nomor_anggota }} - {{ pembayaran.id_pinjaman.nomor_anggota.nama }}">
         </div>
         <div class="col-md-6">
             <label>Jenis Pinjaman</label>
@@ -29,7 +29,7 @@
 
     <div class="row mb-3">
         <div class="col-md-6">
-            <label>Jumlah Cicilan Pokok</label>
+            <label>Jumlah Angsuran per Bulan</label>
             <input type="text" class="form-control rupiah-text" readonly
                    value="Rp {{ pembayaran.id_pinjaman.angsuran_per_bulan|floatformat:0 }}">
         </div>
@@ -57,7 +57,7 @@
         <div class="col-md-6">
             <label>Admin yang Bertugas</label>
             <input type="text" class="form-control" readonly
-                   value="{{ pembayaran.id_admin.username }}">
+                   value="{{ pembayaran.id_admin.username }} ({{ request.user.role|title }})">
         </div>
         <div class="col-md-6">
             <label>Tanggal Bayar</label>
@@ -68,12 +68,12 @@
 
     <div class="row mb-4">
         <div class="col-md-6">
-            <label>Sisa Pinjaman Sebelum</label>
+            <label>Sisa Pinjaman Sebelum Dibayar</label>
             <input type="text" class="form-control rupiah-text" readonly
                    value="Rp {{ sisa_sebelum|floatformat:0 }}">
         </div>
         <div class="col-md-6">
-            <label>Sisa Pinjaman Sesudah</label>
+            <label>Sisa Pinjaman Sesudah Dibayar</label>
             <input type="text" class="form-control rupiah-text" readonly
                    value="Rp {{ sisa_setelah|floatformat:0 }}">
         </div>

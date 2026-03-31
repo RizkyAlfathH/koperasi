@@ -118,7 +118,7 @@
             <div class="col-md-6">
                 <label>Admin yang Bertugas</label>
                 <input type="text" class="form-control"
-                       value="{{ request.user.username }} ({{ request.user.role }})"
+                       value="{{ request.user.username }} ({{ request.user.role|title }})"
                        readonly>
             </div>
         </div>

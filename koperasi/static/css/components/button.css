@@ -7,7 +7,7 @@
     gap: 6px;
     padding: 8px 14px;
     border-radius: 8px;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 500;
     text-decoration: none;
     cursor: pointer;
@@ -16,15 +16,26 @@
 }
 
 .btn i {
-    font-size: 16px;
+    font-size: 20px;
+    color: #291B18;
 }
 
 /* ===============================
    VARIANTS
 ================================ */
 .btn-primary {
-    background: #ffd700;
-    color: #3b1f1f;
+    background: #ffd700 !important; 
+    color: #291B18 !important;
+    font-size: 15px;
+}
+
+.btn-primary:hover {
+    background: #e6c200 !important;
+    color: #291B18 !important;
+}
+
+.btn-secondary i {
+    color: #ffffff;
 }
 
 .btn-success {
@@ -32,8 +43,16 @@
     color: #ffffff;
 }
 
+.btn-success i {
+    color: #ffffff;
+}
+
 .btn-danger {
     background: #ef4444;
+    color: #ffffff;
+}
+
+.btn-danger i {
     color: #ffffff;
 }
 
@@ -56,18 +75,23 @@
     align-items: center;
     gap: 6px;
     background: #ffd700;
-    color: #3b1f1f;
+    color: #291B18;
     font-weight: 600;
     padding: 8px 14px;
-    border-radius: 8px;
+    border-radius: 6px;
     text-decoration: none;
-    font-size: 14px;
+    font-size: 15px;
     transition: 0.2s;
 }
 
 .add-button:hover {
     background: #e6c200;
     transform: translateY(-1px);
+}
+
+.add-button i {
+    color: #291B18;
+    font-weight: 700;
 }
 
 /* ===============================
@@ -87,7 +111,7 @@
     justify-content: center;
     border-radius: 6px;
     color: #fff;
-    font-size: 14px;
+    font-size: 20px;
     transition: 0.2s;
     text-decoration: none;
 }
@@ -142,12 +166,12 @@
 
 .btn-simpan {
     background: #FFD700;
-    color: #4A2C2A;
-    font-weight: 600;
+    color: #291B18;
+    font-weight: 700;
     padding: 6px 14px;
     border-radius: 6px;
     border: none;
-    font-size: 13px;
+    font-size: 15px;
     transition: 0.2s;
 }
 
@@ -158,11 +182,11 @@
 .btn-outline {
     background: transparent;
     border: 1px solid #ccc;
-    color: #4A2C2A;
-    font-weight: 500;
+    color: #291B18;
+    font-weight: 700;
     border-radius: 6px;
     padding: 6px 14px;
-    font-size: 13px;
+    font-size: 15px;
     text-decoration: none;
     margin-right: 8px;
 }
@@ -191,12 +215,12 @@
 }
 .btn-kembali {
     background: #FFD700;
-    color: #4A2C2A;
-    font-weight: 600;
+    color: #291B18;
+    font-weight: 700;
     padding: 6px 14px;
     border-radius: 6px;
     border: none;
-    font-size: 13px;
+    font-size: 15px;
     transition: 0.2s;
     text-decoration: none;
     float: right;

@@ -1,38 +1,37 @@
-/* ============================= */
-/* PAGE: KELOLA AKUN */
-/* ============================= */
+/* -- halaman: kelola akun -- */
 
+/* judul halaman */
 .page-kelola-akun h1 {
-    color: var(--color-primary);
+    color: #291B18;
     margin-bottom: 20px;
 }
 
-/* HEADER KHUSUS HALAMAN INI */
+/* header khusus halaman */
 .page-kelola-akun .section-header {
     margin-bottom: 15px;
 }
 
-/* SEARCH KHUSUS */
+/* search box */
 .page-kelola-akun .search-box input,
 .page-kelola-akun .search-box select {
     width: 250px;
     padding: 7px 12px;
     border-radius: 6px;
     border: 1px solid #ccc;
-    font-size: 13px;
+    font-size: 15px;
     background: #fff;
-    color: #333;
+    color: #666;
     outline: none;
     transition: all 0.2s ease;
 }
 
-/* Fokus efek */
+/* efek saat fokus */
 .page-kelola-akun .search-box input:focus,
 .page-kelola-akun .search-box select:focus {
     border-color: #000;
 }
 
-/* ALASAN TIDAK AKTIF (kolom panjang) */
+/* kolom alasan tidak aktif (dibatasi panjangnya) */
 .page-kelola-akun td:nth-child(8) {
     max-width: 220px;
     white-space: nowrap;
@@ -40,12 +39,11 @@
     text-overflow: ellipsis;
 }
 
-/* PAGINATION TWEAK KHUSUS */
+/* pagination */
 .page-kelola-akun .pagination-container {
     margin-top: 20px;
 }
 
-/* BADGE STATUS */
 .page-kelola-akun .status-badge {
     padding: 4px 10px;
     border-radius: 20px;
@@ -53,22 +51,63 @@
     font-weight: 600;
     display: inline-block;
     text-transform: lowercase;
+    white-space: nowrap;
+    max-width: 100%;
 }
 
-/* AKTIF */
+/* status aktif */
 .page-kelola-akun .badge-aktif {
     background-color: #22c55e;
     color: #fff;
 }
 
-/* NONAKTIF */
+/* status nonaktif */
 .page-kelola-akun .badge-nonaktif {
     background-color: #ef4444;
     color: #fff;
 }
 
-/* DEFAULT */
+/* status default */
 .page-kelola-akun .badge-default {
     background-color: #9ca3af;
     color: #fff;
+}
+
+
+/* -- sweetalert versi kecil -- */
+.swal-small {
+    width: 475px !important;
+    padding: 18px 20px !important;
+    border-radius: 10px !important;
+}
+
+/* judul */
+.swal-small-title {
+    font-size: 18px !important;
+    margin-bottom: 5px !important;
+}
+
+/* isi */
+.swal-small .swal2-html-container {
+    font-size: 13px !important;
+    margin-top: 6px !important;
+}
+
+/* input konfirmasi */
+.swal-small-input {
+    height: 34px !important;
+    font-size: 13px !important;
+    padding: 6px 10px !important;
+    border-radius: 6px !important;
+}
+
+/* tombol */
+.swal-small-btn {
+    font-size: 13px !important;
+    padding: 6px 12px !important;
+}
+
+/* jarak tombol */
+.swal-small .swal2-actions {
+    margin-top: 10px !important;
 }

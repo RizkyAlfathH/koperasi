@@ -4,7 +4,7 @@
 {% block title %}Kelola Akun{% endblock %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'css/pages/anggota/kelola_akun.css' %}">
+<link rel="stylesheet" href="{% static 'css/pages/anggota/kelola_akun.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -12,7 +12,7 @@
 
     <h1>Manajemen Akun</h1>
 
-    <!-- ================= ADMIN ================= -->
+    <!-- bagian admin -->
     <div class="content-card">
 
         <div class="section-header">
@@ -20,8 +20,7 @@
 
             <div class="header-right">
                 <form method="get" class="search-box">
-                    <input type="text"
-                           name="searchAdmin"
+                    <input type="text" name="searchAdmin"
                            placeholder="Cari Nama Admin"
                            value="{{ searchAdmin }}">
                 </form>
@@ -73,10 +72,9 @@
         </table>
 
         {% include "includes/pagination.html" with page_obj=admins param="page_admin" %}
-
     </div>
 
-    <!-- ================= ANGGOTA ================= -->
+    <!-- bagian anggota -->
     <div class="content-card">
 
         <div class="section-header">
@@ -84,8 +82,7 @@
 
             <div class="header-right">
                 <form method="get" class="search-box">
-                    <input type="text"
-                           name="searchAnggota"
+                    <input type="text" name="searchAnggota"
                            placeholder="Cari Nama Anggota"
                            value="{{ searchAnggota }}">
                 </form>
@@ -94,39 +91,36 @@
                     <i class="ph-bold ph-user-plus"></i> Tambah Anggota
                 </a>
 
+                <!-- import excel -->
                 <form action="{% url 'anggota:import_excel_anggota' %}"
-                    method="post"
-                    enctype="multipart/form-data"
-                    style="display:inline;">
+                      method="post"
+                      enctype="multipart/form-data"
+                      style="display:inline;">
                     {% csrf_token %}
-                    <input type="file"
-                        name="excel_file"
-                        id="excelInput"
-                        accept=".xlsx,.xls"
-                        hidden
-                        required>
 
-                    <button type="button"
-                            class="btn btn-secondary"
+                    <input type="file" name="excel_file" id="excelInput"
+                           accept=".xlsx,.xls" hidden required>
+
+                    <button type="button" class="btn btn-secondary"
                             onclick="document.getElementById('excelInput').click();">
                         <i class="ph-bold ph-file-csv"></i> Import Excel
                     </button>
 
-                    <button type="submit"
-                            id="submitExcel"
-                            hidden></button>
+                    <button type="submit" id="submitExcel" hidden></button>
                 </form>
 
+                <!-- export -->
                 <a href="{% url 'anggota:export_excel_anggota' %}" class="btn btn-success">
-                    <i class="ph-bold ph-file-xls"></i> EXPORT Excel
+                    <i class="ph-bold ph-file-xls"></i> Export Excel
                 </a>
 
                 <a href="{% url 'anggota:export_pdf_anggota' %}" class="btn btn-danger">
-                    <i class="ph-bold ph-file-pdf"></i> EXPORT PDF
+                    <i class="ph-bold ph-file-pdf"></i> Export PDF
                 </a>
             </div>
         </div>
 
+        <!-- tabel anggota -->
         <table class="data-table">
             <thead>
                 <tr>
@@ -188,19 +182,114 @@
                 {% endfor %}
             </tbody>
         </table>
-        {% include "includes/pagination.html" with page_obj=anggotas param="page_anggota" %}
 
+        {% include "includes/pagination.html" with page_obj=anggotas param="page_anggota" %}
     </div>
 
 </div>
 {% endblock %}
-{% block extra_js %}
 
+{% block extra_js %}
 <script>
+
+/* auto submit saat file excel dipilih */
 document.getElementById("excelInput").addEventListener("change", function () {
     if (this.files.length > 0) {
         document.getElementById("submitExcel").click();
     }
+});
+
+/* konfirmasi hapus data */
+document.querySelectorAll(".action-delete").forEach(function(btn){
+
+    btn.addEventListener("click", function(e){
+
+        e.preventDefault();
+
+        const url = this.getAttribute("href");
+        const name = this.dataset.name;
+        const type = this.dataset.type;
+
+        Swal.fire({
+            icon: "warning",
+            title: "Konfirmasi Penghapusan",
+            customClass: {
+                popup: "swal-small",
+                title: "swal-small-title",
+                input: "swal-small-input",
+                confirmButton: "swal-small-btn",
+                cancelButton: "swal-small-btn"
+            },
+            html: `
+                <div style="margin-top:10px">
+                    <p style="margin-bottom:8px">
+                        Anda akan menghapus <b>${type}</b> berikut:
+                    </p>
+
+                    <div style="
+                        background:#f8f9fa;
+                        border:1px solid #e5e7eb;
+                        padding:10px;
+                        border-radius:6px;
+                        font-weight:600;
+                        margin-bottom:15px;
+                    ">
+                        ${name}
+                    </div>
+
+                    <p style="font-size:14px;color:#666">
+                        untuk melanjutkan ketik 
+                        <b style="color:#dc3545;">hapus</b> di bawah ini
+                    </p>
+                </div>
+            `,
+            input: "text",
+            inputPlaceholder: "ketik 'hapus'",
+            showCancelButton: true,
+            confirmButtonText: "Hapus Data",
+            cancelButtonText: "Batal",
+            confirmButtonColor: "#dc3545",
+            cancelButtonColor: "#6c757d",
+
+            preConfirm: (value) => {
+
+                if (!value) {
+                    Swal.showValidationMessage("Silakan ketik 'hapus' terlebih dahulu");
+                    return false;
+                }
+
+                if (value.toLowerCase() !== "hapus") {
+                    Swal.showValidationMessage("Kata konfirmasi harus 'hapus'");
+                    return false;
+                }
+
+                return true;
+            }
+
+        }).then((result)=>{
+
+            if(result.isConfirmed){
+
+                Swal.fire({
+                    title: "Menghapus Data...",
+                    text: "Mohon tunggu sebentar",
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                setTimeout(() => {
+                    window.location.href = url;
+                }, 600);
+
+            }
+
+        });
+
+    });
+
 });
 </script>
 {% endblock %}
