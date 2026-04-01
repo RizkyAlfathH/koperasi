@@ -103,7 +103,7 @@
 
                     <button type="button" class="btn btn-secondary"
                             onclick="document.getElementById('excelInput').click();">
-                        <i class="ph-bold ph-file-csv"></i> Import Excel
+                        <i class="ph-bold ph-file-csv action-import"></i> Import Excel
                     </button>
 
                     <button type="submit" id="submitExcel" hidden></button>
@@ -111,11 +111,11 @@
 
                 <!-- export -->
                 <a href="{% url 'anggota:export_excel_anggota' %}" class="btn btn-success">
-                    <i class="ph-bold ph-file-xls"></i> Export Excel
+                    <i class="ph-bold ph-file-xls action-export"></i> Export Excel
                 </a>
 
                 <a href="{% url 'anggota:export_pdf_anggota' %}" class="btn btn-danger">
-                    <i class="ph-bold ph-file-pdf"></i> Export PDF
+                    <i class="ph-bold ph-file-pdf action-export"></i> Export PDF
                 </a>
             </div>
         </div>

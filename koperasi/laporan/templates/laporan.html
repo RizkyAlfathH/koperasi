@@ -47,7 +47,7 @@
         {% endif %}
 
         <a href="{% url 'laporan:export_laporan' %}?periode=bulan&bulan={{ bulan }}&tahun={{ tahun_bulan }}"
-           class="btn btn-success">
+           class="btn btn-success action-export">
             <i class="ph-bold ph-file-xls"></i> Download Laporan
         </a>
 
@@ -132,7 +132,7 @@
         {% endif %}
 
         <a href="{% url 'laporan:export_laporan' %}?periode=tahun&tahun={{ tahun_tahunan }}"
-           class="btn btn-success">
+           class="btn btn-success action-export">
             <i class="ph-bold ph-file-xls"></i> Download Laporan
         </a>
 
