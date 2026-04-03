@@ -1,0 +1,51 @@
+/* ===============================
+   FORM CARD
+================================ */
+.content-card {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 28px 32px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+}
+
+/* ===============================
+   JUDUL
+================================ */
+.content-card h2 {
+    font-size: 25px;
+    font-weight: 700;
+    margin-bottom: 24px;
+    color: #291B18;
+}
+
+
+/* ===============================
+   LABEL
+================================ */
+label {
+    font-size: 15px;
+    font-weight: 500;
+    margin-bottom: 5px;
+    display: block;
+    color: #291B18;
+}
+
+/* ===============================
+   INPUT / FORM
+================================ */
+.form-control {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    font-size: 15px;
+    transition: all 0.2s ease;
+    margin-bottom: 5px;
+    color: #291B18;
+}
+
+.form-control:focus {
+    border-color: #FFD700 !important;
+    box-shadow: 0 0 0 0.15rem rgba(255, 215, 0, 0.4) !important;
+    outline: none;
+}

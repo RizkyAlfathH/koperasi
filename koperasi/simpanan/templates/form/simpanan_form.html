@@ -1,69 +1,128 @@
 {% extends "base.html" %}
 {% load static %}
 {% load widget_tweaks %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/simpanan/form/simpanan_form.css' %}">
+{% endblock %}
+
 {% block title %}Tambah Simpanan{% endblock %}
 
 {% block content %}
 
-    <div class="content-card">
-        <h2 style="margin-bottom: 15px;">Form Tambah Simpanan</h2>
+<div class="content-card">
+    <h2 style="margin-bottom: 15px;">Form Tambah Simpanan</h2>
 
-        <form method="post">
-            {% csrf_token %}
+    <form method="post" novalidate>
+        {% csrf_token %}
 
-            {% if form.errors %}
-            <div class="alert alert-danger">
-                {{ form.errors }}
+        <div class="row mb-3">
+
+            <!-- nama anggota -->
+            <div class="col-md-6">
+                <label>Nama Anggota</label>
+
+                {% if form.anggota.errors %}
+                    <select id="id_anggota" name="anggota" class="form-control is-invalid"></select>
+                    <div class="invalid-feedback">
+                        {% for error in form.anggota.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <select id="id_anggota" name="anggota" class="form-control"></select>
+                {% endif %}
             </div>
-            {% endif %}
 
-            <div class="row g-4">
+            <!-- tanggal -->
+            <div class="col-md-6">
+                <label>Tanggal Menyimpan</label>
 
-                <!-- NAMA ANGGOTA -->
-                <div class="col-md-6">
-                    <label class="form-label">Nama Anggota</label>
-                    <select id="id_anggota" name="anggota" class="form-control" required></select>
-                </div>
-
-                <!-- TANGGAL -->
-                <div class="col-md-6">
-                    <label class="form-label">Tanggal Menyimpan</label>
+                {% if form.tanggal.errors %}
+                    {{ form.tanggal|add_class:"form-control is-invalid" }}
+                    <div class="invalid-feedback">
+                        {% for error in form.tanggal.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% else %}
                     {{ form.tanggal|add_class:"form-control" }}
-                </div>
+                {% endif %}
+            </div>
 
-                <!-- JENIS SIMPANAN -->
-                <div class="col-md-6">
-                    <label class="form-label">Jenis Simpanan</label>
+        </div>
+
+        <div class="row mb-3">
+
+            <!-- jenis -->
+            <div class="col-md-6">
+                <label>Jenis Simpanan</label>
+
+                {% if form.jenis_simpanan.errors %}
+                    {{ form.jenis_simpanan|add_class:"form-control is-invalid" }}
+                    <div class="invalid-feedback">
+                        {% for error in form.jenis_simpanan.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% else %}
                     {{ form.jenis_simpanan|add_class:"form-control" }}
-                </div>
+                {% endif %}
+            </div>
 
-                <!-- JUMLAH -->
-                <div class="col-md-6">
-                    <label class="form-label">Jumlah Menyimpan</label>
+            <!-- jumlah -->
+            <div class="col-md-6">
+                <label>Jumlah Menyimpan</label>
+
+                {% if form.jumlah.errors %}
+                    {{ form.jumlah|add_class:"form-control rupiah-input is-invalid" }}
+                    <div class="invalid-feedback">
+                        {% for error in form.jumlah.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% else %}
                     {{ form.jumlah|add_class:"form-control rupiah-input" }}
-                </div>
+                {% endif %}
+            </div>
 
-                <!-- DANA SOSIAL -->
-                <div class="col-md-6" id="field-dana-sosial" style="display:none;">
-                    <label class="form-label">Dana Sosial</label>
+        </div>
+
+        <div class="row mb-3">
+
+            <!-- dana sosial -->
+            <div class="col-md-6" id="field-dana-sosial"
+                {% if form.dana_sosial.errors %}style="display:block;"{% else %}style="display:none;"{% endif %}>
+                <label>Dana Sosial</label>
+
+                {% if form.dana_sosial.errors %}
+                    {{ form.dana_sosial|add_class:"form-control rupiah-input is-invalid" }}
+                    <div class="invalid-feedback">
+                        {% for error in form.dana_sosial.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% else %}
                     {{ form.dana_sosial|add_class:"form-control rupiah-input" }}
-                </div>
-
+                {% endif %}
             </div>
 
-            <!-- ACTION BUTTON -->
-            <div class="form-actions" style="text-align:right; margin-top:20px;">
-                <a href="{% url 'simpanan:daftar_simpanan' %}" class="btn-outline">Batal</a>
-                <button type="submit" class="btn-simpan">Simpan</button>
-            </div>
+        </div>
 
-        </form>
-    </div>
+        <div class="form-actions" style="text-align:right; margin-top:20px;">
+            <a href="{% url 'simpanan:daftar_simpanan' %}" class="btn-outline">Batal</a>
+            <button type="submit" class="btn-simpan">Simpan</button>
+        </div>
+
+    </form>
+</div>
 
 <script>
 $(function () {
 
-    // SELECT2 ANGGOTA
+    // ===============================
+    // select2 anggota
+    // ===============================
     $('#id_anggota').select2({
         placeholder: 'Cari nama anggota...',
         minimumInputLength: 1,
@@ -77,16 +136,38 @@ $(function () {
         width: '100%'
     });
 
+    // tampilkan kembali value setelah error (biar ga kosong)
+    {% if form.anggota.value and anggota_label %}
+        $('#id_anggota').append(
+            new Option("{{ anggota_label }}", "{{ form.anggota.value }}", true, true)
+        ).trigger('change');
+    {% endif %}
+
+
+    // ===============================
+    // fungsi cek dana sosial
+    // ===============================
     function cekDanaSosial() {
         const anggota = $('#id_anggota').val();
         const jenis = $('#id_jenis_simpanan').val();
         const tanggal = $('#id_tanggal').val();
 
+        // reset tampilan
         $('#field-dana-sosial').hide();
 
-        if (!anggota || !jenis || !tanggal) return;
-        if (jenis !== '2') return;
+        // kalau bukan simpanan wajib → reset semua
+        if (jenis !== '2') {
+            $('#id_dana_sosial')
+                .removeClass('is-invalid')
+                .val('');
 
+            $('#field-dana-sosial .invalid-feedback').remove();
+            return;
+        }
+
+        if (!anggota || !tanggal) return;
+
+        // cek ke backend
         $.getJSON(
             "{% url 'simpanan:cek_dana_sosial' %}",
             { anggota, jenis, tanggal },
@@ -98,9 +179,40 @@ $(function () {
         );
     }
 
+    // ===============================
+    // trigger perubahan
+    // ===============================
     $('#id_anggota, #id_jenis_simpanan, #id_tanggal')
         .on('change', cekDanaSosial);
 
+
+    // ===============================
+    // reset error saat user input dana sosial
+    // ===============================
+    $(document).on('input', '#id_dana_sosial', function () {
+        $(this).removeClass('is-invalid');
+        $(this).closest('.col-md-6')
+               .find('.invalid-feedback')
+               .remove();
+    });
+
+
+    // ===============================
+    // reset saat ganti jenis
+    // ===============================
+    $('#id_jenis_simpanan').on('change', function () {
+        if ($(this).val() !== '2') {
+            $('#id_dana_sosial').val('');
+        }
+    });
+
+
+    // ===============================
+    // jalankan saat pertama load
+    // ===============================
+    cekDanaSosial();
+
 });
 </script>
+
 {% endblock %}
