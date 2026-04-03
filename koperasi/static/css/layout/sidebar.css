@@ -9,10 +9,12 @@
     top: 0;
     box-shadow: 2px 0 10px rgba(0,0,0,0.1);
     z-index: 1000;
+    transition: width 0.3s ease;
 }
 
 /* Profil di atas sidebar */
 .sidebar .profile {
+    position: relative;
     text-align: center;
     padding: 20px;
     border-bottom: 1px solid rgba(0,0,0,0.1);
@@ -32,6 +34,19 @@
     color: #FFD700;
     font-weight: bold;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Toggle Button di samping avatar */
+.toggle-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: transparent;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: #333;
+    transition: transform 0.3s ease;
 }
 
 .sidebar .profile .username {
@@ -58,13 +73,16 @@
 }
 
 .sidebar ul li a {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 10px;
     padding: 12px 20px;
     color: #333;
     text-decoration: none;
     border-radius: 8px;
     transition: all 0.3s ease;
     font-weight: 500;
+    font-size: 15px;
 }
 
 .sidebar ul li a:hover {
@@ -107,4 +125,59 @@
     background-color: #d32f2f;
     color: #fff;
     transform: translateY(-2px);
+}
+
+/* ICON MENU diperbesar */
+.sidebar ul li a i {
+    font-size: 22px;
+}
+
+/* Sidebar Collapsed */
+.sidebar.collapsed {
+    width: 100px;
+}
+
+.sidebar.collapsed .username,
+.sidebar.collapsed .role {
+    display: none;
+}
+
+.sidebar.collapsed ul li a {
+    justify-content: center;
+    padding: 12px 0;
+}
+
+.sidebar.collapsed ul li a .menu-text {
+    display: none;
+}
+
+.sidebar.collapsed .toggle-btn {
+    transform: rotate(0deg);
+}
+
+/* ====== Konten ikut geser ====== */
+.main-content {
+    margin-left: 280px;
+    padding: 20px;
+    transition: margin-left 0.3s ease;
+}
+
+.sidebar.collapsed ~ .main-content {
+    margin-left: 100px;
+}
+
+/* ====== Responsif ====== */
+@media (max-width: 768px) {
+    .sidebar {
+        left: -280px;
+    }
+    .sidebar.active {
+        left: 0;
+    }
+    .main-content {
+        margin-left: 0;
+    }
+    .sidebar.collapsed ~ .main-content {
+        margin-left: 0;
+    }
 }

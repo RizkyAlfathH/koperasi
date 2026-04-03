@@ -7,3 +7,14 @@
         <span>{{ request.user.username|upper }}</span>
     </div>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const navbar = document.querySelector(".navbar");
+
+    document.addEventListener("sidebarToggled", function(e) {
+        const isCollapsed = e.detail.collapsed;
+        navbar.style.left = isCollapsed ? "100px" : "280px";
+    });
+});
+</script>
