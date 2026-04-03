@@ -41,6 +41,13 @@
 </head>
 <body>
 
+<!-- ✅ GLOBAL LOADER -->
+<div id="global-loader">
+  <div class="loader-content">
+    <div class="spinner"></div>
+    <p>Memuat...</p>
+  </div>
+</div>
 
 {% if request.user.is_authenticated %}
     {% include "includes/sidebar.html" %}
@@ -107,22 +114,9 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
       }
 
-      const href = link.getAttribute("href") || "";
-
-      // ✅ SKIP loader untuk link import/export/download
       if (
-        link.classList.contains("action-export") ||
-        link.classList.contains("action-import") ||
-        href.includes("export") ||
-        href.includes("import") ||
-        href.includes("download")
-      ) {
-        return;
-      }
-
-      if (
-        href &&
-        !href.startsWith("#") &&
+        link.getAttribute("href") &&
+        !link.getAttribute("href").startsWith("#") &&
         !link.hasAttribute("target")
       ) {
         showLoader();
