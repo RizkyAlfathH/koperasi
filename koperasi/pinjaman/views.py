@@ -424,7 +424,7 @@ def bayar_pinjaman(request, id_pinjaman):
 
         pinjaman.save()
 
-        messages.success(request, "Pembayaran berhasil dicimpan.")
+        messages.success(request, "Pembayaran berhasil disimpan.")
         return redirect("pinjaman:pinjaman_list")
 
     return render(request, "form/bayar_pinjaman.html", {

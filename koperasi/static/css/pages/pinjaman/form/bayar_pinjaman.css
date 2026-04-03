@@ -112,3 +112,31 @@ select:disabled {
     border-color: #ddd !important;
     box-shadow: none !important;
 }
+
+/* FORCE ERROR STYLE */
+input.is-invalid,
+select.is-invalid {
+    border: 2px solid #dc3545 !important;
+    background-color: #fff5f5;
+}
+
+/* error text */
+.invalid-feedback {
+    display: block;
+    color: #dc3545;
+    font-size: 13px;
+    margin-top: 6px;
+}
+
+.form-control.is-invalid {
+    background-image: none !important;
+    padding-right: 14px !important;
+}
+
+/* ===============================
+   ERROR FOCUS OVERRIDE
+================================ */
+.form-control.is-invalid:focus {
+    border: 2px solid #dc3545 !important;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25) !important;
+}
