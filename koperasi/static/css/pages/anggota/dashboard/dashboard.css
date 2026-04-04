@@ -63,6 +63,7 @@
 .middle-grid h3 {
   color: #291B18;
   font-size: 25px;
+  margin-bottom: 20px;
 }
 
 .middle-grid span {
@@ -81,7 +82,6 @@
 .calendar-header {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 10px;
 }
 
 .calendar-days,
@@ -133,8 +133,46 @@
   border-radius: 18px;
   padding: 20px;
   box-shadow: 0 8px 25px rgba(0,0,0,.06);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
+.chart-box h3 {
+  color: #291B18;
+  font-size: 25px;
+  margin-bottom: 20px;
+  align-self: flex-start;
+}
+
+/* wrapper FIX biar ga ikut shrink */
+.donut-wrapper {
+  width: 280px;
+  height: 280px;
+  position: relative;
+  margin-top: 15px;
+}
+
+/* canvas FULL ke wrapper */
+.donut-wrapper canvas {
+  width: 100% !important;
+  height: 100% !important;
+
+}
+
+.chart-static {
+  background: #fff;
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 8px 25px rgba(0,0,0,.06);
+}
+
+.chart-static h3 {
+  color: #291B18;
+  font-size: 25px;
+  margin-bottom: 20px;
+}
 .chart-full {
   height: 360px;
 }
@@ -153,7 +191,6 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
 }
 
 /* responsive */
