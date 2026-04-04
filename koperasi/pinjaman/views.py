@@ -17,6 +17,8 @@ from simpanan.models import Simpanan, JenisSimpanan
 from admin_koperasi.utils import has_page_permission
 from dateutil.relativedelta import relativedelta
 
+# reapply fitur pinjaman v2
+
 @login_required
 def pinjaman_list(request):
     if not has_page_permission(request.user, "pinjaman"):
