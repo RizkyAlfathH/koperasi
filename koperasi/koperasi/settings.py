@@ -79,6 +79,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 'admin_koperasi.context_processors.sidebar_active',
+                'admin_koperasi.context_processors.help_context',
             ],
         },
     },

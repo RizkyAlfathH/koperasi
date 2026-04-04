@@ -1,3 +1,11 @@
+.content-card h2 {
+    font-size: 30px;
+    font-weight: 500;
+    color: #291B18;
+    margin-bottom: 12px;
+    line-height: 1.3;
+}
+
 /* ===============================
    PEMISAH SIMPANAN & PINJAMAN
    =============================== */
@@ -5,7 +13,7 @@
 /* Supaya garis lebih halus */
 .data-table th,
 .data-table td {
-    border-left: 2px solid #eee;
+    border-left: 2px solid #E5E7EB;
 }
 
 .data-table th {
@@ -13,9 +21,9 @@
 }
 
 .info-text {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 600;
-    color: #4A2C2A;
+    color: #291B18;
 }
 
 /* SEARCH FORM */
@@ -45,14 +53,14 @@
 
 .filter-form input,
 .filter-form select {
-    width: auto;              /* 👈 biar fleksibel */
-    min-width: fit-content;   /* ikut konten */
-    padding: 7px 40px 7px 12px; /* kanan agak besar buat icon panah */
+    width: auto;              
+    min-width: fit-content;   
+    padding: 7px 40px 7px 12px; 
     border-radius: 6px;
     border: 1px solid #ccc;
-    font-size: 13px;
+    font-size: 15px;
     background: #fff;
-    color: #333;
+    color: #291B18;
     outline: none;
     transition: all 0.2s ease;
 }

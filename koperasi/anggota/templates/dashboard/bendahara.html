@@ -11,13 +11,12 @@
 
 <div class="dashboard-wrapper">
 
-  <!-- ===== HEADER ===== -->
+  <!-- header -->
   <div class="dashboard-header">
-    <span class="header-line"></span>
     <h1>Dashboard Bendahara</h1>
   </div>
 
-  <!-- ================= INFO CARDS ================= -->
+  <!-- info cards -->
   <div class="info-cards">
     <div class="info-card">
       <div>
@@ -29,7 +28,7 @@
 
     <div class="info-card">
       <div>
-        <p>JUMLAH ANGGOTA</p>
+        <p>JUMLAH ANGGOTA AKTIF</p>
         <h2>{{ jumlah_anggota }}</h2>
       </div>
       <span class="icon"><i class="ph-bold ph-users"></i></span>
@@ -52,10 +51,10 @@
     </div>
   </div>
 
-  <!-- ================= KALENDER + DONUT ================= -->
+  <!-- kalender dan donut chart -->
   <div class="middle-grid">
 
-    <!-- ===== KALENDER ===== -->
+    <!-- kalender -->
     <div class="calendar-box">
       <div class="calendar-header">
         <h3 id="monthName"></h3>
@@ -71,24 +70,23 @@
       <div class="calendar-info" id="todayInfo"></div>
     </div>
 
-    <!-- ===== DONUT ===== -->
+    <!-- donut chart -->
     <div class="chart-box">
       <h3>Statistik Pengguna</h3>
-      <canvas id="userDonutChart"></canvas>
+
+      <div class="donut-wrapper">
+        <canvas id="userDonutChart"></canvas>
+      </div>
     </div>
 
   </div>
 
-  <!-- ================= AREA CHART GABUNGAN ================= -->
+  <!-- area chart -->
   <div class="chart-grid">
-    <div class="chart-box chart-full">
+    <div class="chart-static chart-full">
 
       <div class="chart-header">
         <h3>Statistik Simpanan & Pinjaman</h3>
-        <div class="chart-toggle">
-          <button class="active">Area</button>
-          <button>Donut</button>
-        </div>
       </div>
 
       <div class="chart-wrapper">
@@ -142,30 +140,38 @@ new Chart(document.getElementById("statistikChart"), {
     plugins: {
       legend: {
         position: "top",
-        align: "end"
+        align: "end",
+        labels: {
+          font: {
+            family: "Poppins",
+            size: 13,
+            weight: "500"
+          }
+        }
       }
     },
     scales: {
       y: {
         beginAtZero: true,
-        min: 0,
         ticks: {
+          font: {
+            family: "Poppins"
+          },
           callback: value => "Rp " + value.toLocaleString("id-ID")
-        },
-        grid: {
-          color: "#eee"
         }
       },
       x: {
-        grid: {
-          display: false
+        ticks: {
+          font: {
+            family: "Poppins"
+          }
         }
       }
     }
   }
 });
 
-/* ================= DONUT ================= */
+/* donut */
 new Chart(document.getElementById("userDonutChart"), {
   type: "doughnut",
   data: {
@@ -178,12 +184,20 @@ new Chart(document.getElementById("userDonutChart"), {
   options: {
     cutout: "65%",
     plugins: {
-      legend: { position: "bottom" }
+      legend: {
+        position: "bottom",
+        labels: {
+          font: {
+            family: "Poppins",
+            size: 13
+          }
+        }
+      }
     }
   }
 });
 
-/* ================= KALENDER ================= */
+/* kalender */
 const now = new Date();
 const months = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
 const days = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];

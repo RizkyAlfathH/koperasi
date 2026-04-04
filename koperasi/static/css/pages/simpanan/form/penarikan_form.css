@@ -32,8 +32,7 @@ label {
 /* ===============================
    INPUT & SELECT
 ================================ */
-.form-control,
-.select2-container--default .select2-selection--single {
+.form-control {
     width: 100%;
     padding: 10px 14px;
     border-radius: 10px;
@@ -44,20 +43,6 @@ label {
     color: #291B18;
 }
 
-/* ===============================
-   SELECT2 STYLE
-================================ */
-.select2-container--default .select2-selection--single {
-    height: 40px !important;
-    display: flex;
-    align-items: center;
-    background-color: #fff;
-}
-
-.select2-selection__arrow {
-    top: 7px !important;
-    right: 10px !important;
-}
 
 /* ===============================
    SELECT DROPDOWN ICON
@@ -93,22 +78,6 @@ select.form-control:focus {
     border: 1px solid #ccc;
     color: #666;
     cursor: not-allowed;
-}
-
-/* ===============================
-   SELECT2 ERROR STYLE
-================================ */
-
-select.is-invalid + .select2 .select2-selection--single {
-    border: 2px solid #dc3545 !important;
-    background-color: #fff5f5 !important;
-}
-
-/* Focus saat error */
-select.is-invalid + .select2 .select2-selection--single:focus,
-select.is-invalid + .select2.select2-container--focus .select2-selection--single {
-    border: 2px solid #dc3545 !important;
-    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25) !important;
 }
 
 /* FORCE ERROR STYLE */

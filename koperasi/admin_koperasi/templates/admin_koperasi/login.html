@@ -5,72 +5,66 @@
     <meta charset="UTF-8">
     <title>KOPASMEN</title>
 
-    <!-- FONT -->
+    <!-- font -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- PHOSPHOR ICON -->
+    <!-- icon -->
     <link rel="stylesheet" href="https://unpkg.com/phosphor-icons@1.4.2/src/css/icons.css">
 
-    <!-- CSS LOGIN -->
+    <!-- css -->
     <link rel="stylesheet" href="{% static 'css/pages/admin_koperasi/login.css' %}">
-
-    <!-- CSS LOADER (PAKAI YANG SAMA) -->
-    <link rel="stylesheet" href="{% static 'css/loader/loader.css' %}">
 </head>
 <body>
 
-<!-- ✅ GLOBAL LOADER -->
-<div id="global-loader">
-  <div class="loader-content">
-    <div class="spinner"></div>
-    <p>Memuat...</p>
-  </div>
-</div>
-
+<!-- logo -->
 <div class="logo-section">
     <img src="{% static 'image/logo_kopasmen.jpg' %}" alt="Logo">
     <div class="company-title">KOPASMEN</div>
 </div>
 
+<!-- form -->
 <div class="login-wrapper">
     <form method="post" onsubmit="showLoader()">
         {% csrf_token %}
-
+        <!-- username -->
         <div class="input-group">
             <label>Username</label>
-            <div class="input-field">
+            <div class="input-field {% if errors.username %}error{% endif %}">
                 <span class="input-icon">
                     <i class="ph ph-user"></i>
                 </span>
-                <input type="text" name="username" placeholder="Masukkan username..." required>
+                <input type="text" name="username" placeholder="Masukkan username..." value="{{ request.POST.username }}">
             </div>
+            {% if errors.username %}
+                <small class="error-text">{{ errors.username }}</small>
+            {% endif %}
         </div>
 
+        <!-- password -->
         <div class="input-group">
             <label>Password</label>
-            <div class="input-field password-field">
+            <div class="input-field password-field {% if errors.password %}error{% endif %}">
                 <span class="input-icon">
-                    <i class="ph-lock"></i>
+                    <i class="ph ph-lock"></i>
                 </span>
                 <input
                     type="password"
                     id="password"
                     name="password"
                     placeholder="Masukkan password..."
-                    required
                 >
                 <span class="toggle-password" onclick="togglePassword()">
                     <i class="ph-eye" id="eyeIcon"></i>
                 </span>
             </div>
+            {% if errors.password %}
+                <small class="error-text">{{ errors.password }}</small>
+            {% endif %}
         </div>
 
         <button type="submit">Login</button>
     </form>
 </div>
-
-<!-- LOADER JS -->
-<script src="{% static 'js/loader/loader.js' %}"></script>
 
 <script>
 function togglePassword() {

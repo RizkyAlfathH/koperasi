@@ -19,7 +19,7 @@
     <!-- ===== MODAL BAYAR ===== -->
     <div id="bayarModal" class="bayar-modal">
         <div class="bayar-card">
-            <h5>Pilih Pinjaman Untuk Dibayar</h3>
+            <h5>Pilih Pinjaman Untuk Dibayar</h5>
 
             <ul class="list-pinjaman">
                 {% for p in pinjaman_aktif %}
@@ -75,7 +75,7 @@
             </tr>
         {% empty %}
             <tr>
-                <td colspan="8" class="empty-state">
+                <td colspan="9" class="empty-state">
                     Tidak ada pinjaman aktif
                 </td>
             </tr>
@@ -86,7 +86,7 @@
 
 <!-- ===== RIWAYAT PINJAMAN ===== -->
 <div class="content-card" style="margin-top:25px;">
-    <h3>Riwayat Pinjaman</h3>
+    <h2>Riwayat Pinjaman</h2>
 
     <table class="data-table">
         <thead>
@@ -94,7 +94,8 @@
                 <th>Tanggal Pinjam</th>
                 <th>Jenis</th>
                 <th>Jumlah Pinjaman</th>
-                <th>Jasa</th>
+                <th>Jumlah Angsuran</th>
+                <th>Jasa (%)</th>
                 <th>Status</th>
                 <th>Aksi</th>
             </tr>
@@ -105,7 +106,8 @@
                 <td>{{ p.tanggal_meminjam|date:"d F Y" }}</td>
                 <td>{{ p.id_jenis_pinjaman.nama_jenis }}</td>
                 <td class="rupiah-text">{{ p.jumlah_pinjaman|floatformat:0 }}</td>
-                <td class="rupiah-text">{{ p.jasa_rupiah|floatformat:0 }}</td>
+                <td class="rupiah-text">{{ p.angsuran_per_bulan|floatformat:0 }}</td>
+                <td class="persen-format">{{ p.jasa_persen|floatformat:"-2"|cut:",0" }}%</td>
                 <td>
                     <span class="badge-status badge-lunas">
                         Lunas
@@ -119,13 +121,19 @@
             </tr>
         {% empty %}
             <tr>
-                <td colspan="6" class="empty-state">
+                <td colspan="7" class="empty-state">
                     Belum ada riwayat pinjaman
                 </td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
+</div>
+<div class="mt-3">
+    <a href="{% url 'pinjaman:pinjaman_list' %}"
+    class="btn-kembali">
+        Kembali
+    </a>
 </div>
 
 <!-- ===== JS ===== -->

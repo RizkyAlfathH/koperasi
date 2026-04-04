@@ -8,14 +8,14 @@ import datetime
 # Model Jenis Simpanan
 # ======================
 class JenisSimpanan(models.Model):
-    POKOK = "POKOK"
-    WAJIB = "WAJIB"
-    SUKARELA = "SUKARELA"
+    Pokok = "Pokok"
+    Wajib = "Wajib"
+    Sukarela = "Sukarela"
 
     JENIS_CHOICES = [
-        (POKOK, "Simpanan Pokok"),
-        (WAJIB, "Simpanan Wajib"),
-        (SUKARELA, "Simpanan Sukarela"),
+        (Pokok, "Simpanan Pokok"),
+        (Wajib, "Simpanan Wajib"),
+        (Sukarela, "Simpanan Sukarela"),
     ]
 
     nama_jenis = models.CharField(

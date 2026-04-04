@@ -3,29 +3,30 @@
 ================================ */
 .content-card {
     background: #ffffff;
-    border-radius: 12px;
-    padding: 30px;
-    box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+    border-radius: 18px;
+    padding: 28px 32px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.06);
 }
 
 /* ===============================
    JUDUL
 ================================ */
 .content-card h2 {
-    font-weight: 600;
-    margin-bottom: 25px;
-    color: #4A2C2A;
+    font-size: 25px;
+    font-weight: 700;
+    margin-bottom: 24px;
+    color: #291B18;
 }
 
 /* ===============================
    LABEL
 ================================ */
 label {
+    font-size: 15px;
     font-weight: 500;
-    color: #4A2C2A;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
     display: block;
-    font-size: 14px;
+    color: #291B18;
 }
 
 
@@ -33,10 +34,14 @@ label {
    INPUT / FORM
 ================================ */
 .form-control {
-    border-radius: 8px;
-    font-size: 14px;
-    padding: 8px 12px;
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 10px;
     border: 1px solid #ccc;
+    font-size: 15px;
+    transition: all 0.2s ease;
+    margin-bottom: 5px;
+    color: #291B18;
 }
 
 .form-control:focus {
@@ -76,18 +81,20 @@ label {
     align-items: center;
     background: #fff;
     border: 1px solid #eee;
-    padding: 12px 16px;
-    border-radius: 10px;
+    padding: 16px 30px;
+    border-radius: 6px;
     margin-bottom: 12px;
     transition: 0.2s;
+    color: #291B18;
 }
+
 .angsuran-card:hover {
     background: #fff9e6;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
 .angsuran-info {
-    font-size: 14px;
+    font-size: 15px;
 }
 
 .angsuran-info i {
@@ -108,7 +115,8 @@ label {
 }
 
 .angsuran-actions strong {
-    font-size: 14px;
+    font-size: 15px;
+    margin-right: 5px;
 }
 
 /* Wrapper tanggal + reset */
@@ -123,7 +131,7 @@ label {
 .search-form input[type="date"] {
     width: 150px;
     padding: 5px 10px;
-    font-size: 13px;
+    font-size: 15px;
     border-radius: 6px;
     border: 1px solid #ccc;
     margin-bottom: 0;
@@ -156,7 +164,7 @@ label {
     background-color: #f0fdf4; /* hijau lembut */
     border: 1.5px solid #22c55e;
     border-radius: 12px;
-    padding: 15px 20px;
+    padding: 16px 30px;
     font-weight: 600;
     font-size: 16px;
     display: flex;

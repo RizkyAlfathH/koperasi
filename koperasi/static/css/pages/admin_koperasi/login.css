@@ -1,11 +1,11 @@
-/* RESET */
+/* reset */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-/* BODY */
+/* body */
 body {
     font-family: 'Poppins', sans-serif;
     height: 100vh;
@@ -17,7 +17,7 @@ body {
     overflow: hidden;
 }
 
-/* BACKGROUND CIRCLE */
+/* background circle */
 body::before,
 body::after {
     content: "";
@@ -40,7 +40,7 @@ body::after {
     right: -80px;
 }
 
-/* LOGO */
+/* logo */
 .logo-section {
     text-align: center;
     margin-bottom: 25px;
@@ -60,24 +60,35 @@ body::after {
     font-size: 26px;
     font-weight: 700;
     letter-spacing: 2px;
+    color: #291B18;
 }
 
-/* WRAPPER */
+/* wrapper */
 .login-wrapper {
     width: 100%;
     max-width: 400px;
     z-index: 1;
 }
 
-/* FORM */
+/* form */
 form {
-    background: white;
+    background: #fff;
     padding: 40px;
     border-radius: 20px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.15);
 }
 
-/* INPUT GROUP */
+/* alert error */
+.alert-error {
+    background: #ffe5e5;
+    color: #d93025;
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+/* input group */
 .input-group {
     margin-bottom: 20px;
 }
@@ -89,19 +100,20 @@ label {
     display: block;
 }
 
-/* INPUT FIELD */
+/* input field */
 .input-field {
     position: relative;
 }
 
 .input-field input {
     width: 100%;
-    padding: 15px 50px;
+    padding: 12px 45px;
     border-radius: 12px;
-    border: 2px solid #e0e0e0;
-    font-size: 15px;
-    background: #fafafa;
+    border: 2px solid #cccccc;
+    font-size: 14px;
+    background: #ffffff;
     outline: none;
+    font-family: 'Poppins', sans-serif;
 }
 
 .input-field input:focus {
@@ -109,70 +121,77 @@ label {
     background: #fff;
 }
 
-/* LEFT ICON */
+/* icon kiri */
 .input-icon {
     position: absolute;
-    left: 16px;
+    left: 14px;
     top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    transform: translateY(calc(-50% + 2px));
 }
 
 .input-icon i {
     font-size: 20px;
     color: #666;
+    display: block;
+    line-height: 1;
 }
 
-/* PASSWORD FIELD */
+/* password */
 .password-field input {
     padding-right: 55px;
 }
 
-/* 👁 TOGGLE PASSWORD – FIX UTAMA */
+/* toggle password */
 .toggle-password {
     position: absolute;
-    right: 16px;
+    right: 14px;
     top: 50%;
-    transform: translateY(-50%);
-    width: 26px;
-    height: 26px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    cursor: pointer;
+    transform: translateY(calc(-50% + 2px));
 }
 
 .toggle-password i {
     font-size: 22px;
-    line-height: 1;
     color: #666;
+    display: block;
+    line-height: 1;
 }
 
 .toggle-password:hover i {
     color: #FFD700;
 }
 
-/* BUTTON */
+/* input error */
+.input-field.error input {
+    border-color: #dc3545;
+    background: #fff5f5;
+}
+
+/* text error */
+.error-text {
+    color: #dc3545;
+    font-size: 12px;
+    margin-top: 5px;
+    display: block;
+}
+
+/* button */
 button {
     width: 100%;
-    padding: 15px;
+    padding: 12px;
     border: none;
     border-radius: 12px;
     background: #FFD700;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
     cursor: pointer;
+    font-family: 'Poppins', sans-serif;
 }
 
 button:hover {
     background: #FFC107;
 }
 
-/* RESPONSIVE */
+/* responsive */
 @media (max-width: 480px) {
     form {
         padding: 30px;
@@ -181,14 +200,4 @@ button:hover {
     .company-title {
         font-size: 20px;
     }
-}
-
-.input-field {
-    position: relative;
-}
-
-.toggle-password i,
-.input-icon i {
-    display: block;
-    line-height: 1;
 }

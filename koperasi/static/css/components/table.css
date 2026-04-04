@@ -2,7 +2,7 @@
 .search-box input {
     padding: 7px 12px;
     border-radius: 6px;
-    border: 1px solid #d1d5db;
+    border: 1px solid #CCCCCC;
     font-size: 14px;
 }
 
@@ -10,11 +10,13 @@
 .data-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 14px;
+    font-size: 15px;
+    color: #291B18;
 }
 
 .data-table th,
 .data-table td {
+    font-size: 15px;
     padding: 12px 14px;
     border-bottom: 1px solid #e5e7eb;
     vertical-align: middle;
@@ -23,8 +25,9 @@
 /* TABLE HEADER */
 .data-table th {
     background: #ffd700;
-    color: #3b1f1f;
+    color: #291B18;
     font-weight: 600;
+    font-size: 15px;
 }
 
 /* ZEBRA */

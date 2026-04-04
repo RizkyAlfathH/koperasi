@@ -12,7 +12,7 @@
 <div class="content-card">
     <h2>Bayar Pinjaman</h2>
 
-    <form method="POST">
+    <form method="POST" id="formBayarPinjaman">
         {% csrf_token %}
 
         <!-- DATA UNTUK JAVASCRIPT -->
@@ -47,7 +47,7 @@
 
             <div class="col-md-6">
                 <label>Tanggal</label>
-                <input type="date" name="tanggal" class="form-control" required>
+                <input type="date" name="tanggal" id="id_tanggal" class="form-control" required>
             </div>
         </div>
 
@@ -110,6 +110,7 @@
             <div class="col-md-6">
                 <label>Jumlah Dibayar</label>
                 <input type="text" name="nominal"
+                       id="id_nominal"
                        class="form-control rupiah-text rupiah-input"
                        value="{{ total_bayar|floatformat:0 }}"
                        required>
@@ -118,7 +119,7 @@
             <div class="col-md-6">
                 <label>Admin yang Bertugas</label>
                 <input type="text" class="form-control"
-                       value="{{ request.user.username }} ({{ request.user.role }})"
+                       value="{{ request.user.username }} ({{ request.user.role|title }})"
                        readonly>
             </div>
         </div>
@@ -126,70 +127,193 @@
         <!-- BUTTON -->
         <div class="form-actions" style="text-align:right;">
             <a href="{% url 'pinjaman:pinjaman_list' %}" class="btn-outline">Batal</a>
-            <button type="submit" class="btn-simpan">Bayar</button>
+            <button type="button" class="btn-simpan" id="btnBayarPinjaman">Bayar</button>
         </div>
 
     </form>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-document.addEventListener("DOMContentLoaded", function(){
-    const tipeBayar = document.getElementById("tipe_bayar");
-    const jumlahInput = document.querySelector("input[name='nominal']");
-    const jumlahBulan = document.getElementById("jumlah_bulan");
+document.addEventListener("DOMContentLoaded", function () {
 
-    const angsuranPokok = parseFloat(document.getElementById("angsuran_pokok").value || 0);
-    const jasaPersen = parseFloat("{{ pinjaman.jasa_persen }}".replace(",", ".")) / 100;
-    const kategoriJasa = "{{ pinjaman.id_kategori_jasa.kategori_jasa|lower }}";
-    const jumlahPinjaman = parseFloat("{{ pinjaman.jumlah_pinjaman }}") || 0;
+    // ── Hitung bayar ─────────────────────────────────────────────
+    const tipeBayar        = document.getElementById("tipe_bayar");
+    const jumlahInput      = document.querySelector("input[name='nominal']");
+    const jumlahBulan      = document.getElementById("jumlah_bulan");
+    const keteranganBulan  = document.getElementById("keterangan_bulan");
+
+    const angsuranPokok    = parseFloat(document.getElementById("angsuran_pokok").value || 0);
+    const jasaPersen       = parseFloat("{{ pinjaman.jasa_persen }}".replace(",", ".")) / 100;
+    const kategoriJasa     = "{{ pinjaman.id_kategori_jasa.kategori_jasa|lower }}";
+    const jumlahPinjaman   = parseFloat("{{ pinjaman.jumlah_pinjaman }}") || 0;
     const sisaPinjamanAwal = parseFloat(document.getElementById("sisa_pinjaman_awal").value || 0);
-
-
-    const keteranganBulan = document.getElementById("keterangan_bulan");
 
     function hitungBayar() {
         let totalBayar = 0;
-        let tempSisa = sisaPinjamanAwal;
-        let bulan = parseInt(jumlahBulan.value || 1);
+        let tempSisa   = sisaPinjamanAwal;
+        let bulan      = parseInt(jumlahBulan.value || 1);
 
         const maxBulan = Math.ceil(tempSisa / angsuranPokok);
-
         if (bulan > maxBulan) bulan = maxBulan;
-        if (bulan < 1) bulan = 1;
+        if (bulan < 1)        bulan = 1;
 
         for (let i = 1; i <= bulan; i++) {
-        let jasa = 0;
+            let jasa = 0;
+            if (kategoriJasa === "flat") {
+                jasa = jumlahPinjaman * jasaPersen;
+            } else {
+                jasa = tempSisa * jasaPersen;
+            }
 
-        if (kategoriJasa === "flat") {
-            jasa = jumlahPinjaman * jasaPersen;
-        } else {
-            jasa = tempSisa * jasaPersen;
+            if (tipeBayar.value === "cicilan") {
+                if (tempSisa - angsuranPokok < 0) break;
+                totalBayar += jasa + angsuranPokok;
+                tempSisa   -= angsuranPokok;
+            } else if (tipeBayar.value === "jasa") {
+                totalBayar += jasa;
+            }
         }
 
-        if (tipeBayar.value === "cicilan") {
-            if (tempSisa - angsuranPokok < 0) break;
-            totalBayar += jasa + angsuranPokok;
-            tempSisa -= angsuranPokok;
-        } 
-        else if (tipeBayar.value === "jasa") {
-            totalBayar += jasa;
-        }
-        }
-
-        jumlahBulan.value = bulan;
-        jumlahInput.value = 'Rp ' + formatRupiahNumber(Math.round(totalBayar));
-
-        keteranganBulan.innerText = 
-        `Cicilan tersisa: ${Math.ceil(tempSisa / angsuranPokok)} bulan`;
+        jumlahBulan.value   = bulan;
+        jumlahInput.value   = 'Rp ' + formatRupiahNumber(Math.round(totalBayar));
+        keteranganBulan.innerText = `Cicilan tersisa: ${Math.ceil(tempSisa / angsuranPokok)} bulan`;
     }
 
     tipeBayar.addEventListener("change", hitungBayar);
     jumlahBulan.addEventListener("input", hitungBayar);
-
     hitungBayar();
+
+    // ── Inject style KOPASMEN SweetAlert ─────────────────────────
+    if (!document.getElementById('kopasmen-swal-style')) {
+        const style = document.createElement('style');
+        style.id    = 'kopasmen-swal-style';
+        style.textContent = `
+            .kopasmen-swal-popup {
+                border-radius: 20px !important;
+                padding: 24px !important;
+                font-family: 'Segoe UI', sans-serif;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.15) !important;
+            }
+            .kopasmen-swal-title {
+                font-size: 20px !important;
+                font-weight: 700 !important;
+                color: #1a1a1a !important;
+            }
+            .kopasmen-confirm-btn {
+                border-radius: 10px !important;
+                padding: 10px 28px !important;
+                font-size: 14px !important;
+                border: none !important;
+                box-shadow: 0 4px 12px rgba(245, 197, 24, 0.45) !important;
+            }
+            .kopasmen-cancel-btn {
+                border-radius: 10px !important;
+                padding: 10px 28px !important;
+                font-size: 14px !important;
+                border: 2px solid #e53935 !important;
+                box-shadow: none !important;
+            }
+            .kopasmen-confirm-btn:hover {
+                background-color: #e6b800 !important;
+            }
+            .kopasmen-cancel-btn:hover {
+                background-color: #ffeaea !important;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // ── Konfirmasi sebelum submit ─────────────────────────────────
+    document.getElementById('btnBayarPinjaman').addEventListener('click', function () {
+
+        // Validasi tanggal wajib diisi
+        const tanggal = document.getElementById('id_tanggal').value;
+        if (!tanggal) {
+            Swal.fire({
+                title: 'Perhatian',
+                text: 'Silakan isi tanggal pembayaran terlebih dahulu.',
+                icon: 'warning',
+                iconColor: '#F5C518',
+                confirmButtonColor: '#F5C518',
+                confirmButtonText: '<span style="color:#1a1a1a; font-weight:600;">Oke</span>',
+                customClass: {
+                    popup:         'kopasmen-swal-popup',
+                    title:         'kopasmen-swal-title',
+                    confirmButton: 'kopasmen-confirm-btn',
+                },
+            });
+            return;
+        }
+
+        // Kumpulkan nilai field
+        const namaAnggota  = "{{ pinjaman.nomor_anggota.nomor_anggota }} - {{ pinjaman.nomor_anggota.nama }}";
+        const jenisPinjaman = "{{ pinjaman.id_jenis_pinjaman.nama_jenis }}";
+        const kategoriLabel = "{{ pinjaman.id_kategori_jasa.kategori_jasa }}";
+        const tipeBayarText = tipeBayar.options[tipeBayar.selectedIndex].text;
+        const bulan        = jumlahBulan.value;
+        const nominal      = document.getElementById('id_nominal').value || "-";
+
+        Swal.fire({
+            title: 'Konfirmasi Pembayaran',
+            html: `
+                <div style="
+                    text-align: left;
+                    font-size: 14px;
+                    line-height: 2;
+                    background: #f9f9f9;
+                    border-radius: 12px;
+                    padding: 12px 16px;
+                    border-left: 4px solid #F5C518;
+                ">
+                    <b>Anggota &nbsp;&nbsp;&nbsp;:</b> ${namaAnggota}<br>
+                    <b>Jenis &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</b> ${jenisPinjaman}<br>
+                    <b>Kategori &nbsp;&nbsp;:</b> ${kategoriLabel}<br>
+                    <b>Tipe &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</b> ${tipeBayarText}<br>
+                    <b>Bulan &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</b> ${bulan} bulan<br>
+                    <b>Tanggal &nbsp;&nbsp;&nbsp;:</b> ${tanggal}<br>
+                    <b>Total &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</b> ${nominal}
+                </div>
+            `,
+            icon: 'question',
+            iconColor: '#F5C518',
+            showCancelButton: true,
+            confirmButtonColor: '#F5C518',
+            cancelButtonColor: '#ffffff',
+            confirmButtonText: '<span style="color:#1a1a1a; font-weight:600;">Ya, Bayar</span>',
+            cancelButtonText: '<span style="color:#e53935; font-weight:600;">Batal</span>',
+            customClass: {
+                popup:         'kopasmen-swal-popup',
+                title:         'kopasmen-swal-title',
+                confirmButton: 'kopasmen-confirm-btn',
+                cancelButton:  'kopasmen-cancel-btn',
+            },
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Memproses...',
+                    text: 'Mohon tunggu sebentar',
+                    iconColor: '#F5C518',
+                    allowOutsideClick: false,
+                    customClass: {
+                        popup: 'kopasmen-swal-popup',
+                        title: 'kopasmen-swal-title',
+                    },
+                    didOpen: () => {
+                        Swal.showLoading();
+                        const loader = Swal.getLoader();
+                        if (loader) loader.style.borderTopColor = '#F5C518';
+                    }
+                });
+                document.getElementById('formBayarPinjaman').submit();
+            }
+        });
+    });
+
 });
 </script>
-
-
 {% endblock %}

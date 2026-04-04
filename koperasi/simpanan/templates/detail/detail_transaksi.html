@@ -3,76 +3,78 @@
 
 {% block title %}Detail Transaksi{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/simpanan/detail/detail_transaksi.css' %}">
+{% endblock %}
+
 {% block content %}
 
+<!-- detail transaksi -->
 <div class="content-card">
-    <h1>Detail Transaksi</h1>
+    <h2>Detail Transaksi</h2>
 
-    <div class="row g-4">
-
-        <!-- ID TRANSAKSI -->
+    <!-- id transaksi dan nama anggota -->
+    <div class="row mb-3">
         <div class="col-md-6">
-            <label class="form-label">ID Transaksi</label>
+            <label>ID Transaksi</label>
             <input type="text"
                    class="form-control"
                    value="{{ transaksi.id }}"
                    readonly>
         </div>
-
-        <!-- NAMA ANGGOTA -->
         <div class="col-md-6">
-            <label class="form-label">Nama Anggota</label>
+            <label>Nama Anggota</label>
             <input type="text"
                    class="form-control"
-                   value="{{ transaksi.anggota.nama }}"
+                   value="{{ transaksi.anggota.nomor_anggota }} - {{ transaksi.anggota.nama }}"
                    readonly>
         </div>
+    </div>
 
-        <!-- JENIS SIMPANAN -->
+    <!-- jenis simpanan dan tanggal -->
+    <div class="row mb-3">
         <div class="col-md-6">
-            <label class="form-label">Jenis Simpanan</label>
+            <label>Jenis Simpanan</label>
             <input type="text"
                    class="form-control"
-                   value="{{ transaksi.jenis_simpanan }}"
+                   value="{{ transaksi.jenis_simpanan|title }}"
                    readonly>
         </div>
-
-        <!-- TANGGAL -->
         <div class="col-md-6">
-            <label class="form-label">Tanggal Transaksi</label>
+            <label>Tanggal Transaksi</label>
             <input type="text"
                    class="form-control"
-                   value="{{ transaksi.tanggal|date:'d M Y' }}"
+                   value="{{ transaksi.tanggal|date:'d F Y' }}"
                    readonly>
         </div>
+    </div>
 
-        <!-- JENIS TRANSAKSI -->
+    <!-- jenis transaksi dan jumlah -->
+    <div class="row mb-4">
         <div class="col-md-6">
-            <label class="form-label">Jenis Transaksi</label>
+            <label>Jenis Transaksi</label>
             <input type="text"
                    class="form-control"
                    value="{{ transaksi.get_jenis_transaksi_display }}"
                    readonly>
         </div>
-
-        <!-- JUMLAH -->
         <div class="col-md-6">
-            <label class="form-label">Jumlah</label>
+            <label>Jumlah</label>
             <input type="text"
                    class="form-control rupiah-text"
                    value="Rp {{ transaksi.jumlah|floatformat:0 }}"
                    readonly>
         </div>
-
     </div>
 
 </div>
 
-<!-- ACTION -->
-<div class="form-actions" style="text-align:right; margin-top:20px;">
+<!-- tombol kembali -->
+<div class="mt-3">
     <a href="{% url 'simpanan:simpanan_anggota' transaksi.anggota.nomor_anggota %}"
        class="btn-kembali">
         Kembali
     </a>
 </div>
+
 {% endblock %}

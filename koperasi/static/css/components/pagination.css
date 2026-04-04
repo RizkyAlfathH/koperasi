@@ -10,7 +10,7 @@
 /* INFO KIRI */
 .pagination-info {
     font-size: 13px;
-    color: #555;
+    color: #666;
 }
 
 /* NAV KANAN */
@@ -36,16 +36,18 @@
     border-radius: 6px;
     font-size: 12px;
     box-sizing: border-box;
+    color: #333;
 }
 
 
 .pagination li a {
     text-decoration: none;
-    color: #333;
+    color: #291B18;
 }
 
 .pagination .active {
-    background: #facc15;
+    background: #ffd700;
+    color: #291B18;
     font-weight: 600;
 }
 

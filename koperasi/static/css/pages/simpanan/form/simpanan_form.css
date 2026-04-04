@@ -39,8 +39,8 @@ label {
     border-radius: 10px;
     border: 1px solid #ccc;
     font-size: 15px;
-    transition: all 0.2s ease;
     margin-bottom: 5px;
+    transition: all 0.2s ease;
     color: #291B18;
 }
 

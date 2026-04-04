@@ -1,60 +1,57 @@
-/* ===============================
-   FORM CARD
-================================ */
-.form-card {
+/* -- halaman: tambah anggota -- */
+
+/* card form */
+.page-tambah-anggota .form-card {
     background: #ffffff;
-    border-radius: 14px;
+    border-radius: 18px;
     padding: 28px 32px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.06);
 }
 
-/* ===============================
-   TITLE
-================================ */
-.form-card h2 {
-    font-size: 26px;
+/* judul */
+.page-tambah-anggota .form-card h2 {
+    font-size: 25px;
     font-weight: 700;
     margin-bottom: 24px;
-    color: #4a2c1d; /* coklat gelap */
+    color: #291B18;
 }
 
-/* ===============================
-   GRID & FIELD
-================================ */
-.row.g-3 {
-    row-gap: 18px;
-}
 
-.form-card label {
-    font-size: 14px;
+/* -- grid dan label -- */
+
+.page-tambah-anggota .form-card label {
+    font-size: 15px;
     font-weight: 500;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
     display: inline-block;
-    color: #3a3a3a;
+    color: #291B18;
 }
 
-/* ===============================
-   INPUT
-================================ */
-.form-control {
+
+/* -- input umum -- */
+
+.page-tambah-anggota .form-control {
     width: 100%;
     padding: 10px 14px;
     border-radius: 10px;
-    border: 1px solid #d0d0d0;
-    font-size: 14px;
+    border: 1px solid #ccc;
+    font-size: 15px;
     transition: all 0.2s ease;
+    margin-bottom: 5px;
+    color: #291B18;
 }
 
-.form-control:focus {
+/* efek fokus */
+.page-tambah-anggota .form-control:focus {
     outline: none;
-    border-color: #facc15; /* kuning */
+    border-color: #ffd700;
     box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.25);
 }
 
-/* ===============================
-   SELECT
-================================ */
-select.form-control {
+
+/* -- select -- */
+
+.page-tambah-anggota select.form-control {
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 9L12 15L18 9' stroke='%23666666' stroke-width='2'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
@@ -62,68 +59,58 @@ select.form-control {
     background-size: 16px;
 }
 
-/* ===============================
-   PASSWORD INPUT
-================================ */
-.input-wrapper {
+
+/* -- input password -- */
+
+.page-tambah-anggota .input-wrapper {
     position: relative;
 }
 
-.input-wrapper .input-icon {
+.page-tambah-anggota .input-wrapper .input-icon {
     position: absolute;
     right: 12px;
     top: 50%;
     transform: translateY(-50%);
     font-size: 16px;
     cursor: pointer;
-    color: #888;
+    color: #666;
 }
 
-/* sembunyikan default */
-.field-alasan_nonaktif,
-.field-tanggal_nonaktif {
+
+/* -- field khusus nonaktif -- */
+
+/* disembunyikan secara default */
+.page-tambah-anggota .field-alasan_nonaktif,
+.page-tambah-anggota .field-tanggal_nonaktif {
     display: none;
 }
 
-.input-wrapper {
-    position: relative;
-}
 
-.input-icon {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    cursor: pointer;
-    font-size: 18px;
-    color: #666;
-    z-index: 2;
-}
+/* -- validasi error -- */
 
-/* FORCE ERROR STYLE */
-input.is-invalid,
-select.is-invalid {
+/* input error */
+.page-tambah-anggota input.is-invalid,
+.page-tambah-anggota select.is-invalid {
     border: 2px solid #dc3545 !important;
     background-color: #fff5f5;
 }
 
-/* error text */
-.invalid-feedback {
+/* teks error */
+.page-tambah-anggota .invalid-feedback {
     display: block;
     color: #dc3545;
     font-size: 13px;
     margin-top: 6px;
 }
 
-.form-control.is-invalid {
+/* hilangkan icon default bootstrap */
+.page-tambah-anggota .form-control.is-invalid {
     background-image: none !important;
     padding-right: 14px !important;
 }
 
-/* ===============================
-   ERROR FOCUS OVERRIDE
-================================ */
-.form-control.is-invalid:focus {
+/* efek fokus saat error */
+.page-tambah-anggota .form-control.is-invalid:focus {
     border: 2px solid #dc3545 !important;
     box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25) !important;
 }

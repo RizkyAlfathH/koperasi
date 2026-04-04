@@ -55,7 +55,7 @@ class PinjamanForm(forms.ModelForm):
                 'required': 'Nama Anggota wajib diisi.'
             },
             'id_jenis_pinjaman': {
-                'required': 'Jenis Pinjaman wajib diisi.'
+                'required': 'Jenis Pinjaman wajib dipilih.'
             },
             'tanggal_meminjam': {
                 'required': 'Tanggal Pinjam wajib diisi.'

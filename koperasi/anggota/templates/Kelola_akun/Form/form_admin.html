@@ -5,76 +5,70 @@
 {% block title %}{{ judul }}{% endblock %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'css/pages/anggota/form/tambah_admin.css' %}">
+<link rel="stylesheet" href="{% static 'css/pages/anggota/form/tambah_admin.css' %}">
 {% endblock %}
 
 {% block content %}
 <div class="page-tambah-admin">
-        <div class="form-card">
 
-            <h2>{{ judul }}</h2>
+    <div class="form-card">
 
-            <form method="post" novalidate>
-                {% csrf_token %}
+        <h2>{{ judul }}</h2>
 
-                <div class="row g-3">
-                    {% for field in form %}
-                        <div class="col-md-4">
-                            <label>{{ field.label }}</label>
+        <form method="post" id="formAdmin" >
+            {% csrf_token %}
 
-                            {% if "password" in field.name %}
-                                <div class="input-wrapper">
-                                    {% if field.errors %}
-                                        {{ field|add_class:"form-control is-invalid" }}
-                                    {% else %}
-                                        {{ field|add_class:"form-control" }}
-                                    {% endif %}
-                                    <i class="bi bi-eye-slash-fill input-icon toggle-password"></i>
-                                </div>
-                            {% else %}
+            <div class="row g-3">
+                {% for field in form %}
+                    <div class="col-md-4">
+
+                        <!-- label -->
+                        <label>{{ field.label }}</label>
+
+                        <!-- input -->
+                        {% if "password" in field.name %}
+                            <div class="input-wrapper">
                                 {% if field.errors %}
                                     {{ field|add_class:"form-control is-invalid" }}
                                 {% else %}
                                     {{ field|add_class:"form-control" }}
                                 {% endif %}
-                            {% endif %}
-
+                                <i class="bi bi-eye-slash-fill input-icon toggle-password"></i>
+                            </div>
+                        {% else %}
                             {% if field.errors %}
-                                <div class="invalid-feedback">
-                                    {% for error in field.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                </div>
+                                {{ field|add_class:"form-control is-invalid" }}
+                            {% else %}
+                                {{ field|add_class:"form-control" }}
                             {% endif %}
-                        </div>
-                    {% endfor %}
-                </div>
+                        {% endif %}
 
-                <div class="text-end mt-4">
-                    <a href="{% url 'anggota:kelola_akun' %}" class="btn-outline">Batal</a>
-                    <button type="submit" class="btn-simpan">Simpan</button>
-                </div>
-            </form>
+                        <!-- pesan error -->
+                        {% if field.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in field.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
 
-        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- tombol aksi -->
+            <div class="text-end mt-4">
+                <a href="{% url 'anggota:kelola_akun' %}" class="btn-outline">Batal</a>
+                <button type="submit" class="btn-simpan">Simpan</button>
+            </div>
+
+        </form>
+
+    </div>
 
 </div>
 {% endblock %}
-{% block extra_js %}
-<script>
-$(document).on('click', '.toggle-password', function () {
-    const input = $(this).siblings('input');
-    const icon = $(this);
 
-    if (input.attr('type') === 'password') {
-        input.attr('type', 'text');
-        icon.removeClass('bi-eye-slash-fill')
-            .addClass('bi-eye-fill');
-    } else {
-        input.attr('type', 'password');
-        icon.removeClass('bi-eye-fill')
-            .addClass('bi-eye-slash-fill');
-    }
-});
-</script>
+{% block extra_js %}
+    <script src="{% static 'js/anggota/form/form_anggota.js' %}"></script>
 {% endblock %}
