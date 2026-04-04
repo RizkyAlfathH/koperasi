@@ -2,50 +2,77 @@
 {% load static %}
 {% load widget_tweaks %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/simpanan/form/penarikan_form.css' %}">
+{% endblock %}
+
 {% block title %}Penarikan Simpanan{% endblock %}
 
 {% block content %}
 
 <div class="content-card">
-    <h2 style="margin-bottom: 15px;">Form Penarikan Simpanan</h2>
+    <h2>Form Penarikan Simpanan</h2>
 
-    <form method="post" id="formPenarikan">
+    <form method="post" novalidate>
         {% csrf_token %}
 
-        <div class="row g-4">
+        <!-- ROW 1 -->
+        <div class="row mb-3">
 
             <!-- NAMA ANGGOTA -->
             <div class="col-md-6">
                 <label class="form-label">Nama Anggota</label>
                 <input type="text"
-                       value="{{ anggota.nama }} - {{ anggota.nomor_anggota }}"
-                       class="form-control"
-                       disabled>
+                    value="{{ anggota.nama }} - {{ anggota.nomor_anggota }}"
+                    class="form-control"
+                    disabled>
             </div>
 
             <!-- JENIS SIMPANAN -->
             <div class="col-md-6">
                 <label class="form-label">Jenis Simpanan</label>
                 <input type="text"
-                       value="{{ jenis_simpanan }}"
-                       class="form-control"
-                       disabled>
+                    value="{{ jenis_simpanan }}"
+                    class="form-control"
+                    disabled>
             </div>
 
-            <!-- TANGGAL PENARIKAN -->
-            <div class="col-md-6">
-                <label class="form-label">Tanggal Penarikan</label>
-                {{ form.tanggal|add_class:"form-control" }}
-            </div>
-
-            <!-- JUMLAH PENARIKAN -->
-            <div class="col-md-6">
-                <label class="form-label">Jumlah Penarikan</label>
-                {{ form.jumlah }}
-            </div>
         </div>
 
-        <!-- ACTION BUTTON -->
+        <!-- ROW 2 -->
+        <div class="row mb-3">
+
+            <!-- TANGGAL -->
+            <div class="col-md-6">
+                <label class="form-label">Tanggal Penarikan</label>
+
+                {% if form.tanggal.errors %}
+                    {{ form.tanggal|add_class:"form-control is-invalid" }}
+                    <div class="invalid-feedback">
+                        {{ form.tanggal.errors.0 }}
+                    </div>
+                {% else %}
+                    {{ form.tanggal|add_class:"form-control" }}
+                {% endif %}
+            </div>
+
+            <!-- JUMLAH -->
+            <div class="col-md-6">
+                <label class="form-label">Jumlah Penarikan</label>
+
+                {% if form.jumlah.errors %}
+                    {{ form.jumlah|add_class:"form-control is-invalid" }}
+                    <div class="invalid-feedback">
+                        {{ form.jumlah.errors.0 }}
+                    </div>
+                {% else %}
+                    {{ form.jumlah|add_class:"form-control" }}
+                {% endif %}
+            </div>
+
+        </div>
+
+        <!-- ACTION -->
         <div class="form-actions" style="text-align:right; margin-top:20px;">
             <a href="{% url 'simpanan:simpanan_anggota' anggota.nomor_anggota %}"
                class="btn-outline">Batal</a>

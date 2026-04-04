@@ -1,8 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Simpanan Anggota{% endblock %}
-
 {% block extra_css %}
   <link rel="stylesheet" href="{% static 'css/pages/simpanan/simpanan_anggota.css' %}">
   <style>
@@ -57,6 +55,8 @@
   </style>
 {% endblock %}
 
+{% block title %}Simpanan Anggota{% endblock %}
+
 {% block content %}
 <div class="content-card">
   <h2 style="margin-bottom: 25px;">Simpanan {{ anggota.nama }} ({{ anggota.nomor_anggota }})</h2>
@@ -76,7 +76,7 @@
       <tr>
         <td>{{ anggota.nomor_anggota }}</td>
         <td>{{ anggota.nama }}</td>
-        <td>{{ item.jenis }}</td>
+        <td>{{ item.jenis|title }}</td>
         <td class="rupiah-text" data-value="{{ item.saldo }}">
             Rp {{ item.saldo|floatformat:0 }}
         </td>
