@@ -111,13 +111,10 @@ def tambah_simpanan(request):
         messages.error(request, "Tidak punya akses")
         return redirect("dashboard")
 
-    anggota_label = None
-
     if request.method == "POST":
         form = SimpananForm(request.POST)
-
         if form.is_valid():
-            try:
+            try:  # ✅ tangkap error saat menyimpan ke database
                 simpanan = form.save(commit=False)
                 simpanan.admin = request.user
                 simpanan.save()
@@ -125,27 +122,12 @@ def tambah_simpanan(request):
                 return redirect("simpanan:daftar_simpanan")
             except Exception as e:
                 messages.error(request, f"Gagal menyimpan simpanan: {str(e)}")
-
         else:
-            # 🔥 ambil ulang label anggota
-            anggota_id = request.POST.get("anggota")
-            if anggota_id:
-                from anggota.models import Anggota
-                try:
-                    anggota = Anggota.objects.get(pk=anggota_id)
-                    anggota_label = f"{anggota.nomor_anggota} - {anggota.nama}"
-                except:
-                    pass
-
-            messages.error(request, "Form tidak valid, periksa kembali isian Anda")
-
+            messages.error(request, "Form tidak valid, periksa kembali isian Anda")  # ✅ ganti print → pesan ke user
     else:
         form = SimpananForm()
 
-    return render(request, "form/simpanan_form.html", {
-        "form": form,
-        "anggota_label": anggota_label
-    })
+    return render(request, "form/simpanan_form.html", {"form": form})
 
 
 @login_required
@@ -311,20 +293,19 @@ def simpanan_anggota(request, nomor_anggota):
         jenis_list = []
 
     for jenis in jenis_list:
-        try:  # ✅ tangkap error per-jenis agar satu error tidak rusak semua
-            total_setor = (
-                Simpanan.objects.filter(
-                    anggota=anggota,
-                    jenis_simpanan=jenis
-                ).aggregate(total=Sum('jumlah'))['total'] or 0
+        try:
+            qs = HistoryTabungan.objects.filter(
+                anggota=anggota,
+                jenis_simpanan=jenis
             )
 
-            total_tarik = (
-                Penarikan.objects.filter(
-                    anggota=anggota,
-                    jenis_simpanan=jenis
-                ).aggregate(total=Sum('jumlah'))['total'] or 0
-            )
+            setor = qs.filter(
+                jenis_transaksi='SETOR'
+            ).aggregate(total=Sum('jumlah'))['total'] or 0
+
+            tarik = qs.filter(
+                jenis_transaksi='TARIK'
+            ).aggregate(total=Sum('jumlah'))['total'] or 0
 
             koreksi = qs.filter(
                 jenis_transaksi='KOREKSI'

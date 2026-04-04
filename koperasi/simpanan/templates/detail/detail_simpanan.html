@@ -9,132 +9,128 @@
 
 {% block content %}
 
-<!-- detail simpanan -->
+<!-- ================= DETAIL SIMPANAN ================= -->
 <div class="content-card">
-    <h2>Detail Simpanan</h2>
+    <h1>Detail Simpanan</h1>
 
-    <!-- data anggota -->
-    <div class="row mb-3">
+    <div class="row g-4">
+
         <div class="col-md-6">
-            <label>Nomor Anggota</label>
+            <label class="form-label">Nomor Anggota</label>
             <input type="text" class="form-control" readonly
                    value="{{ anggota.nomor_anggota }}">
         </div>
+
         <div class="col-md-6">
-            <label>Nama Anggota</label>
+            <label class="form-label">Nama Anggota</label>
             <input type="text" class="form-control" readonly
                    value="{{ anggota.nama }}">
         </div>
-    </div>
 
-    <!-- data simpanan -->
-    <div class="row mb-3">
         <div class="col-md-6">
-            <label>Jenis Simpanan</label>
+            <label class="form-label">Jenis Simpanan</label>
             <input type="text" class="form-control" readonly
-                   value="{{ jenis_simpanan|title }}">
+                   value="{{ jenis_simpanan }}">
         </div>
-        <div class="col-md-6">
-            <label>Tanggal Membuat Tabungan</label>
-            <input type="text" class="form-control" readonly
-                   value="{{ anggota.tanggal_daftar|date:'d F Y' }}">
-        </div>
-    </div>
 
-    <!-- saldo -->
-    <div class="row mb-4">
+        <div class="col-md-6">
+            <label class="form-label">Tanggal Membuat Tabungan</label>
+            <input type="text" class="form-control" readonly
+                   value="{{ anggota.tanggal_daftar|date:'d M Y' }}">
+        </div>
+
         <div class="col-md-12">
-            <label>Saldo {{ jenis_simpanan|title }}</label>
+            <label class="form-label">Saldo {{ jenis_simpanan }}</label>
             <input type="text"
                    class="form-control rupiah-input"
                    data-value="{{ saldo_jenis|floatformat:0 }}"
                    readonly>
         </div>
+
     </div>
 </div>
 
-<!-- riwayat transaksi -->
-<h2 class="section-title">Riwayat Transaksi {{ jenis_simpanan|title }}</h2>
+<!-- ================= RIWAYAT ================= -->
+<div class="section">
+    <h2 class="section-title">Riwayat Transaksi {{ jenis_simpanan }}</h2>
 
-<!-- filter tanggal -->
-<form method="GET" class="search-form" id="date-filter-form">
-    <label for="search_date">Cari Tanggal:</label>
+    <!-- FILTER TANGGAL -->
+    <form method="GET" class="search-form" id="date-filter-form">
+        <label for="search_date">Cari Tanggal:</label>
 
-    <div class="date-input-wrapper" style="display:flex; align-items:center; gap:6px;">
-        <input type="date"
-            name="tanggal"
-            id="search_date"
-            class="form-control"
-            value="{{ tanggal_filter }}"
-            onchange="document.getElementById('date-filter-form').submit();">
+        <div class="date-input-wrapper" style="display:flex; align-items:center; gap:6px;">
+            <input type="date"
+                name="tanggal"
+                id="search_date"
+                class="form-control"
+                value="{{ tanggal_filter }}"
+                onchange="document.getElementById('date-filter-form').submit();">
 
-        {% if tanggal_filter %}
-            <a href="{% url 'simpanan:detail_simpanan' anggota.nomor_anggota jenis_simpanan.id %}"
-               class="reset-date-btn"
-               title="Reset Tanggal">
-                &#x21bb;
-            </a>
-        {% endif %}
-    </div>
-</form>
-
-<!-- list transaksi -->
-{% for h in history %}
-<div class="angsuran-card">
-
-    <div class="angsuran-info">
-        <strong>
-        {% if h.sumber_pinjaman and h.jumlah < 0 %}
-            Bayar Pinjaman {{ h.sumber_pinjaman.id_jenis_pinjaman.nama_jenis }}
-        {% elif h.sumber_pinjaman and h.jumlah > 0 %}
-            Dari Pinjaman {{ h.sumber_pinjaman.id_jenis_pinjaman.nama_jenis }}
-        {% else %}
-            {{ h.get_jenis_transaksi_display }}
-        {% endif %}
-        </strong><br>
-        <small>{{ h.tanggal|date:"d M Y" }}</small>
-    </div>
-
-    <div class="angsuran-actions">
-        <strong class="rupiah-text"
-                data-value="{{ h.jumlah|floatformat:0 }}">
-        </strong>
-
-        <div class="action-group">
-            <a href="{% url 'simpanan:detail_transaksi' h.id %}"
-               class="action-view" title="Lihat">
-                <i class="ph-bold ph-eye"></i>
-            </a>
-
-            <a href="{% url 'simpanan:download_kwitansi' h.id %}"
-               class="action-download action-export"
-               title="Download Kwitansi">
-                <i class="ph-fill ph-download-simple"></i>
-            </a>
+            {% if tanggal_filter %}
+                <a href="{% url 'simpanan:detail_simpanan' anggota.nomor_anggota jenis_simpanan.id %}"
+                class="reset-date-btn"
+                title="Reset Tanggal">
+                    &#x21bb;
+                </a>
+            {% endif %}
         </div>
+    </form>
+
+    <!-- LIST TRANSAKSI -->
+    {% for h in history %}
+    <div class="angsuran-card">
+
+        <div class="angsuran-info">
+            <strong>
+            {% if h.sumber_pinjaman and h.jumlah < 0 %}
+                Bayar Pinjaman {{ h.sumber_pinjaman.id_jenis_pinjaman.nama_jenis }}
+            {% elif h.sumber_pinjaman and h.jumlah > 0 %}
+                Dari Pinjaman {{ h.sumber_pinjaman.id_jenis_pinjaman.nama_jenis }}
+            {% else %}
+                {{ h.get_jenis_transaksi_display }}
+            {% endif %}
+            </strong><br>
+            <small>{{ h.tanggal|date:"d M Y" }}</small>
+        </div>
+
+        <div class="angsuran-actions">
+            <strong class="rupiah-text"
+                    data-value="{{ h.jumlah|floatformat:0 }}">
+            </strong>
+
+            <div class="action-group">
+                <a href="{% url 'simpanan:detail_transaksi' h.id %}"
+                class="action-view" title="Lihat">
+                    <i class="ph-bold ph-eye"></i>
+                </a>
+
+                <a href="{% url 'simpanan:download_kwitansi' h.id %}"
+                class="action-download action-export" title="Download Kwitansi">
+                    <i class="ph-fill ph-download-simple"></i>
+                </a>
+            </div>
+        </div>
+
     </div>
 
+    {% empty %}
+        <div class="alert alert-info">
+            Belum ada transaksi
+        </div>
+    {% endfor %}
 </div>
-
-{% empty %}
-<div class="angsuran-card">
-    Belum ada transaksi
-</div>
-{% endfor %}
-
 {% include "includes/pagination.html" with page_obj=page_obj param=param %}
 
-<br>
 
-<!-- tombol kembali -->
-<div class="mt-3">
+<!-- ================= KEMBALI ================= -->
+<div class="mt-4">
     <a href="{% url 'simpanan:simpanan_anggota' anggota.nomor_anggota %}"
        class="btn-kembali">
         Kembali
     </a>
 </div>
 
-<!-- format rupiah -->
+<!-- ================= FORMAT RUPIAH ================= -->
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 
@@ -142,7 +138,7 @@ document.addEventListener("DOMContentLoaded", function () {
         return "Rp " + parseInt(angka).toLocaleString("id-ID");
     }
 
-    // format saldo
+    // Saldo (input)
     document.querySelectorAll(".rupiah-input").forEach(el => {
         const value = el.dataset.value;
         if (value) {
@@ -150,7 +146,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // format riwayat transaksi
+    // Riwayat (text)
     document.querySelectorAll(".rupiah-text").forEach(el => {
         const value = el.dataset.value;
         if (value) {

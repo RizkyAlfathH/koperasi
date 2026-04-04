@@ -1,30 +1,11 @@
 {% load static %}
 {% load permission_tags %}
 
-<!-- Phosphor Icons CDN -->
-<link rel="stylesheet" href="https://unpkg.com/phosphor-icons@1.4.1/src/css/phosphor.css"/>
-
-<script>
-(function() {
-    const collapsed = localStorage.getItem("sidebarCollapsed") === "true";
-
-    if (collapsed) {
-        document.documentElement.classList.add("sidebar-collapsed-init");
-    }
-
-    // tandai bahwa ini first load
-    document.documentElement.classList.add("no-transition");
-})();
-</script>
-
-<div class="sidebar" id="sidebar">
+<div class="sidebar">
     <div class="profile">
         <div class="avatar">
             {{ request.user.username|slice:":2"|upper }}
         </div>
-        <button id="toggleSidebar" class="toggle-btn">
-            <i class="ph ph-list"></i>
-        </button>
         <div class="username">
             {{ request.user.username|upper }}
         </div>
@@ -33,12 +14,12 @@
         </div>
     </div>
 
-    <ul id="sidebarMenu">
+        <ul>
         <!-- DASHBOARD -->
         <li>
-            <a href="{% url 'anggota:dashboard_redirect' %}" class="{% if request.resolver_match.url_name in menu_dashboard_urls %}active{% endif %}">
-                <i class="ph ph-house"></i>
-                <span class="menu-text">Dashboard</span>
+            <a href="{% url 'anggota:dashboard_redirect' %}"
+            class="{% if request.resolver_match.url_name in menu_dashboard_urls %}active{% endif %}">
+            Dashboard
             </a>
         </li>
 
@@ -46,9 +27,9 @@
         {% can_access request.user "kelola_anggota" as can_kelola %}
         {% if can_kelola %}
         <li>
-            <a href="{% url 'anggota:kelola_akun' %}" class="{% if request.resolver_match.url_name in menu_akun_urls %}active{% endif %}">
-                <i class="ph ph-user-list"></i>
-                <span class="menu-text">Kelola Akun</span>
+            <a href="{% url 'anggota:kelola_akun' %}"
+            class="{% if request.resolver_match.url_name in menu_akun_urls %}active{% endif %}">
+            Kelola Akun
             </a>
         </li>
         {% endif %}
@@ -57,9 +38,9 @@
         {% can_access request.user "simpanan" as can_simpanan %}
         {% if can_simpanan %}
         <li>
-            <a href="{% url 'simpanan:daftar_simpanan' %}" class="{% if request.resolver_match.app_name == 'simpanan' %}active{% endif %}">
-                <i class="ph ph-wallet"></i>
-                <span class="menu-text">Manajemen Simpanan</span>
+            <a href="{% url 'simpanan:daftar_simpanan' %}"
+            class="{% if request.resolver_match.app_name == 'simpanan' %}active{% endif %}">
+            Manajemen Simpanan
             </a>
         </li>
         {% endif %}
@@ -68,60 +49,26 @@
         {% can_access request.user "pinjaman" as can_pinjaman %}
         {% if can_pinjaman %}
         <li>
-            <a href="{% url 'pinjaman:pinjaman_list' %}" class="{% if request.resolver_match.url_name in menu_pinjaman_urls %}active{% endif %}">
-                <i class="ph ph-handshake"></i>
-                <span class="menu-text">Manajemen Pinjaman</span>
+            <a href="{% url 'pinjaman:pinjaman_list' %}"
+            class="{% if request.resolver_match.url_name in menu_pinjaman_urls %}active{% endif %}">
+            Manajemen Pinjaman
             </a>
         </li>
         {% endif %}
 
-        <!-- LAPORAN -->
+        <!-- ================= LAPORAN ================= -->
         {% if request.user.role in "admin ketua sekretaris bendahara" %}
         <li>
-            <a href="{% url 'laporan:laporan' %}" class="{% if request.resolver_match.app_name == 'laporan' %}active{% endif %}">
-                <i class="ph ph-chart-bar"></i>
-                <span class="menu-text">Laporan</span>
+            <a href="{% url 'laporan:laporan' %}"
+            class="{% if request.resolver_match.app_name == 'laporan' %}active{% endif %}">
+            Laporan
             </a>
         </li>
         {% endif %}
+
     </ul>
 
     <div class="logout-btn">
-        <a href="{% url 'admin_koperasi:admin_logout' %}">
-            <i class="ph ph-sign-out"></i>
-            <span class="logout-text">Logout</span>
-        </a>
+        <a href="{% url 'admin_koperasi:admin_logout' %}">Logout</a>
     </div>
 </div>
-
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    const sidebar = document.getElementById("sidebar");
-    const toggleBtn = document.getElementById("toggleSidebar");
-
-    const isCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
-
-    if (isCollapsed) {
-        sidebar.classList.add("collapsed");
-    }
-
-    // 🔥 hapus disable transition SETELAH render
-    setTimeout(() => {
-        document.documentElement.classList.remove("no-transition");
-        document.documentElement.classList.remove("sidebar-collapsed-init");
-    }, 50);
-
-    toggleBtn.addEventListener("click", function() {
-        sidebar.classList.toggle("collapsed");
-
-        const collapsedNow = sidebar.classList.contains("collapsed");
-
-        localStorage.setItem("sidebarCollapsed", collapsedNow);
-
-        const event = new CustomEvent("sidebarToggled", {
-            detail: { collapsed: collapsedNow }
-        });
-        document.dispatchEvent(event);
-    });
-});
-</script>

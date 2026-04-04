@@ -1,47 +1,11 @@
 /* ===============================
-   FORM CARD
-================================ */
-.content-card {
-    background: #ffffff;
-    border-radius: 18px;
-    padding: 28px 32px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.06);
-}
-
-/* ===============================
-   JUDUL
-================================ */
-.content-card h2 {
-    font-size: 25px;
-    font-weight: 700;
-    margin-bottom: 24px;
-    color: #291B18;
-}
-
-/* ===============================
-   LABEL
-================================ */
-label {
-    font-size: 15px;
-    font-weight: 500;
-    margin-bottom: 5px;
-    display: block;
-    color: #291B18;
-}
-
-
-/* ===============================
    INPUT / FORM
 ================================ */
 .form-control {
-    width: 100%;
-    padding: 10px 14px;
-    border-radius: 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    padding: 8px 12px;
     border: 1px solid #ccc;
-    font-size: 15px;
-    transition: all 0.2s ease;
-    margin-bottom: 5px;
-    color: #291B18;
 }
 
 .form-control:focus {
@@ -50,19 +14,31 @@ label {
     outline: none;
 }
 
+/* ===============================
+   LABEL
+================================ */
+label {
+    font-weight: 500;
+    color: #4A2C2A;
+    margin-bottom: 6px;
+    display: block;
+    font-size: 14px;
+}
 
-/* Riwayat Angsuran */
+/* ===============================
+   RIWAYAT TRANSAKSI (SAMAKAN PINJAMAN)
+================================ */
+
 .angsuran-card {
     display: flex;
     justify-content: space-between;
     align-items: center;
     background: #fff;
     border: 1px solid #eee;
-    padding: 16px 30px;
-    border-radius: 6px;
+    padding: 12px 16px;
+    border-radius: 10px;
     margin-bottom: 12px;
     transition: 0.2s;
-    color: #291B18;
 }
 
 .angsuran-card:hover {
@@ -71,18 +47,16 @@ label {
 }
 
 .angsuran-info {
-    font-size: 15px;
+    font-size: 14px;
 }
 
-.angsuran-info i {
-    font-style: normal;
-    font-weight: bold;
-    margin-right: 6px;
-    color: #28a745;
+.angsuran-info strong {
+    font-size: 14px;
 }
 
-.angsuran-info .text-danger {
-    color: #dc3545;
+.angsuran-info small {
+    font-size: 12px;
+    color: #777;
 }
 
 .angsuran-actions {
@@ -92,12 +66,15 @@ label {
 }
 
 .angsuran-actions strong {
-    font-size: 15px;
-    margin-right: 5px;
+    font-size: 14px;
+}
+
+.action-group a {
+    margin-left: 6px;
 }
 
 /* Wrapper tanggal + reset */
-.date-input-wrapper {
+.section .date-input-wrapper {
     display: flex;
     align-items: center;
     gap: 6px;
@@ -105,17 +82,17 @@ label {
 }
 
 /* Input tanggal */
-.search-form input[type="date"] {
+.section .search-form input[type="date"] {
     width: 150px;
     padding: 5px 10px;
-    font-size: 15px;
+    font-size: 13px;
     border-radius: 6px;
     border: 1px solid #ccc;
     margin-bottom: 0;
 }
 
 /* Tombol reset */
-.reset-date-btn {
+.section .reset-date-btn {
     display: inline-flex;
     justify-content: center;
     align-items: center;
@@ -130,9 +107,23 @@ label {
     transition: all 0.2s;
 }
 
-.reset-date-btn:hover {
+.section .reset-date-btn:hover {
     background: #FFD700;
     color: #fff;
     border-color: #e0b800;
 }
 
+
+/* ===============================
+   EMPTY STATE
+================================ */
+
+.section .alert-info {
+    background: #fff;
+    border-radius: 10px;
+    padding: 25px;
+    text-align: center;
+    color: #888;
+    font-style: italic;
+    border: 1px solid #eee;
+}

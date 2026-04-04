@@ -59,7 +59,6 @@
 </div>
 
 <!-- FLOATING HELP -->
-<!--
 <button id="helpBtn" class="help-float">
     ?
 </button>
@@ -95,7 +94,6 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 });
 </script>
--->
 
 <!-- ACTIVE SIDEBAR + AUTO LOADER -->
 <script>
@@ -116,9 +114,22 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
       }
 
+      const href = link.getAttribute("href") || "";
+
+      // ✅ SKIP loader untuk link import/export/download
       if (
-        link.getAttribute("href") &&
-        !link.getAttribute("href").startsWith("#") &&
+        link.classList.contains("action-export") ||
+        link.classList.contains("action-import") ||
+        href.includes("export") ||
+        href.includes("import") ||
+        href.includes("download")
+      ) {
+        return;
+      }
+
+      if (
+        href &&
+        !href.startsWith("#") &&
         !link.hasAttribute("target")
       ) {
         showLoader();

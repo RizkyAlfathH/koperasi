@@ -73,17 +73,14 @@
     <!-- donut chart -->
     <div class="chart-box">
       <h3>Statistik Pengguna</h3>
-
-      <div class="donut-wrapper">
-        <canvas id="userDonutChart"></canvas>
-      </div>
+      <canvas id="userDonutChart"></canvas>
     </div>
 
   </div>
 
   <!-- area chart -->
   <div class="chart-grid">
-    <div class="chart-static chart-full">
+    <div class="chart-box chart-full">
 
       <div class="chart-header">
         <h3>Statistik Simpanan & Pinjaman</h3>
@@ -140,31 +137,23 @@ new Chart(document.getElementById("statistikChart"), {
     plugins: {
       legend: {
         position: "top",
-        align: "end",
-        labels: {
-          font: {
-            family: "Poppins",
-            size: 13,
-            weight: "500"
-          }
-        }
+        align: "end"
       }
     },
     scales: {
       y: {
         beginAtZero: true,
+        min: 0,
         ticks: {
-          font: {
-            family: "Poppins"
-          },
           callback: value => "Rp " + value.toLocaleString("id-ID")
+        },
+        grid: {
+          color: "#eee"
         }
       },
       x: {
-        ticks: {
-          font: {
-            family: "Poppins"
-          }
+        grid: {
+          display: false
         }
       }
     }
@@ -184,15 +173,7 @@ new Chart(document.getElementById("userDonutChart"), {
   options: {
     cutout: "65%",
     plugins: {
-      legend: {
-        position: "bottom",
-        labels: {
-          font: {
-            family: "Poppins",
-            size: 13
-          }
-        }
-      }
+      legend: { position: "bottom" }
     }
   }
 });
