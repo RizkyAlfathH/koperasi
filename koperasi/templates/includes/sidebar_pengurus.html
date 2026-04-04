@@ -1,7 +1,23 @@
 {% load static %}
 {% load permission_tags %}
 
-<div class="sidebar">
+<!-- Phosphor Icons CDN -->
+<link rel="stylesheet" href="https://unpkg.com/phosphor-icons@1.4.1/src/css/phosphor.css"/>
+
+<script>
+(function() {
+    const collapsed = localStorage.getItem("sidebarCollapsed") === "true";
+
+    if (collapsed) {
+        document.documentElement.classList.add("sidebar-collapsed-init");
+    }
+
+    // tandai bahwa ini first load
+    document.documentElement.classList.add("no-transition");
+})();
+</script>
+
+<div class="sidebar" id="sidebar">
     <div class="profile">
         <div class="avatar">
             {{ request.user.username|slice:":2"|upper }}
@@ -69,6 +85,41 @@
     </ul>
 
     <div class="logout-btn">
-        <a href="{% url 'admin_koperasi:admin_logout' %}">Logout</a>
+        <a href="{% url 'admin_koperasi:admin_logout' %}">
+            <i class="ph ph-sign-out"></i>
+            <span class="logout-text">Logout</span>
+        </a>
     </div>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const sidebar = document.getElementById("sidebar");
+    const toggleBtn = document.getElementById("toggleSidebar");
+
+    const isCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
+
+    if (isCollapsed) {
+        sidebar.classList.add("collapsed");
+    }
+
+    // 🔥 hapus disable transition SETELAH render
+    setTimeout(() => {
+        document.documentElement.classList.remove("no-transition");
+        document.documentElement.classList.remove("sidebar-collapsed-init");
+    }, 50);
+
+    toggleBtn.addEventListener("click", function() {
+        sidebar.classList.toggle("collapsed");
+
+        const collapsedNow = sidebar.classList.contains("collapsed");
+
+        localStorage.setItem("sidebarCollapsed", collapsedNow);
+
+        const event = new CustomEvent("sidebarToggled", {
+            detail: { collapsed: collapsedNow }
+        });
+        document.dispatchEvent(event);
+    });
+});
+</script>
