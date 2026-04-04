@@ -8,7 +8,7 @@
     <div class="content-card">
         <h2 style="margin-bottom: 15px;">Form Tambah Simpanan</h2>
 
-        <form method="post">
+        <form method="post" id="formSimpanan">
             {% csrf_token %}
 
             {% if form.errors %}
@@ -103,4 +103,7 @@ $(function () {
 
 });
 </script>
+{% endblock %}
+{% block extra_js %}
+    <script src="{% static 'js/simpanan/form/form_simpanan.js' %}"></script>
 {% endblock %}

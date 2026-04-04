@@ -13,6 +13,7 @@ from .utils import hitung_saldo
 from .models import Penarikan, Simpanan, JenisSimpanan, HistoryTabungan, Anggota
 from django.core.paginator import Paginator
 from .forms import SimpananForm, PenarikanForm
+from django.views.decorators.http import require_POST
 
 from django.http import HttpResponse
 from reportlab.pdfgen import canvas
@@ -26,17 +27,15 @@ from admin_koperasi.utils import has_page_permission
 @login_required
 def daftar_simpanan(request):
     if not has_page_permission(request.user, "simpanan"):
-        messages.error(request, "Anda tidak memiliki izin untuk mengakses halaman ini")  # ✅ tambah pesan error
+        messages.error(request, "Anda tidak memiliki izin untuk mengakses halaman ini")
         return redirect("dashboard")
 
     data_list = []
-
     search_query = request.GET.get('search', '')
     sort_by = request.GET.get('sort', 'nomor')
 
-    try:  # ✅ tangkap error saat query database
+    try:
         anggotas = Anggota.objects.filter(status__iexact='aktif')
-
         if search_query:
             anggotas = anggotas.filter(
                 Q(nama__icontains=search_query) |
@@ -44,30 +43,33 @@ def daftar_simpanan(request):
             )
     except Exception as e:
         messages.error(request, f"Gagal mengambil data anggota: {str(e)}")
-        anggotas = Anggota.objects.none()  # kembalikan queryset kosong agar halaman tetap terbuka
+        anggotas = Anggota.objects.none()
 
+    # ✅ get_saldo sekarang pakai HistoryTabungan sebagai sumber kebenaran
     def get_saldo(anggota, jenis_id):
-        try:  # ✅ tangkap error kalkulasi saldo
-            total_setor = (
-                Simpanan.objects.filter(
-                    anggota=anggota,
-                    jenis_simpanan_id=jenis_id
-                ).aggregate(total=Sum('jumlah'))['total'] or 0
+        try:
+            qs = HistoryTabungan.objects.filter(
+                anggota=anggota,
+                jenis_simpanan_id=jenis_id
             )
+            setor = qs.filter(
+                jenis_transaksi='SETOR'
+            ).aggregate(total=Sum('jumlah'))['total'] or 0
 
-            total_tarik = (
-                Penarikan.objects.filter(
-                    anggota=anggota,
-                    jenis_simpanan_id=jenis_id
-                ).aggregate(total=Sum('jumlah'))['total'] or 0
-            )
+            tarik = qs.filter(
+                jenis_transaksi='TARIK'
+            ).aggregate(total=Sum('jumlah'))['total'] or 0
 
-            return total_setor - total_tarik
+            koreksi = qs.filter(
+                jenis_transaksi='KOREKSI'
+            ).aggregate(total=Sum('jumlah'))['total'] or 0  # sudah negatif
+
+            return setor - tarik + koreksi
         except Exception:
-            return 0  # ✅ kalau gagal, anggap saldo 0 daripada crash
+            return 0
 
     for anggota in anggotas:
-        try:  # ✅ tangkap error per-anggota agar satu error tidak rusak semua data
+        try:
             data_list.append({
                 'nomor_anggota': anggota.nomor_anggota,
                 'nama_anggota': anggota.nama,
@@ -81,9 +83,8 @@ def daftar_simpanan(request):
             })
         except Exception as e:
             messages.warning(request, f"Gagal memuat data anggota {anggota.nama}: {str(e)}")
-            continue  # ✅ lewati anggota bermasalah, lanjut ke berikutnya
+            continue
 
-    # SORTING
     if sort_by == 'nama':
         data_list.sort(key=lambda x: x['nama_anggota'])
     else:
@@ -155,39 +156,164 @@ def cek_dana_sosial(request):
 
     return JsonResponse({'wajib': not sudah_bayar})
 
+@login_required
+@require_POST
+@transaction.atomic
+def hapus_transaksi_terakhir(request, nomor_anggota, jenis_id):
+    try:
+        anggota = get_object_or_404(Anggota, nomor_anggota=nomor_anggota)
+        jenis = get_object_or_404(JenisSimpanan, id=jenis_id)
+
+        transaksi_terakhir = HistoryTabungan.objects.filter(
+            anggota=anggota,
+            jenis_simpanan=jenis,
+            jenis_transaksi='SETOR'
+        ).order_by('-id').first()
+
+        if not transaksi_terakhir:
+            return JsonResponse({
+                "success": False,
+                "message": f"Tidak ada transaksi SETOR untuk simpanan {jenis.get_nama_jenis_display()}."
+            }, status=404)
+
+        jumlah_koreksi = transaksi_terakhir.jumlah
+
+        # Cari simpanan yang matching
+        simpanan_terkait = Simpanan.objects.filter(
+            anggota=anggota,
+            jenis_simpanan=jenis,
+            jumlah=jumlah_koreksi,
+            tanggal=transaksi_terakhir.tanggal
+        ).order_by('-id').first()
+
+        if simpanan_terkait:
+            # Hapus simpanan → lalu hapus SETOR-nya langsung
+            # TIDAK perlu buat KOREKSI, karena simpanannya memang dihapus
+            simpanan_terkait.delete()
+            transaksi_terakhir.delete()
+        else:
+            # Simpanan sudah tidak ada tapi history masih ada
+            # Baru pakai KOREKSI untuk nol-kan
+            HistoryTabungan.objects.create(
+                anggota=anggota,
+                jenis_simpanan=jenis,
+                tanggal=datetime.date.today(),
+                jenis_transaksi='KOREKSI',
+                jumlah=-jumlah_koreksi
+            )
+
+        return JsonResponse({
+            "success": True,
+            "message": f"Transaksi terakhir simpanan {jenis.get_nama_jenis_display()} berhasil dihapus.",
+            "jumlah": str(jumlah_koreksi)
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            "success": False,
+            "message": str(e)
+        }, status=400)
+
+# hapus_simpanan
+@login_required
+@require_POST
+@transaction.atomic
+def hapus_simpanan(request, nomor_anggota):
+    try:
+        anggota = get_object_or_404(Anggota, nomor_anggota=nomor_anggota)
+
+        semua_simpanan = Simpanan.objects.filter(anggota=anggota)
+
+        if not semua_simpanan.exists():
+            return JsonResponse({
+                "success": False,
+                "message": "Tidak ada data simpanan untuk anggota ini."
+            }, status=404)
+
+        jenis_list = JenisSimpanan.objects.all()
+        history_bulk = []
+
+        for jenis in jenis_list:
+            qs = HistoryTabungan.objects.filter(
+                anggota=anggota,
+                jenis_simpanan=jenis
+            )
+
+            setor = qs.filter(
+                jenis_transaksi='SETOR'
+            ).aggregate(total=Sum('jumlah'))['total'] or 0
+
+            tarik = qs.filter(
+                jenis_transaksi='TARIK'
+            ).aggregate(total=Sum('jumlah'))['total'] or 0
+
+            koreksi = qs.filter(
+                jenis_transaksi='KOREKSI'
+            ).aggregate(total=Sum('jumlah'))['total'] or 0
+
+            # Hitung saldo bersih jenis ini
+            saldo_bersih = setor - tarik + koreksi
+
+            # Hanya buat KOREKSI kalau saldo tidak nol
+            if saldo_bersih != 0:
+                history_bulk.append(HistoryTabungan(
+                    anggota=anggota,
+                    jenis_simpanan=jenis,
+                    tanggal=datetime.date.today(),
+                    jenis_transaksi="KOREKSI",
+                    jumlah=-saldo_bersih  # nol-kan saldo jenis ini
+                ))
+
+        if history_bulk:
+            HistoryTabungan.objects.bulk_create(history_bulk)
+
+        semua_simpanan.delete()
+
+        return JsonResponse({
+            "success": True,
+            "message": f"Semua simpanan {anggota.nama} berhasil dihapus."
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            "success": False,
+            "message": str(e)
+        }, status=400)
 
 @login_required
 def simpanan_anggota(request, nomor_anggota):
-    anggota = get_object_or_404(Anggota, nomor_anggota=nomor_anggota)  # ✅ sudah ada, kalau tidak ketemu → 404
+    anggota = get_object_or_404(Anggota, nomor_anggota=nomor_anggota)
 
     data_saldo = []
 
-    try:  # ✅ tangkap error saat mengambil semua jenis simpanan
+    try:
         jenis_list = JenisSimpanan.objects.all()
     except Exception as e:
         messages.error(request, f"Gagal memuat jenis simpanan: {str(e)}")
         jenis_list = []
 
     for jenis in jenis_list:
-        try:  # ✅ tangkap error per-jenis agar satu error tidak rusak semua
-            total_setor = HistoryTabungan.objects.filter(
+        try:
+            qs = HistoryTabungan.objects.filter(
                 anggota=anggota,
-                jenis_simpanan=jenis,
+                jenis_simpanan=jenis
+            )
+
+            setor = qs.filter(
                 jenis_transaksi='SETOR'
             ).aggregate(total=Sum('jumlah'))['total'] or 0
 
-            total_tarik = HistoryTabungan.objects.filter(
-                anggota=anggota,
-                jenis_simpanan=jenis,
+            tarik = qs.filter(
                 jenis_transaksi='TARIK'
             ).aggregate(total=Sum('jumlah'))['total'] or 0
 
-            saldo = total_setor - total_tarik
+            koreksi = qs.filter(
+                jenis_transaksi='KOREKSI'
+            ).aggregate(total=Sum('jumlah'))['total'] or 0  # sudah negatif
 
-            last_transaksi = HistoryTabungan.objects.filter(
-                anggota=anggota,
-                jenis_simpanan=jenis
-            ).order_by('-id').first()
+            saldo = setor - tarik + koreksi
+
+            last_transaksi = qs.order_by('-id').first()
 
             data_saldo.append({
                 'jenis': jenis.get_nama_jenis_display(),
@@ -209,49 +335,50 @@ def simpanan_anggota(request, nomor_anggota):
 
 @login_required
 def detail_simpanan(request, nomor_anggota, jenis_id):
-    anggota = get_object_or_404(Anggota, nomor_anggota=nomor_anggota)  # ✅ sudah ada
-    jenis_simpanan = get_object_or_404(JenisSimpanan, id=jenis_id)       # ✅ sudah ada
+    anggota = get_object_or_404(Anggota, nomor_anggota=nomor_anggota)
+    jenis_simpanan = get_object_or_404(JenisSimpanan, id=jenis_id)
 
     tanggal_filter = request.GET.get("tanggal")
 
-    try:  # ✅ tangkap error query history
+    try:
         history_qs = HistoryTabungan.objects.filter(
             anggota=anggota,
             jenis_simpanan=jenis_simpanan
         ).order_by("-tanggal", "-id")
 
         if tanggal_filter:
-            try:  # ✅ tangkap error parsing tanggal filter
-                tanggal = datetime.datetime.strptime(
-                    tanggal_filter, "%Y-%m-%d"
-                ).date()
+            try:
+                tanggal = datetime.datetime.strptime(tanggal_filter, "%Y-%m-%d").date()
                 history_qs = history_qs.filter(tanggal=tanggal)
             except ValueError:
-                messages.warning(request, "Format tanggal tidak valid, filter diabaikan")  # ✅ sebelumnya diam-diam diabaikan tanpa info ke user
+                messages.warning(request, "Format tanggal tidak valid, filter diabaikan")
     except Exception as e:
         messages.error(request, f"Gagal memuat riwayat transaksi: {str(e)}")
         history_qs = HistoryTabungan.objects.none()
 
     paginator = Paginator(history_qs, 5)
-    page_history = paginator.get_page(
-        request.GET.get("page_history", 1)
-    )
+    page_history = paginator.get_page(request.GET.get("page_history", 1))
 
-    try:  # ✅ tangkap error kalkulasi saldo
-        saldo_qs = HistoryTabungan.objects.filter(
+    try:
+        qs = HistoryTabungan.objects.filter(
             anggota=anggota,
             jenis_simpanan=jenis_simpanan
         )
 
-        total_setor = saldo_qs.filter(
-            jenis_transaksi=HistoryTabungan.SETOR
-        ).aggregate(total=Sum("jumlah"))["total"] or 0
+        setor = qs.filter(
+            jenis_transaksi='SETOR'
+        ).aggregate(total=Sum('jumlah'))['total'] or 0
 
-        total_tarik = saldo_qs.filter(
-            jenis_transaksi=HistoryTabungan.TARIK
-        ).aggregate(total=Sum("jumlah"))["total"] or 0
+        tarik = qs.filter(
+            jenis_transaksi='TARIK'
+        ).aggregate(total=Sum('jumlah'))['total'] or 0
 
-        saldo_jenis = total_setor - total_tarik
+        koreksi = qs.filter(
+            jenis_transaksi='KOREKSI'
+        ).aggregate(total=Sum('jumlah'))['total'] or 0  # sudah negatif
+
+        saldo_jenis = setor - tarik + koreksi
+
     except Exception as e:
         messages.error(request, f"Gagal menghitung saldo: {str(e)}")
         saldo_jenis = 0
