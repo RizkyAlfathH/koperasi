@@ -1,4 +1,4 @@
-/* Sidebar Styling */
+/* ================= sidebar ================= */
 .sidebar {
     width: 280px;
     background: linear-gradient(180deg, #FFD700 0%, #FFF8DC 100%);
@@ -9,22 +9,26 @@
     top: 0;
     box-shadow: 2px 0 10px rgba(0,0,0,0.1);
     z-index: 1000;
+    display: flex;
+    flex-direction: column;
     transition: width 0.3s ease;
 }
 
-/* Profil di atas sidebar */
+/* ================= profile ================= */
 .sidebar .profile {
     position: relative;
     text-align: center;
     padding: 20px;
     border-bottom: 1px solid rgba(0,0,0,0.1);
     margin-bottom: 20px;
+    transition: all 0.3s ease;
 }
 
-.sidebar .profile .avatar {
+/* avatar user */
+.sidebar .avatar {
     width: 60px;
     height: 60px;
-    background-color: white;
+    background-color: #fff;
     border-radius: 50%;
     margin: 0 auto 15px;
     display: flex;
@@ -34,9 +38,10 @@
     color: #FFD700;
     font-weight: bold;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
 }
 
-/* Toggle Button di samping avatar */
+/* ================= tombol toggle ================= */
 .toggle-btn {
     position: absolute;
     top: 20px;
@@ -46,26 +51,33 @@
     font-size: 22px;
     cursor: pointer;
     color: #333;
-    transition: transform 0.3s ease;
+    transition: all 0.3s ease;
 }
 
-.sidebar .profile .username {
+/* ================= informasi user ================= */
+.sidebar .username,
+.sidebar .role {
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.sidebar .username {
     font-size: 16px;
     font-weight: bold;
     color: #333;
-    margin-bottom: 5px;
 }
 
-.sidebar .profile .role {
+.sidebar .role {
     font-size: 14px;
     color: #666;
-    text-transform: capitalize;
 }
 
-/* Menu Sidebar */
+/* ================= menu ================= */
 .sidebar ul {
     list-style: none;
     padding: 0 15px;
+    flex: 1;
 }
 
 .sidebar ul li {
@@ -80,31 +92,47 @@
     color: #333;
     text-decoration: none;
     border-radius: 8px;
-    transition: all 0.3s ease;
+    transition: all 0.25s ease;
     font-weight: 500;
     font-size: 15px;
 }
 
+/* efek hover menu */
 .sidebar ul li a:hover {
     background-color: rgba(255,255,255,0.3);
     transform: translateX(5px);
 }
 
+/* menu aktif */
 .sidebar ul li a.active {
     background-color: rgba(255,255,255,0.5);
     font-weight: bold;
 }
 
-/* Logout Button */
+/* icon menu */
+.sidebar ul li a i {
+    font-size: 24px;
+}
+
+/* teks menu (biar bisa animasi halus) */
+.menu-text {
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden;
+    opacity: 1;
+    transition: all 0.3s ease;
+}
+
+/* ================= tombol logout ================= */
 .logout-btn {
-    position: absolute;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 85%;
+    margin-top: auto;
+    padding: 20px 0;
+    display: flex;
+    justify-content: center;
 }
 
 .logout-btn a {
+    width: 85%;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -118,66 +146,151 @@
     font-size: 14px;
     border: 1.5px solid #d32f2f;
     transition: all 0.3s ease;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
 
+/* hover logout */
 .logout-btn a:hover {
     background-color: #d32f2f;
     color: #fff;
-    transform: translateY(-2px);
 }
 
-/* ICON MENU diperbesar */
-.sidebar ul li a i {
-    font-size: 22px;
+/* teks logout dengan animasi halus */
+.logout-text {
+    display: inline-block;
+    white-space: nowrap;
+    opacity: 1;
+    transform: translateX(0);
+    max-width: 120px;
+    transition: 
+        opacity 0.2s ease,
+        transform 0.3s ease,
+        max-width 0.3s ease;
+    transition-delay: 0.1s;
 }
 
-/* Sidebar Collapsed */
+/* ================= kondisi collapsed ================= */
 .sidebar.collapsed {
     width: 100px;
 }
 
-.sidebar.collapsed .username,
-.sidebar.collapsed .role {
-    display: none;
+/* jarak profile saat collapse */
+.sidebar.collapsed .profile {
+    padding-top: 40px;
+    padding-left: 10px;
+    padding-right: 10px;
 }
 
+/* avatar lebih kecil */
+.sidebar.collapsed .avatar {
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+    margin-top: 10px;
+}
+
+/* tombol toggle pindah ke tengah atas */
+.sidebar.collapsed .toggle-btn {
+    top: 8px;
+    right: 50%;
+    transform: translateX(50%);
+}
+
+/* ukuran teks user lebih kecil */
+.sidebar.collapsed .username {
+    font-size: 12px;
+    margin-top: 8px;
+}
+
+.sidebar.collapsed .role {
+    font-size: 11px;
+}
+
+/* menu jadi center */
 .sidebar.collapsed ul li a {
     justify-content: center;
     padding: 12px 0;
+    gap: 0;
 }
 
-.sidebar.collapsed ul li a .menu-text {
-    display: none;
+/* teks menu hilang dengan animasi */
+.sidebar.collapsed .menu-text {
+    opacity: 0;
+    width: 0;
 }
 
-.sidebar.collapsed .toggle-btn {
-    transform: rotate(0deg);
+/* ================= logout saat collapse ================= */
+.sidebar.collapsed .logout-btn a {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
 }
 
-/* ====== Konten ikut geser ====== */
+/* icon logout tetap di tengah */
+.sidebar.collapsed .logout-btn i {
+    font-size: 14px;
+    line-height: 1;
+    margin-left: 10px;
+}
+
+/* teks logout hilang halus */
+.sidebar.collapsed .logout-text {
+    opacity: 0;
+    transform: translateX(-8px);
+    max-width: 0;
+    overflow: hidden;
+    transition-delay: 0s;
+}
+
+/* ================= main content ================= */
 .main-content {
     margin-left: 280px;
     padding: 20px;
     transition: margin-left 0.3s ease;
 }
 
+/* saat sidebar collapse */
 .sidebar.collapsed ~ .main-content {
     margin-left: 100px;
 }
 
-/* ====== Responsif ====== */
+/* ================= responsive ================= */
 @media (max-width: 768px) {
     .sidebar {
         left: -280px;
     }
+
     .sidebar.active {
         left: 0;
     }
+
     .main-content {
         margin-left: 0;
     }
+
     .sidebar.collapsed ~ .main-content {
         margin-left: 0;
     }
+}
+
+/* ================= perhalus collapsed ================= */
+/* matikan semua animasi saat pertama load */
+.no-transition * {
+    transition: none !important;
+}
+
+/* kondisi sidebar langsung collapse tanpa animasi */
+.sidebar-collapsed-init .sidebar {
+    width: 100px !important;
+}
+
+.sidebar-collapsed-init .navbar {
+    left: 100px !important;
+}
+
+.sidebar-collapsed-init .main-content {
+    margin-left: 100px !important;
 }

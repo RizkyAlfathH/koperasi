@@ -12,9 +12,14 @@
 document.addEventListener("DOMContentLoaded", function() {
     const navbar = document.querySelector(".navbar");
 
+    // set posisi awal dari localStorage
+    const isCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
+    navbar.style.left = isCollapsed ? "100px" : "280px";
+
+    // update saat toggle
     document.addEventListener("sidebarToggled", function(e) {
-        const isCollapsed = e.detail.collapsed;
-        navbar.style.left = isCollapsed ? "100px" : "280px";
+        const collapsed = e.detail.collapsed;
+        navbar.style.left = collapsed ? "100px" : "280px";
     });
 });
 </script>

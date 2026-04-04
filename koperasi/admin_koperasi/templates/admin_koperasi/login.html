@@ -26,16 +26,6 @@
 <div class="login-wrapper">
     <form method="post" onsubmit="showLoader()">
         {% csrf_token %}
-
-        <!-- error message -->
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert-error">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
-
         <!-- username -->
         <div class="input-group">
             <label>Username</label>
