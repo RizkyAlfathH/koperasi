@@ -15,6 +15,7 @@ from admin_koperasi.models import User
 from anggota.models import Anggota
 from simpanan.models import Simpanan, JenisSimpanan
 from admin_koperasi.utils import has_page_permission
+from dateutil.relativedelta import relativedelta
 
 @login_required
 def pinjaman_list(request):
@@ -324,76 +325,132 @@ def bayar_pinjaman(request, id_pinjaman):
         id_pinjaman=pinjaman, tipe_bayar="cicilan"
     ).count()
 
+    # =========================
+    # HITUNG SISA PINJAMAN
+    # =========================
     sisa_pinjaman = jumlah_pinjaman - (cicilan_terbayar * angsuran_pokok)
     sisa_pinjaman = max(sisa_pinjaman, Decimal("0"))
 
     pinjaman.sisa_pinjaman = sisa_pinjaman
     pinjaman.save(update_fields=["sisa_pinjaman"])
 
-    sisa_bulan = max(pinjaman.jatuh_tempo - cicilan_terbayar, 0)
+    # =========================
+    # HITUNG BULAN BERJALAN
+    # =========================
+    today = date.today()
+    tanggal_mulai = pinjaman.tanggal_meminjam
 
-    # Hitung jasa bulan ini
-    if pinjaman.id_kategori_jasa.kategori_jasa.lower() == "turunan":
-        jasa_rupiah = sisa_pinjaman * (jasa_persen / 100)
-    else:
-        jasa_rupiah = jumlah_pinjaman * (jasa_persen / 100)
-
-    total_bayar = angsuran_pokok + jasa_rupiah
+    bulan_berjalan = (today.year - tanggal_mulai.year) * 12 + (today.month - tanggal_mulai.month) + 1
+    sisa_bulan_aktif = max(bulan_berjalan - cicilan_terbayar, 0)
 
     if request.method == "POST":
-        tanggal = request.POST.get("tanggal")
+        tanggal_input_str = request.POST.get("tanggal")
         tipe_bayar = request.POST.get("tipe_bayar")
-        bulan = int(request.POST.get("bulan", 1))
+        bulan_input = int(request.POST.get("bulan", 1))
         nominal_raw = request.POST.get("nominal")
 
         try:
             nominal = Decimal(
                 nominal_raw.replace("Rp", "").replace(".", "").replace(",", "").strip()
             )
-
         except:
             messages.error(request, "Nominal tidak valid.")
             return redirect("pinjaman:bayar_pinjaman", id_pinjaman=id_pinjaman)
 
-        if not tanggal:
+        if not tanggal_input_str:
             messages.error(request, "Tanggal wajib diisi.")
             return redirect("pinjaman:bayar_pinjaman", id_pinjaman=id_pinjaman)
 
-        if tipe_bayar == "cicilan":
-            # HANYA hitung minimal 1 bulan
-            minimal = angsuran_pokok + jasa_rupiah
+        # 🔥 parse tanggal input
+        tanggal_input = datetime.strptime(tanggal_input_str, "%Y-%m-%d").date()
 
-            if nominal < minimal:
-                messages.error(request, f"Minimal bayar Rp {minimal:,.0f}")
+        if tipe_bayar == "cicilan":
+
+            bulan_valid = min(bulan_input, sisa_bulan_aktif)
+
+            total_wajib = Decimal("0")
+            temp_sisa = sisa_pinjaman
+
+            # =========================
+            # HITUNG TOTAL WAJIB
+            # =========================
+            for i in range(bulan_valid):
+                if temp_sisa <= 0:
+                    break
+
+                if pinjaman.id_kategori_jasa.kategori_jasa.lower() == "turunan":
+                    jasa = temp_sisa * (jasa_persen / 100)
+                else:
+                    jasa = jumlah_pinjaman * (jasa_persen / 100)
+
+                total_wajib += angsuran_pokok + jasa
+                temp_sisa -= angsuran_pokok
+
+            if nominal < total_wajib:
+                messages.error(request, f"Minimal bayar Rp {total_wajib:,.0f}")
                 return redirect("pinjaman:bayar_pinjaman", id_pinjaman=id_pinjaman)
 
-            # 1️⃣ BAYAR BULAN INI SAJA
-            Angsuran.objects.create(
-                id_pinjaman=pinjaman,
-                id_admin=admin_login,
-                tanggal_bayar=tanggal,
-                jumlah_bayar=minimal,
-                tipe_bayar="cicilan"
-            )
+            # =========================
+            # SIMPAN CICILAN SESUAI RULE BARU
+            # =========================
+            for i in range(bulan_valid):
+                if pinjaman.sisa_pinjaman <= 0:
+                    break
 
-            pinjaman.sisa_pinjaman -= angsuran_pokok
-            pinjaman.save(update_fields=["sisa_pinjaman"])
+                bulan_ke = cicilan_terbayar + i
 
-            # 2️⃣ SISANYA MASUK SUKARELA
-            kelebihan = nominal - minimal
+                # 🔥 LOGIKA TANGGAL
+                if i == 0:
+                    # cicilan pertama → sesuai input user
+                    tanggal_bayar_real = tanggal_input
+                else:
+                    # bulan berikutnya → tanggal 1
+                    tanggal_bayar_real = (
+                        tanggal_mulai + relativedelta(months=bulan_ke)
+                    ).replace(day=1)
+
+                if pinjaman.id_kategori_jasa.kategori_jasa.lower() == "turunan":
+                    jasa = pinjaman.sisa_pinjaman * (jasa_persen / 100)
+                else:
+                    jasa = jumlah_pinjaman * (jasa_persen / 100)
+
+                total_bayar = angsuran_pokok + jasa
+
+                Angsuran.objects.create(
+                    id_pinjaman=pinjaman,
+                    id_admin=admin_login,
+                    tanggal_bayar=tanggal_bayar_real,
+                    jumlah_bayar=total_bayar,
+                    tipe_bayar="cicilan"
+                )
+
+                pinjaman.sisa_pinjaman -= angsuran_pokok
+
+            pinjaman.sisa_pinjaman = max(pinjaman.sisa_pinjaman, Decimal("0"))
+
+            # =========================
+            # KELEBIHAN MASUK SIMPANAN
+            # =========================
+            kelebihan = nominal - total_wajib
+
             if kelebihan > 0:
                 jenis = JenisSimpanan.objects.get(nama_jenis__iexact="SUKARELA")
                 Simpanan.objects.create(
                     anggota=pinjaman.nomor_anggota,
                     admin=admin_login,
                     jenis_simpanan=jenis,
-                    tanggal=tanggal,
+                    tanggal=today,
                     jumlah=kelebihan,
                     sumber_pinjaman=pinjaman
                 )
 
-        # JASA SAJA
         elif tipe_bayar == "jasa":
+
+            if pinjaman.id_kategori_jasa.kategori_jasa.lower() == "turunan":
+                jasa_rupiah = pinjaman.sisa_pinjaman * (jasa_persen / 100)
+            else:
+                jasa_rupiah = jumlah_pinjaman * (jasa_persen / 100)
+
             if nominal > jasa_rupiah:
                 messages.error(request, "Bayar jasa tidak boleh melebihi nilai jasa.")
                 return redirect("pinjaman:bayar_pinjaman", id_pinjaman=id_pinjaman)
@@ -401,38 +458,26 @@ def bayar_pinjaman(request, id_pinjaman):
             Angsuran.objects.create(
                 id_pinjaman=pinjaman,
                 id_admin=admin_login,
-                tanggal_bayar=tanggal,
+                tanggal_bayar=today,
                 jumlah_bayar=nominal,
                 tipe_bayar="jasa"
             )
 
+        # =========================
         # UPDATE STATUS
-        jumlah_cicilan = Angsuran.objects.filter(
-            id_pinjaman=pinjaman,
-            tipe_bayar="cicilan"
-        ).count()
-
-        total_pokok_terbayar = jumlah_cicilan * angsuran_pokok
-
-        sisa_akhir = jumlah_pinjaman - total_pokok_terbayar
-        sisa_akhir = max(sisa_akhir, Decimal("0"))
-
-        pinjaman.sisa_pinjaman = sisa_akhir
-
-        if sisa_akhir <= 0:
+        # =========================
+        if pinjaman.sisa_pinjaman <= 0:
             pinjaman.status = "Lunas"
 
         pinjaman.save()
 
-        messages.success(request, "Pembayaran berhasil dicimpan.")
+        messages.success(request, "Pembayaran berhasil disimpan.")
         return redirect("pinjaman:pinjaman_list")
 
     return render(request, "form/bayar_pinjaman.html", {
         "pinjaman": pinjaman,
         "angsuran_pokok": angsuran_pokok,
-        "jasa_rupiah": jasa_rupiah,
-        "total_bayar": total_bayar,
-        "sisa_bulan": sisa_bulan,
+        "sisa_bulan": sisa_bulan_aktif,
     })
 
 def cek_auto_sukarela_ke_pinjaman(pinjaman, admin_login):

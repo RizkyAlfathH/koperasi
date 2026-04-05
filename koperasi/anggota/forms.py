@@ -48,7 +48,7 @@ class AdminForm(forms.ModelForm):
             "required": "Username wajib diisi."
         }
         self.fields["role"].error_messages = {
-            "required": "Silakan pilih jabatan."
+            "required": "Jabatan wajib dipilih."
         }
 
         # pilihan jabatan

@@ -32,9 +32,9 @@
     padding: 7px 12px;
     border-radius: 6px;
     border: 1px solid #ccc;
-    font-size: 13px;
+    font-size: 15px;
     background: #fff;
-    color: #333;
+    color: #666;
     outline: none;
     transition: all 0.2s ease;
 }
@@ -47,11 +47,12 @@
 
 /* RESPONSIVE */
 @media (max-width: 768px) {
-    .search-form {
+    .search-box {
         width: 100%;
     }
 
-    .search-form input {
+    .search-box input,
+    .search-box select {
         width: 100%;
     }
 }
