@@ -1,112 +1,119 @@
-/* ===== KOPASMEN SWAL THEME ===== */
+/* ================= sweetalert theme ================= */
 const kopasSwal = Swal.mixin({
     customClass: {
-        popup:             'kopas-popup',
-        title:             'kopas-title',
-        htmlContainer:     'kopas-text',
-        confirmButton:     'kopas-btn-confirm',
-        cancelButton:      'kopas-btn-cancel',
-        icon:              'kopas-icon',
-        loader:            'kopas-loader',
+        popup:         'kopas-popup',
+        title:         'kopas-title',
+        htmlContainer: 'kopas-text',
+        confirmButton: 'kopas-btn-confirm',
+        cancelButton:  'kopas-btn-cancel',
+        icon:          'kopas-icon',
+        loader:        'kopas-loader',
     },
-    buttonsStyling: false,
+    buttonsStyling: true,
     background: '#ffffff',
-    color: '#1a1a1a',
+    color: '#291B18',
 });
 
-/* ===== INJECT STYLE ===== */
+
+/* ================= inject custom style ================= */
 (function injectKopasStyle() {
     const style = document.createElement('style');
     style.textContent = `
-        /* Popup card */
+
+        /* popup card */
         .kopas-popup {
-            border-radius: 20px !important;
-            padding: 32px 28px 28px !important;
-            box-shadow: 0 8px 40px rgba(0,0,0,0.13) !important;
+            border-radius: 16px !important;
+            padding: 26px 24px !important;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08) !important;
             font-family: inherit !important;
+            width: 30% !important;
+            text-align: center !important;
         }
 
-        /* Title */
+        /* title */
         .kopas-title {
-            font-size: 1.4rem !important;
+            font-size: 1.25rem !important;
             font-weight: 700 !important;
-            color: #1a1a1a !important;
-            margin-bottom: 8px !important;
+            color: #291B18 !important;
+            margin-bottom: 6px !important;
         }
 
-        /* Body text */
+        /* text / content */
         .kopas-text {
-            font-size: 0.95rem !important;
-            color: #555 !important;
+            font-size: 0.92rem !important;
+            color: #666 !important;
+            margin-bottom: 12px !important;
         }
 
+        /* icon spacing */
+        .kopas-icon {
+            margin: 10px auto 12px auto !important;
+        }
+
+        /* action buttons wrapper */
         .swal2-actions {
-            gap: 12px !important;
+            justify-content: center !important;
+            margin-top: 10px !important;
         }
 
-        /* Confirm button — kuning solid */
+        /* tombol confirm */
         .kopas-btn-confirm {
-            background: #FFC107 !important;
-            color: #1a1a1a !important;
+            background: #FFD700 !important;
+            color: #291B18 !important;
             border: none !important;
-            border-radius: 10px !important;
-            padding: 10px 28px !important;
+            border-radius: 6px !important;
+            padding: 9px 22px !important;
             font-weight: 700 !important;
-            font-size: 0.95rem !important;
+            font-size: 0.9rem !important;
             cursor: pointer !important;
-            transition: background 0.2s, transform 0.15s !important;
+            transition: all 0.2s ease !important;
         }
         .kopas-btn-confirm:hover {
-            background: #e6ac00 !important;
-            transform: translateY(-1px) !important;
-        }
-        .kopas-btn-confirm:active {
-            transform: translateY(0) !important;
+            background: #e6c200 !important;
         }
 
-        /* Cancel button — outline kuning */
+        /* tombol cancel */
         .kopas-btn-cancel {
-            background: #fff !important;
-            color: #1a1a1a !important;
-            border: 2px solid #FFC107 !important;
-            border-radius: 10px !important;
-            padding: 10px 28px !important;
+            background: #ffffff !important;
+            color: #291B18 !important;
+            border: 2px solid #FFD700 !important;
+            border-radius: 6px !important;
+            padding: 9px 22px !important;
             font-weight: 600 !important;
-            font-size: 0.95rem !important;
+            font-size: 0.9rem !important;
             cursor: pointer !important;
-            transition: background 0.2s, transform 0.15s !important;
+            transition: all 0.2s ease !important;
         }
         .kopas-btn-cancel:hover {
             background: #fff8e1 !important;
-            transform: translateY(-1px) !important;
         }
 
-        /* Icon warna override — question & loading */
-        .kopas-icon.swal2-question {
-            border-color: #FFC107 !important;
-            color: #FFC107 !important;
-        }
+        /* icon warna */
+        .kopas-icon.swal2-question,
         .kopas-icon.swal2-success {
-            border-color: #FFC107 !important;
-            color: #FFC107 !important;
+            border-color: #FFD700 !important;
+            color: #FFD700 !important;
         }
+
         .kopas-icon.swal2-success [class^=swal2-success-line] {
-            background-color: #FFC107 !important;
+            background-color: #FFD700 !important;
         }
+
         .kopas-icon.swal2-success .swal2-success-ring {
             border-color: #ffe082 !important;
         }
 
-        /* Loader spinner */
+        /* loader spinner */
         .kopas-loader {
-            border-color: #FFC107 transparent #FFC107 transparent !important;
+            border-color: #FFD700 transparent #FFD700 transparent !important;
         }
+
     `;
     document.head.appendChild(style);
 })();
 
 
-/* ===== TOGGLE SHOW / HIDE PASSWORD ===== */
+/* ================= toggle show / hide password ================= */
 $(document).on('click', '.toggle-password', function () {
     const input = $(this).siblings('input');
     const icon  = $(this);
@@ -121,44 +128,47 @@ $(document).on('click', '.toggle-password', function () {
 });
 
 
-/* ===== HELPER: dialog konfirmasi simpan ===== */
+/* ================= helper konfirmasi simpan ================= */
 function konfirmasiSimpan(formEl) {
     kopasSwal.fire({
-        title:              'Konfirmasi',
-        text:               'Apakah data ingin disimpan?',
-        icon:               'question',
-        showCancelButton:   true,
-        confirmButtonText:  'Ya, simpan',
-        cancelButtonText:   'Batal',
+        title: 'Konfirmasi',
+        text: 'Apakah data ingin disimpan?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: '<span style="color: #281b19; font-weight: 600;">Ya, Simpan</span>',
+        cancelButtonText: '<span style="color: #281b19; font-weight: 600;">Batal</span>',
     }).then((result) => {
+
+        /* jika user konfirmasi */
         if (result.isConfirmed) {
             kopasSwal.fire({
-                title:             'Menyimpan...',
-                text:              'Mohon tunggu',
+                title: 'Menyimpan...',
+                text: 'Mohon tunggu',
                 allowOutsideClick: false,
                 didOpen: () => { Swal.showLoading(); }
             });
+
             formEl.submit();
         }
     });
 }
 
 
-/* ===== FORM ADMIN ===== */
+/* ================= form admin ================= */
 $("#formAdmin").on("submit", function (e) {
     e.preventDefault();
     konfirmasiSimpan(this);
 });
 
 
-/* ===== FORM ANGGOTA ===== */
+/* ================= form anggota ================= */
 $("#formAnggota").on("submit", function (e) {
     e.preventDefault();
     konfirmasiSimpan(this);
 });
 
 
-/* ===== TOGGLE FIELD NONAKTIF ===== */
+/* ================= toggle field status nonaktif ================= */
 function toggleNonaktifField() {
     const status  = $('[name="status"]').val();
     const alasan  = $('.field-alasan_nonaktif');
@@ -173,6 +183,8 @@ function toggleNonaktifField() {
     }
 }
 
+
+/* ================= init ================= */
 $(document).ready(function () {
     toggleNonaktifField();
     $(document).on('change', '[name="status"]', toggleNonaktifField);

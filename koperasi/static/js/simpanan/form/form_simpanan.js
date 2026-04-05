@@ -15,24 +15,24 @@ $("#formSimpanan").on("submit", function(e) {
                 text-align: left;
                 font-size: 14px;
                 line-height: 2;
-                background: #f9f9f9;
+                background: #ffffff;
                 border-radius: 12px;
                 padding: 12px 16px;
-                border-left: 4px solid #F5C518;
+                border-left: 4px solid #ffd700;
             ">
-                <b>Anggota &nbsp;&nbsp;:</b> ${namaAnggota}<br>
-                <b>Jenis &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</b> ${jenisSimpanan}<br>
-                <b>Jumlah &nbsp;&nbsp;&nbsp;:</b> Rp ${jumlah}<br>
-                <b>Tanggal &nbsp;&nbsp;:</b> ${tanggal}
+                <b>Anggota&nbsp;&nbsp;:</b> ${namaAnggota}<br>
+                <b>Jenis&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</b> ${jenisSimpanan}<br>
+                <b>Jumlah&nbsp;&nbsp;&nbsp;&nbsp;:</b> Rp ${jumlah}<br>
+                <b>Tanggal&nbsp;&nbsp; :</b> ${tanggal}
             </div>
         `,
         icon: "question",
-        iconColor: "#F5C518",
+        iconColor: "#ffd700",
         showCancelButton: true,
-        confirmButtonColor: "#F5C518",
+        confirmButtonColor: "#ffd700",
         cancelButtonColor: "#ffffff",
-        confirmButtonText: '<span style="color: #1a1a1a; font-weight: 600;">Ya, Simpan</span>',
-        cancelButtonText: '<span style="color: #e53935; font-weight: 600;">Batal</span>',
+        confirmButtonText: '<span style="color: #281b19; font-weight: 600;">Ya, Simpan</span>',
+        cancelButtonText: '<span style="color: #281b19; font-weight: 600;">Batal</span>',
         customClass: {
             popup: 'kopasmen-swal-popup',
             title: 'kopasmen-swal-title',
@@ -48,33 +48,42 @@ $("#formSimpanan").on("submit", function(e) {
                     .kopasmen-swal-popup {
                         border-radius: 20px !important;
                         padding: 24px !important;
-                        font-family: 'Segoe UI', sans-serif;
+                        font-family: 'poppins', sans-serif !important;
                         box-shadow: 0 8px 32px rgba(0,0,0,0.15) !important;
                     }
                     .kopasmen-swal-title {
-                        font-size: 20px !important;
+                        font-size: 1.25rem !important;
                         font-weight: 700 !important;
-                        color: #1a1a1a !important;
+                        color: #291B18 !important;
+                        margin-bottom: 6px !important;
                     }
                     .kopasmen-confirm-btn {
-                        border-radius: 10px !important;
-                        padding: 10px 28px !important;
-                        font-size: 14px !important;
+                        background: #FFD700 !important;
+                        color: #291B18 !important;
                         border: none !important;
-                        box-shadow: 0 4px 12px rgba(245, 197, 24, 0.45) !important;
+                        border-radius: 6px !important;
+                        padding: 9px 22px !important;
+                        font-weight: 700 !important;
+                        font-size: 0.9rem !important;
+                        cursor: pointer !important;
+                        transition: all 0.2s ease !important;
                     }
                     .kopasmen-cancel-btn {
-                        border-radius: 10px !important;
-                        padding: 10px 28px !important;
-                        font-size: 14px !important;
-                        border: 2px solid #e53935 !important;
-                        box-shadow: none !important;
+                        background: #ffffff !important;
+                        color: #291B18 !important;
+                        border: 2px solid #FFD700 !important;
+                        border-radius: 6px !important;
+                        padding: 9px 22px !important;
+                        font-weight: 600 !important;
+                        font-size: 0.9rem !important;
+                        cursor: pointer !important;
+                        transition: all 0.2s ease !important;
                     }
                     .kopasmen-confirm-btn:hover {
-                        background-color: #e6b800 !important;
+                        background-color: #e6c200 !important;
                     }
                     .kopasmen-cancel-btn:hover {
-                        background-color: #ffeaea !important;
+                        background: #fff8e1 !important;
                     }
                 `;
                 document.head.appendChild(style);
@@ -85,7 +94,7 @@ $("#formSimpanan").on("submit", function(e) {
             Swal.fire({
                 title: "Menyimpan...",
                 text: "Mohon tunggu sebentar",
-                iconColor: "#F5C518",
+                iconColor: "#ffd700",
                 allowOutsideClick: false,
                 customClass: {
                     popup: 'kopasmen-swal-popup',
@@ -95,7 +104,7 @@ $("#formSimpanan").on("submit", function(e) {
                     Swal.showLoading();
                     // Warnai loader spinner
                     const loader = Swal.getLoader();
-                    if (loader) loader.style.borderTopColor = '#F5C518';
+                    if (loader) loader.style.borderTopColor = '#ffd700';
                 }
             });
             form.submit();
