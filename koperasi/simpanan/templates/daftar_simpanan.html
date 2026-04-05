@@ -4,6 +4,56 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/pages/simpanan/daftar_simpanan.css' %}">
+<style>
+.swal-small {
+    border-radius: 12px !important;
+    font-family: inherit !important;
+    background: #fffdf0 !important;
+    max-width: 500px !important;
+    padding: 20px !important;
+}
+
+.swal-small-title {
+    font-weight: 600 !important;
+    font-size: 1.1rem !important;
+    color: #3d2e00 !important;
+    padding-bottom: 0 !important;
+}
+
+.swal-small-input {
+    border: 1.5px solid #fcd34d !important;
+    border-radius: 6px !important;
+    font-size: 0.9rem !important;
+    color: #3d2e00 !important;
+    background: #fffdf0 !important;
+    height: 40px !important;
+    margin-top: 4px !important;
+}
+
+.swal-small-input:focus {
+    border-color: #f5a623 !important;
+    box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.15) !important;
+}
+
+.swal-small-btn {
+    border-radius: 6px !important;
+    font-weight: 600 !important;
+    font-size: 0.875rem !important;
+    padding: 8px 18px !important;
+}
+
+.swal2-validation-message {
+    background: #fef9c3 !important;
+    color: #92400e !important;
+    border-radius: 6px !important;
+    font-size: 0.85rem !important;
+    border: none !important;
+}
+
+.swal2-validation-message::before {
+    color: #92400e !important;
+}
+</style>
 {% endblock %}
 
 {% block title %}Manajemen Simpanan{% endblock %}
@@ -60,19 +110,172 @@
                     <td class="rupiah-text">{{ row.total_sukarela|floatformat:0 }}</td>
                     <td class="rupiah-text">{{ row.total_dana_sosial|floatformat:0 }}</td>
                     <td class="action-group">
-                        <a href="{% url 'simpanan:simpanan_anggota' row.nomor_anggota %}"class="action-view"><i class="ph-bold ph-eye"></i></a>
-                        {% comment %} <a href="#" class="btn-edit"><i class="ph-bold ph-pencil-simple"></i></a> {% endcomment %}
-                        <a href="#" class="action-delete"><i class="ph-bold ph-trash"></i></a>
+                        <a href="{% url 'simpanan:simpanan_anggota' row.nomor_anggota %}" class="action-view">
+                            <i class="ph-bold ph-eye"></i>
+                        </a>
+                        <a href="#"
+                            class="action-delete"
+                            data-nomor="{{ row.nomor_anggota }}"
+                            data-nama="{{ row.nama_anggota }}">
+                            <i class="ph-bold ph-trash"></i>
+                        </a>
                     </td>
                 </tr>
-                {% empty %}
+            {% empty %}
                 <tr>
                     <td colspan="7" class="empty-state">Tidak ada data simpanan</td>
                 </tr>
-                {% endfor %}
-
+            {% endfor %}
         </tbody>
     </table>
-       {% include "includes/pagination.html" with page_obj=page_obj param=param %}
+
+    {% include "includes/pagination.html" with page_obj=page_obj param=param %}
 </div>
+
+{% block extra_js %}
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    document.querySelectorAll(".action-delete").forEach(function(btn) {
+        btn.addEventListener("click", function(e) {
+            e.preventDefault();
+
+            const nomorAnggota = this.dataset.nomor;
+            const namaAnggota  = this.dataset.nama;
+
+            Swal.fire({
+                icon: "warning",
+                iconColor: "#f5a623",
+                title: "Konfirmasi Penghapusan",
+                background: "#fffdf0",
+                color: "#3d2e00",
+                customClass: {
+                    popup:         "swal-small",
+                    title:         "swal-small-title",
+                    input:         "swal-small-input",
+                    confirmButton: "swal-small-btn",
+                    cancelButton:  "swal-small-btn"
+                },
+                html: `
+                    <div style="margin-top:10px">
+                        <p style="margin-bottom:8px; color:#92400e;">
+                            Anda akan menghapus <b>simpanan anggota</b> berikut:
+                        </p>
+                        <div style="
+                            background:#fefce8;
+                            border:1px solid #fcd34d;
+                            padding:10px;
+                            border-radius:6px;
+                            font-weight:600;
+                            color:#78350f;
+                            margin-bottom:15px;
+                        ">
+                            ${namaAnggota}
+                        </div>
+                        <p style="font-size:14px; color:#a07800;">
+                            untuk melanjutkan ketik 
+                            <b style="color:#dc2626;">hapus</b> di bawah ini
+                        </p>
+                    </div>
+                `,
+                input: "text",
+                inputPlaceholder: "ketik 'hapus'",
+                inputAttributes: {
+                    style: "border:1.5px solid #fcd34d; background:#fffdf0; color:#3d2e00;"
+                },
+                showCancelButton: true,
+                confirmButtonText: "Hapus Data",
+                cancelButtonText: "Batal",
+                confirmButtonColor: "#dc3545",
+                cancelButtonColor: "#d97706",
+
+                preConfirm: (value) => {
+                    if (!value) {
+                        Swal.showValidationMessage("Silakan ketik 'hapus' terlebih dahulu");
+                        return false;
+                    }
+                    if (value.toLowerCase() !== "hapus") {
+                        Swal.showValidationMessage("Kata konfirmasi harus 'hapus'");
+                        return false;
+                    }
+                    return true;
+                }
+
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: "Menghapus Data...",
+                        text: "Mohon tunggu sebentar",
+                        background: "#fffdf0",
+                        color: "#3d2e00",
+                        allowOutsideClick: false,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    fetch(`/simpanan/hapus/${nomorAnggota}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': getCookie('csrftoken'),
+                            'Content-Type': 'application/json',
+                        },
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                title: 'Berhasil Dihapus!',
+                                text: data.message,
+                                icon: 'success',
+                                iconColor: '#16a34a',
+                                confirmButtonColor: '#d97706',
+                                background: '#fffdf0',
+                                color: '#3d2e00',
+                                timer: 1800,
+                                showConfirmButton: false
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Gagal!',
+                                text: data.message,
+                                icon: 'error',
+                                confirmButtonColor: '#d97706',
+                                background: '#fffdf0',
+                                color: '#3d2e00',
+                            });
+                        }
+                    })
+                    .catch(() => {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'Terjadi kesalahan pada server.',
+                            icon: 'error',
+                            confirmButtonColor: '#d97706',
+                            background: '#fffdf0',
+                            color: '#3d2e00',
+                        });
+                    });
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
 {% endblock %}

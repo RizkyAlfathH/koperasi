@@ -210,25 +210,109 @@ function handlePerPage(selectId, paramName, resetPages = []) {
             url.searchParams.set(paramName, this.value);
         }
 
-        // reset pagination terkait
         resetPages.forEach(p => url.searchParams.delete(p));
-
         window.location.href = url.toString();
     });
 }
 
-// BULANAN
-handlePerPage(
-    "perPageBulan",
-    "per_page_bulan",
-    ["page_bulan"]
+handlePerPage("perPageBulan", "per_page_bulan", ["page_bulan"]);
+handlePerPage("perPageTahun", "per_page_tahun", ["page_tahun"]);
+
+/* ── POPUP EXPORT EXCEL ── */
+function handleExportLaporan(btnSelector, tableBodySelector, periodeLabel) {
+    const btn = document.querySelector(btnSelector);
+    if (!btn) return;
+
+    btn.addEventListener("click", function (e) {
+        e.preventDefault();
+        const url = this.getAttribute("href");
+
+        const jumlahData = document.querySelectorAll(tableBodySelector + " tr:not(.empty-state-row)").length;
+        const adaEmpty   = document.querySelector(tableBodySelector + " td.empty-state");
+
+        if (jumlahData === 0 || adaEmpty) {
+            Swal.fire({
+                icon: "warning",
+                iconColor: "#f5a623",
+                title: "Tidak Ada Data",
+                background: "#fffdf0",
+                color: "#3d2e00",
+                customClass: {
+                    popup:         "swal-small",
+                    title:         "swal-small-title",
+                    confirmButton: "swal-small-btn"
+                },
+                html: `
+                    <div style="margin-top:12px;">
+                        <div style="font-size:44px; margin-bottom:12px;">📭</div>
+                        <p style="color:#92400e; font-size:14px;">
+                            Belum ada data laporan ${periodeLabel} yang bisa diekspor.
+                        </p>
+                    </div>
+                `,
+                confirmButtonText:  "Oke",
+                confirmButtonColor: "#f5a623"
+            });
+            return;
+        }
+
+        Swal.fire({
+            icon: "question",
+            iconColor: "#f5a623",
+            title: `Export Laporan ${periodeLabel}`,
+            background: "#fffdf0",
+            color: "#3d2e00",
+            customClass: {
+                popup:         "swal-small",
+                title:         "swal-small-title",
+                confirmButton: "swal-small-btn",
+                cancelButton:  "swal-small-btn"
+            },
+            html: `
+                <div style="margin-top:10px;">
+                    <p style="color:#92400e; margin-bottom:12px;">
+                        Anda akan mengekspor data laporan <strong>${periodeLabel}</strong> dalam format:
+                    </p>
+                    <div style="
+                        display:inline-flex; align-items:center; gap:8px;
+                        background:#fefce8; border:1px solid #fcd34d;
+                        padding:10px 20px; border-radius:8px;
+                        font-weight:600; font-size:15px; color:#92400e;
+                    ">
+                        <i class="ph-bold ph-file-xls" style="font-size:20px;"></i>
+                        Excel (.xlsx)
+                    </div>
+                </div>
+            `,
+            showCancelButton:   true,
+            confirmButtonText:  "Ya, Export Sekarang",
+            cancelButtonText:   "Batal",
+            confirmButtonColor: "#f5a623",
+            cancelButtonColor:  "#d97706"
+        }).then(function (result) {
+            if (result.isConfirmed) {
+                Swal.close();
+                const a = document.createElement("a");
+                a.href = url;
+                a.style.display = "none";
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+        });
+    });
+}
+
+handleExportLaporan(
+    ".content-card:nth-child(1) .action-export",
+    ".content-card:nth-child(1) tbody",
+    "Bulanan"
 );
 
-// TAHUNAN
-handlePerPage(
-    "perPageTahun",
-    "per_page_tahun",
-    ["page_tahun"]
+handleExportLaporan(
+    ".content-card:nth-child(2) .action-export",
+    ".content-card:nth-child(2) tbody",
+    "Tahunan"
 );
 </script>
 {% endblock %}

@@ -101,20 +101,25 @@
                     <input type="file" name="excel_file" id="excelInput"
                            accept=".xlsx,.xls" hidden required>
 
-                    <button type="button" class="btn btn-secondary"
-                            onclick="document.getElementById('excelInput').click();">
+                    <!-- ↓ ubah onclick → panggil fungsi popup import -->
+                    <button type="button" class="btn btn-secondary" id="btnImport">
                         <i class="ph-bold ph-file-csv action-import"></i> Import Excel
                     </button>
 
                     <button type="submit" id="submitExcel" hidden></button>
                 </form>
 
-                <!-- export -->
-                <a href="{% url 'anggota:export_excel_anggota' %}" class="btn btn-success">
+                <!-- export excel: tambah id -->
+                <a href="{% url 'anggota:export_excel_anggota' %}"
+                   class="btn btn-success"
+                   id="btnExportExcel">
                     <i class="ph-bold ph-file-xls action-export"></i> Export Excel
                 </a>
 
-                <a href="{% url 'anggota:export_pdf_anggota' %}" class="btn btn-danger">
+                <!-- export pdf: tambah id -->
+                <a href="{% url 'anggota:export_pdf_anggota' %}"
+                   class="btn btn-danger"
+                   id="btnExportPdf">
                     <i class="ph-bold ph-file-pdf action-export"></i> Export PDF
                 </a>
             </div>
@@ -190,106 +195,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-
-/* auto submit saat file excel dipilih */
-document.getElementById("excelInput").addEventListener("change", function () {
-    if (this.files.length > 0) {
-        document.getElementById("submitExcel").click();
-    }
-});
-
-/* konfirmasi hapus data */
-document.querySelectorAll(".action-delete").forEach(function(btn){
-
-    btn.addEventListener("click", function(e){
-
-        e.preventDefault();
-
-        const url = this.getAttribute("href");
-        const name = this.dataset.name;
-        const type = this.dataset.type;
-
-        Swal.fire({
-            icon: "warning",
-            title: "Konfirmasi Penghapusan",
-            customClass: {
-                popup: "swal-small",
-                title: "swal-small-title",
-                input: "swal-small-input",
-                confirmButton: "swal-small-btn",
-                cancelButton: "swal-small-btn"
-            },
-            html: `
-                <div style="margin-top:10px">
-                    <p style="margin-bottom:8px">
-                        Anda akan menghapus <b>${type}</b> berikut:
-                    </p>
-
-                    <div style="
-                        background:#f8f9fa;
-                        border:1px solid #e5e7eb;
-                        padding:10px;
-                        border-radius:6px;
-                        font-weight:600;
-                        margin-bottom:15px;
-                    ">
-                        ${name}
-                    </div>
-
-                    <p style="font-size:14px;color:#666">
-                        untuk melanjutkan ketik 
-                        <b style="color:#dc3545;">hapus</b> di bawah ini
-                    </p>
-                </div>
-            `,
-            input: "text",
-            inputPlaceholder: "ketik 'hapus'",
-            showCancelButton: true,
-            confirmButtonText: "Hapus Data",
-            cancelButtonText: "Batal",
-            confirmButtonColor: "#dc3545",
-            cancelButtonColor: "#6c757d",
-
-            preConfirm: (value) => {
-
-                if (!value) {
-                    Swal.showValidationMessage("Silakan ketik 'hapus' terlebih dahulu");
-                    return false;
-                }
-
-                if (value.toLowerCase() !== "hapus") {
-                    Swal.showValidationMessage("Kata konfirmasi harus 'hapus'");
-                    return false;
-                }
-
-                return true;
-            }
-
-        }).then((result)=>{
-
-            if(result.isConfirmed){
-
-                Swal.fire({
-                    title: "Menghapus Data...",
-                    text: "Mohon tunggu sebentar",
-                    allowOutsideClick: false,
-                    showConfirmButton: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-
-                setTimeout(() => {
-                    window.location.href = url;
-                }, 600);
-
-            }
-
-        });
-
-    });
-
-});
-</script>
+<script src="{% static 'js/anggota/kelola_akun.js' %}"></script>
 {% endblock %}

@@ -521,58 +521,166 @@ def cek_email(request):
     })
 
 
-# -- EXPORT EXCEL DATA ANGGOTA -- #
+def _thin_border(left=True, right=True, top=True, bottom=True):
+    thin = Side(style="thin")
+    no = Side(style=None)
+    return Border(
+        left=thin if left else no,
+        right=thin if right else no,
+        top=thin if top else no,
+        bottom=thin if bottom else no,
+    )
+
+
+def _header_fill():
+    # Theme color 6 (light blue/grey header) — matched from original file
+    fill = PatternFill(fill_type="solid")
+    fill.fgColor.theme = 6
+    fill.fgColor.type = "theme"
+    return fill
+
 @login_required
 def export_excel_anggota(request):
     if request.user.role not in ROLE_ADMIN:
         return redirect("dashboard")
-
+ 
     wb = openpyxl.Workbook()
     ws = wb.active
-    ws.title = "Daftar Anggota"
-
+    ws.title = "Sheet1"
+ 
+    # Lebar kolom (exact match dari template)
+    col_widths = {
+        "A": 12.140625, "B": 14.42578125, "C": 27.0,      "D": 6.85546875,
+        "E": 5.0,        "F": 28.0,        "G": 28.0,      "H": 24.5703125,
+        "I": 16.5703125, "J": 9.140625,    "K": 13.0,      "L": 12.5703125,
+        "M": 12.140625,  "N": 12.7109375,  "O": 9.140625,
+    }
+    for col_letter, width in col_widths.items():
+        ws.column_dimensions[col_letter].width = width
+ 
+    ws.row_dimensions[1].height = 18.75
+    ws.row_dimensions[2].height = 15.75
+    ws.row_dimensions[4].height = 75.0
+ 
+    # Row 1 — judul utama
+    ws.merge_cells("A1:O1")
+    ws["A1"] = "ANGGOTA PERKUMPULAN KOPERASI"
+    ws["A1"].font = Font(bold=True, size=14)
+    ws["A1"].alignment = Alignment(horizontal="center", vertical="center")
+ 
+    # Row 2 — section header
+    ws.merge_cells("A2:K2")
+    ws["A2"] = "DITERIMA SEBAGAI ANGGOTA "
+    ws["A2"].font = Font(bold=True, size=12)
+    ws["A2"].fill = _header_fill()
+    ws["A2"].alignment = Alignment(horizontal="center", vertical="center")
+    ws["A2"].border = _thin_border()
+    ws["K2"].border = Border(right=Side(style="thin"))
+ 
+    ws.merge_cells("L2:O2")
+    ws["L2"] = "BERHENTI SEBAGAI ANGGOTA"
+    ws["L2"].font = Font(bold=True, size=12)
+    ws["L2"].fill = _header_fill()
+    ws["L2"].alignment = Alignment(horizontal="center", vertical="center")
+    ws["L2"].border = _thin_border()
+ 
+    # Row 3 — kosong (spacer)
+ 
+    # Row 4 — header kolom
     headers = [
-        "No. Anggota", "Nama", "NIP", "Alamat", "No. Telepon",
-        "Email", "Jenis Kelamin", "Tanggal Daftar",
-        "Status", "Tanggal Nonaktif", "Alasan Nonaktif"
+        ("A4", "Nomor Urut",                     False),
+        ("B4", "NA",                              False),
+        ("C4", "Nama",                            False),
+        ("D4", "Umur",                            False),
+        ("E4", "L/P",                             False),
+        ("F4", "Pekerjaan",                       False),
+        ("G4", "Alamat",                          False),
+        ("H4", "Tanggal, Tahun, Bulan",           True),
+        ("I4", "Tanggal masuk menjadi Anggota",   True),
+        ("J4", "Tanda Tangan Anggota",            True),
+        ("K4", "Tanda Tangan Ketua dan Tanggal",  True),
+        ("L4", "Tanggal minta Berhenti",          True),
+        ("M4", "Tanggal berhenti/dipecat",        True),
+        ("N4", "Sebab-sebab berhenti/dipecat",    True),
+        ("O4", "Tanda Tangan dan Tanggal",        True),
     ]
-    ws.append(headers)
-
-    header_fill = PatternFill("solid", fgColor="FFFF00")
-    header_font = Font(bold=True)
-    border = Border(
-        left=Side(style="thin"), right=Side(style="thin"),
-        top=Side(style="thin"), bottom=Side(style="thin")
-    )
-
-    for cell in ws[1]:
-        cell.fill = header_fill
-        cell.font = header_font
-        cell.alignment = Alignment(horizontal="center")
-        cell.border = border
-
-    for anggota in Anggota.objects.all().order_by("nomor_anggota"):
-        ws.append([
-            anggota.nomor_anggota,
-            anggota.nama,
-            anggota.nip,
-            anggota.alamat,
-            anggota.no_telp,
-            anggota.email,
-            anggota.jenis_kelamin,
-            anggota.tanggal_daftar.strftime("%d-%m-%Y") if anggota.tanggal_daftar else "-",
-            anggota.status,
-            anggota.tanggal_nonaktif.strftime("%d-%m-%Y") if anggota.tanggal_nonaktif else "-",
-            anggota.alasan_nonaktif or "-"
-        ])
-
-    for col in ws.columns:
-        ws.column_dimensions[col[0].column_letter].width = 18
-
+    for coord, text, wrap in headers:
+        cell = ws[coord]
+        cell.value = text
+        cell.fill = _header_fill()
+        cell.font = Font(size=11)
+        cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=wrap)
+        cell.border = _thin_border()
+ 
+    # Row 5 — nomor kolom
+    col_numbers = {
+        "A5": 1,  "B5": None, "C5": 2,  "D5": 3,  "E5": 4,
+        "F5": 5,  "G5": 6,    "H5": 7,  "I5": 8,  "J5": 9,
+        "K5": 10, "L5": 11,   "M5": 12, "N5": 13, "O5": 14,
+    }
+    for coord, val in col_numbers.items():
+        cell = ws[coord]
+        cell.value = val
+        cell.font = Font(size=11)
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+        cell.border = _thin_border()
+ 
+    # Row 6+ — data anggota
+    for idx, anggota in enumerate(Anggota.objects.all().order_by("nomor_anggota"), start=1):
+        row = idx + 5
+        ws.row_dimensions[row].height = 60.0
+ 
+        is_aktif = anggota.status == "aktif"
+ 
+        # Nama: kuning = AKTIF, tanpa fill = NONAKTIF (sesuai konvensi file asli)
+        nama_fill = (
+            PatternFill(fill_type="solid", fgColor="FFFF00")
+            if is_aktif
+            else PatternFill(fill_type=None)
+        )
+ 
+        jk_export = (
+            "L" if anggota.jenis_kelamin == "Laki-laki"
+            else "P" if anggota.jenis_kelamin == "Perempuan"
+            else anggota.jenis_kelamin
+        )
+ 
+        tgl_daftar_str   = anggota.tanggal_daftar.strftime("%d-%m-%Y")   if anggota.tanggal_daftar   else None
+        tgl_nonaktif_str = anggota.tanggal_nonaktif.strftime("%d-%m-%Y") if anggota.tanggal_nonaktif else None
+        alasan           = anggota.alasan_nonaktif if not is_aktif else None
+ 
+        # (col_letter, value, halign, wrap, fill)
+        row_data = [
+            ("A", idx,                          "center", False, PatternFill(fill_type=None)),
+            ("B", anggota.nomor_anggota,        "center", False, PatternFill(fill_type=None)),
+            ("C", anggota.nama,                 "left",   False, nama_fill),
+            ("D", getattr(anggota, "umur", None), "center", False, PatternFill(fill_type=None)),
+            ("E", jk_export,                    "center", False, PatternFill(fill_type=None)),
+            ("F", getattr(anggota, "pekerjaan", None) or "-", "center", False, PatternFill(fill_type=None)),
+            ("G", anggota.alamat,               "center", True,  PatternFill(fill_type=None)),
+            ("H", None,                         "center", True,  PatternFill(fill_type=None)),   # tanggal lahir — tidak ada di model
+            ("I", tgl_daftar_str,               "center", False, PatternFill(fill_type=None)),   # tanggal_daftar
+            ("J", None,                         "center", False, PatternFill(fill_type=None)),
+            ("K", None,                         "center", False, PatternFill(fill_type=None)),
+            ("L", tgl_nonaktif_str,             "center", False, PatternFill(fill_type=None)),   # tanggal_nonaktif
+            ("M", tgl_nonaktif_str,             "center", False, PatternFill(fill_type=None)),   # tanggal_nonaktif
+            ("N", alasan,                       "center", False, PatternFill(fill_type=None)),   # alasan_nonaktif
+            ("O", None,                         "center", False, PatternFill(fill_type=None)),
+        ]
+ 
+        for col_letter, value, halign, wrap, fill in row_data:
+            cell = ws[f"{col_letter}{row}"]
+            cell.value = value
+            cell.font = Font(size=11)
+            cell.alignment = Alignment(horizontal=halign, vertical="center", wrap_text=wrap)
+            cell.border = _thin_border()
+            if fill.fill_type:
+                cell.fill = fill
+ 
     response = HttpResponse(
         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
-    response["Content-Disposition"] = 'attachment; filename="anggota_koperasi.xlsx"'
+    response["Content-Disposition"] = 'attachment; filename="Daftar_Anggota.xlsx"'
     wb.save(response)
     return response
 
@@ -634,7 +742,7 @@ def export_pdf_anggota(request):
 def import_excel_anggota(request):
     if request.user.role not in ROLE_ADMIN:
         return redirect("dashboard")
-
+ 
     if request.method == "POST" and request.FILES.get("excel_file"):
         try:
             wb = load_workbook(request.FILES["excel_file"], data_only=True)
@@ -642,97 +750,109 @@ def import_excel_anggota(request):
         except Exception:
             messages.error(request, "File Excel tidak bisa dibaca")
             return redirect("anggota:kelola_akun")
-
+ 
         sukses = 0
-        gagal = 0
-
-        # mulai dari baris ke-4 (header sampai baris 3)
-        for idx, row in enumerate(ws.iter_rows(min_row=4), start=4):
+        gagal  = 0
+ 
+        # Baris 1=judul, 2=section header, 3=kosong, 4=header kolom, 5=nomor kolom
+        # Data mulai baris 6
+        for row in ws.iter_rows(min_row=6):
             try:
-                # Nomor Anggota
                 nomor_anggota = str(row[1].value).strip() if row[1].value else None
-                nama = row[2].value
-
+                nama          = str(row[2].value).strip() if row[2].value else None
+ 
                 if not nomor_anggota or not nama:
                     continue
-
-                # hanya format NA xxx
+ 
                 if not re.match(r"^NA\s*\d+", nomor_anggota):
                     continue
-
-                # Jenis Kelamin
-                jk_excel = str(row[4].value).strip().upper() if row[4].value else ""
-
-                if jk_excel == "L":
+ 
+                # Jenis kelamin: L/P di file → Laki-laki/Perempuan di DB
+                jk_raw = str(row[4].value).strip().upper() if row[4].value else ""
+                if jk_raw == "L":
                     jenis_kelamin = "Laki-laki"
-                elif jk_excel == "P":
+                elif jk_raw == "P":
                     jenis_kelamin = "Perempuan"
                 else:
                     jenis_kelamin = "Laki-laki"
-
-                # Umur
-                umur = row[3].value if isinstance(row[3].value, int) else None
-
-                # Pekerjaan
-                pekerjaan = row[5].value or "-"
-
-                # Alamat
-                alamat = row[6].value or "-"
-
-                # Tanggal Daftar
+ 
+                umur      = row[3].value if isinstance(row[3].value, int) else None
+                pekerjaan = str(row[5].value).strip() if row[5].value else "-"
+                alamat    = str(row[6].value).strip() if row[6].value else "-"
+ 
+                # Kolom I (index 8) = tanggal masuk menjadi anggota
                 tgl_daftar = row[8].value
                 if isinstance(tgl_daftar, datetime):
                     tgl_daftar = tgl_daftar.date()
+                elif isinstance(tgl_daftar, str):
+                    try:
+                        tgl_daftar = datetime.strptime(tgl_daftar.strip(), "%d-%m-%Y").date()
+                    except ValueError:
+                        tgl_daftar = date.today()
                 else:
                     tgl_daftar = date.today()
-
-                # Tanggal Nonaktif
+ 
+                # Kolom M (index 12) = tanggal berhenti/dipecat
                 tgl_nonaktif = row[12].value
                 if isinstance(tgl_nonaktif, datetime):
                     tgl_nonaktif = tgl_nonaktif.date()
+                elif isinstance(tgl_nonaktif, str):
+                    try:
+                        tgl_nonaktif = datetime.strptime(tgl_nonaktif.strip(), "%d-%m-%Y").date()
+                    except ValueError:
+                        tgl_nonaktif = None
                 else:
                     tgl_nonaktif = None
-
-                # Alasan Nonaktif
-                alasan_nonaktif = row[13].value or "-"
-
-                # Simpan dan Update
+ 
+                # Kolom N (index 13) = sebab berhenti
+                alasan_nonaktif = str(row[13].value).strip() if row[13].value else None
+ 
+                # Status: nonaktif jika ada tanggal_nonaktif, aktif jika tidak
+                status = "nonaktif" if tgl_nonaktif else "aktif"
+ 
+                # Jika aktif, bersihkan data nonaktif
+                if status == "aktif":
+                    tgl_nonaktif    = None
+                    alasan_nonaktif = None
+ 
                 anggota, created = Anggota.objects.update_or_create(
                     nomor_anggota=nomor_anggota,
                     defaults={
-                        "nama": nama,
-                        "umur": umur,
-                        "jenis_kelamin": jenis_kelamin,
-                        "pekerjaan": pekerjaan,
-                        "alamat": alamat,
-                        "tanggal_daftar": tgl_daftar,
+                        "nama":             nama,
+                        "umur":             umur,
+                        "jenis_kelamin":    jenis_kelamin,
+                        "pekerjaan":        pekerjaan,
+                        "alamat":           alamat,
+                        "tanggal_daftar":   tgl_daftar,
                         "tanggal_nonaktif": tgl_nonaktif,
-                        "status": "nonaktif" if tgl_nonaktif else "aktif",
-                        "alasan_nonaktif": alasan_nonaktif,
-
-                        # kolom yang tidak ada di Excel
-                        "nip": "-",
-                        "no_telp": "-",
-                        "email": "-",
+                        "alasan_nonaktif":  alasan_nonaktif,
+                        "status":           status,
+                        "nip":              "-",
+                        "no_telp":          "-",
+                        "email":            "-",
                     }
                 )
-
-                # Password default (HANYA JIKA BARU)
+ 
                 if created:
                     anggota.set_password("12345")
                     anggota.save()
-
+ 
                 sukses += 1
-
-            except Exception as e:
+ 
+            except Exception:
                 gagal += 1
-                # print(f"Error baris {idx}: {e}")
-
-        messages.success(
-            request,
-            f"Import selesai: {sukses} berhasil, {gagal} gagal"
-        )
+ 
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return JsonResponse({
+                "success": gagal == 0,
+                "imported": sukses,
+                "failed": gagal,
+                "errors": []
+            })
+        messages.success(request, f"Import selesai: {sukses} berhasil, {gagal} gagal")
         return redirect("anggota:kelola_akun")
-
+ 
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return JsonResponse({"success": False, "imported": 0, "failed": 0, "errors": ["File Excel tidak valid"]})
     messages.error(request, "File Excel tidak valid")
-    return redirect("kelola_akun")
+    return redirect("anggota:kelola_akun")
