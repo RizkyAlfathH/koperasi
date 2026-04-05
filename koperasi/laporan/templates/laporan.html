@@ -218,101 +218,175 @@ function handlePerPage(selectId, paramName, resetPages = []) {
 handlePerPage("perPageBulan", "per_page_bulan", ["page_bulan"]);
 handlePerPage("perPageTahun", "per_page_tahun", ["page_tahun"]);
 
-/* ── POPUP EXPORT EXCEL ── */
-function handleExportLaporan(btnSelector, tableBodySelector, periodeLabel) {
-    const btn = document.querySelector(btnSelector);
-    if (!btn) return;
+$(function () {
 
-    btn.addEventListener("click", function (e) {
-        e.preventDefault();
-        const url = this.getAttribute("href");
+    // ── Inject style KOPASMEN SweetAlert ─────────────────────────
+    if (!document.getElementById('kopasmen-swal-style')) {
+        const style = document.createElement('style');
+        style.id = 'kopasmen-swal-style';
+        style.textContent = `
+            .kopasmen-swal-popup {
+                border-radius: 20px !important;
+                padding: 24px !important;
+                font-family: 'poppins', sans-serif !important;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.15) !important;
+            }
+            .kopasmen-swal-title {
+                font-size: 1.25rem !important;
+                font-weight: 700 !important;
+                color: #291B18 !important;
+                margin-bottom: 6px !important;
+            }
+            .kopasmen-confirm-btn {
+                background: #FFD700 !important;
+                color: #291B18 !important;
+                border: none !important;
+                border-radius: 6px !important;
+                padding: 9px 22px !important;
+                font-weight: 700 !important;
+                font-size: 0.9rem !important;
+                cursor: pointer !important;
+                transition: all 0.2s ease !important;
+            }
+            .kopasmen-cancel-btn {
+                background: #ffffff !important;
+                color: #291B18 !important;
+                border: 2px solid #FFD700 !important;
+                border-radius: 6px !important;
+                padding: 9px 22px !important;
+                font-weight: 600 !important;
+                font-size: 0.9rem !important;
+                cursor: pointer !important;
+                transition: all 0.2s ease !important;
+            }
+            .kopasmen-confirm-btn:hover {
+                background-color: #e6c200 !important;
+            }
+            .kopasmen-cancel-btn:hover {
+                background: #fff8e1 !important;
+            }
+        `;
+        document.head.appendChild(style);
+    }
 
-        const jumlahData = document.querySelectorAll(tableBodySelector + " tr:not(.empty-state-row)").length;
-        const adaEmpty   = document.querySelector(tableBodySelector + " td.empty-state");
+    // ── Fungsi popup export laporan ─────────────────────────────
+    function handleExportLaporan(btnSelector, tableBodySelector, periodeLabel) {
+        const btn = $(btnSelector);
+        if (!btn.length) return;
 
-        if (jumlahData === 0 || adaEmpty) {
+        btn.on('click', function (e) {
+            e.preventDefault();
+            const url = $(this).attr('href');
+
+            const jumlahData = $(tableBodySelector + " tr:not(.empty-state-row)").length;
+            const adaEmpty   = $(tableBodySelector + " td.empty-state").length;
+
+            if (jumlahData === 0 || adaEmpty) {
+                Swal.fire({
+                    icon: "warning",
+                    iconColor: "#FFD700",
+                    title: "Tidak Ada Data",
+                    customClass: {
+                        popup:         'kopasmen-swal-popup',
+                        title:         'kopasmen-swal-title',
+                        confirmButton: 'kopasmen-confirm-btn'
+                    },
+                    html: `
+                        <div style="margin-top:12px; font-size:14px; color:#92400e;">
+                            Belum ada data laporan <strong>${periodeLabel}</strong> yang bisa diekspor.
+                        </div>
+                    `,
+                    confirmButtonText: "Oke",
+                });
+                return;
+            }
+
             Swal.fire({
-                icon: "warning",
-                iconColor: "#f5a623",
-                title: "Tidak Ada Data",
-                background: "#fffdf0",
-                color: "#3d2e00",
+                icon: "question",
+                iconColor: "#FFD700",
+                title: `Export Laporan ${periodeLabel}`,
+                showCancelButton: true,
+                confirmButtonText: '<span style="color:#291B18; font-weight:600;">Ya, Export Sekarang</span>',
+                cancelButtonText: '<span style="color:#291B18; font-weight:600;">Batal</span>',
+                confirmButtonColor: "#FFD700",
+                cancelButtonColor: "#ffffff",
                 customClass: {
-                    popup:         "swal-small",
-                    title:         "swal-small-title",
-                    confirmButton: "swal-small-btn"
+                    popup:         'kopasmen-swal-popup',
+                    title:         'kopasmen-swal-title',
+                    confirmButton: 'kopasmen-confirm-btn',
+                    cancelButton:  'kopasmen-cancel-btn'
                 },
                 html: `
-                    <div style="margin-top:12px;">
-                        <div style="font-size:44px; margin-bottom:12px;">📭</div>
-                        <p style="color:#92400e; font-size:14px;">
-                            Belum ada data laporan ${periodeLabel} yang bisa diekspor.
+                    <div style="margin-top:10px; font-size:14px;">
+                        <p style="color:#92400e; margin-bottom:12px;">
+                            Anda akan mengekspor data laporan <strong>${periodeLabel}</strong> dalam format:
                         </p>
+                        <div style="
+                            display:inline-flex; align-items:center; gap:8px;
+                            background:#fefce8; border:1px solid #fcd34d;
+                            padding:10px 20px; border-radius:8px;
+                            font-weight:600; font-size:15px; color:#92400e;
+                        ">
+                            <i class="ph-bold ph-file-xls" style="font-size:20px;"></i>
+                            Excel (.xlsx)
+                        </div>
                     </div>
                 `,
-                confirmButtonText:  "Oke",
-                confirmButtonColor: "#f5a623"
+            }).then(function (result) {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Memproses...',
+                        text: 'Mohon tunggu sebentar',
+                        iconColor: '#FFD700',
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+
+                    // Download via fetch agar bisa tau kapan selesai
+                    fetch(url)
+                    .then(resp => resp.blob().then(blob => ({ blob, headers: resp.headers })))
+                    .then(({ blob, headers }) => {
+                        // Cek nama file dari header Content-Disposition
+                        let filename = "file.xlsx";
+                        const disposition = headers.get('Content-Disposition');
+                        if (disposition && disposition.includes('filename=')) {
+                            filename = disposition.split('filename=')[1].replace(/["']/g, '');
+                        } else {
+                            // fallback: ambil dari URL
+                            filename = url.split("/").pop();
+                        }
+
+                        const a = document.createElement("a");
+                        a.href = URL.createObjectURL(blob);
+                        a.download = filename;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+
+                        Swal.close(); // stop loader setelah file siap
+                    })
+                    .catch(err => {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Gagal mendownload file",
+                            text: err,
+                            confirmButtonText: "Oke",
+                            customClass: {
+                                popup: 'kopasmen-swal-popup',
+                                title: 'kopasmen-swal-title',
+                                confirmButton: 'kopasmen-confirm-btn'
+                            }
+                        });
+                    });
+                }
             });
-            return;
-        }
-
-        Swal.fire({
-            icon: "question",
-            iconColor: "#f5a623",
-            title: `Export Laporan ${periodeLabel}`,
-            background: "#fffdf0",
-            color: "#3d2e00",
-            customClass: {
-                popup:         "swal-small",
-                title:         "swal-small-title",
-                confirmButton: "swal-small-btn",
-                cancelButton:  "swal-small-btn"
-            },
-            html: `
-                <div style="margin-top:10px;">
-                    <p style="color:#92400e; margin-bottom:12px;">
-                        Anda akan mengekspor data laporan <strong>${periodeLabel}</strong> dalam format:
-                    </p>
-                    <div style="
-                        display:inline-flex; align-items:center; gap:8px;
-                        background:#fefce8; border:1px solid #fcd34d;
-                        padding:10px 20px; border-radius:8px;
-                        font-weight:600; font-size:15px; color:#92400e;
-                    ">
-                        <i class="ph-bold ph-file-xls" style="font-size:20px;"></i>
-                        Excel (.xlsx)
-                    </div>
-                </div>
-            `,
-            showCancelButton:   true,
-            confirmButtonText:  "Ya, Export Sekarang",
-            cancelButtonText:   "Batal",
-            confirmButtonColor: "#f5a623",
-            cancelButtonColor:  "#d97706"
-        }).then(function (result) {
-            if (result.isConfirmed) {
-                Swal.close();
-                const a = document.createElement("a");
-                a.href = url;
-                a.style.display = "none";
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-            }
         });
-    });
-}
+    }
 
-handleExportLaporan(
-    ".content-card:nth-child(1) .action-export",
-    ".content-card:nth-child(1) tbody",
-    "Bulanan"
-);
+    // ── Inisialisasi export laporan ─────────────────────────────
+    handleExportLaporan(".content-card:nth-child(1) .action-export", ".content-card:nth-child(1) tbody", "Bulanan");
+    handleExportLaporan(".content-card:nth-child(2) .action-export", ".content-card:nth-child(2) tbody", "Tahunan");
 
-handleExportLaporan(
-    ".content-card:nth-child(2) .action-export",
-    ".content-card:nth-child(2) tbody",
-    "Tahunan"
-);
+});
 </script>
 {% endblock %}
