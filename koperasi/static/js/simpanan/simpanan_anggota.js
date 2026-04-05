@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", function () {
           icon: 'warning',
           title: 'Saldo Tidak Cukup',
           text: 'Saldo simpanan masih 0, tidak bisa melakukan penarikan.',
-          confirmButtonColor: '#c9a227'
+          confirmButtonColor: '#ffd700',
         });
       }
     });
