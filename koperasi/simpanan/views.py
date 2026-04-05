@@ -311,7 +311,7 @@ def simpanan_anggota(request, nomor_anggota):
         jenis_list = []
 
     for jenis in jenis_list:
-        try:  # ✅ tangkap error per-jenis agar satu error tidak rusak semua
+        try:
             total_setor = (
                 Simpanan.objects.filter(
                     anggota=anggota,
@@ -326,20 +326,21 @@ def simpanan_anggota(request, nomor_anggota):
                 ).aggregate(total=Sum('jumlah'))['total'] or 0
             )
 
-            koreksi = qs.filter(
-                jenis_transaksi='KOREKSI'
-            ).aggregate(total=Sum('jumlah'))['total'] or 0  # sudah negatif
+            saldo = total_setor - total_tarik
 
-            saldo = setor - tarik + koreksi
+            if saldo > 0:  # ✅ hanya tampilkan jika saldo > 0
+                last_transaksi = HistoryTabungan.objects.filter(
+                    anggota=anggota,
+                    jenis_simpanan=jenis
+                ).order_by('-id').first()
 
-            last_transaksi = qs.order_by('-id').first()
+                data_saldo.append({
+                    'jenis': jenis.get_nama_jenis_display(),
+                    'jenis_id': jenis.id,
+                    'saldo': saldo,
+                    'last_id': last_transaksi.id if last_transaksi else None
+                })
 
-            data_saldo.append({
-                'jenis': jenis.get_nama_jenis_display(),
-                'jenis_id': jenis.id,
-                'saldo': saldo,
-                'last_id': last_transaksi.id if last_transaksi else None
-            })
         except Exception as e:
             messages.warning(request, f"Gagal memuat saldo jenis {jenis}: {str(e)}")
             continue

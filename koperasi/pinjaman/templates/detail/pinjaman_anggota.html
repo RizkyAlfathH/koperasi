@@ -14,9 +14,12 @@
     <h2>Pinjaman {{ anggota.nama }} ({{ anggota.nomor_anggota }})</h2>
 
     <!-- ===== TOMBOL BAYAR ===== -->
-    <button class="btn-simpan" onclick="openBayarModal()"> Bayar</button>
+    {% if pinjaman_aktif %}
+        <button class="btn-simpan" onclick="openBayarModal()"> Bayar</button>
+    {% endif %}
 
     <!-- ===== MODAL BAYAR ===== -->
+    {% if pinjaman_aktif %}
     <div id="bayarModal" class="bayar-modal">
         <div class="bayar-card">
             <h5>Pilih Pinjaman Untuk Dibayar</h5>
@@ -28,14 +31,13 @@
                             Pinjaman {{ p.id_jenis_pinjaman.nama_jenis }}
                         </a>
                     </li>
-                {% empty %}
-                    <li class="empty">Tidak ada pinjaman aktif</li>
                 {% endfor %}
             </ul>
 
             <button class="btn-tutup" onclick="closeBayarModal()">Tutup</button>
         </div>
     </div>
+    {% endif %}
 
     <!-- ===== TABEL PINJAMAN AKTIF ===== -->
     <table class="data-table" style="margin-top:20px;">
