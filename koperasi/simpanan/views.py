@@ -328,22 +328,25 @@ def simpanan_anggota(request, nomor_anggota):
 
             saldo = total_setor - total_tarik
 
-            if saldo > 0:  # ✅ hanya tampilkan jika saldo > 0
-                last_transaksi = HistoryTabungan.objects.filter(
-                    anggota=anggota,
-                    jenis_simpanan=jenis
-                ).order_by('-id').first()
+            last_transaksi = HistoryTabungan.objects.filter(
+                anggota=anggota,
+                jenis_simpanan=jenis
+            ).order_by('-id').first()
 
-                data_saldo.append({
-                    'jenis': jenis.get_nama_jenis_display(),
-                    'jenis_id': jenis.id,
-                    'saldo': saldo,
-                    'last_id': last_transaksi.id if last_transaksi else None
-                })
+            data_saldo.append({
+                'jenis': jenis.get_nama_jenis_display(),
+                'jenis_id': jenis.id,
+                'saldo': saldo,
+                'last_id': last_transaksi.id if last_transaksi else None
+            })
 
         except Exception as e:
             messages.warning(request, f"Gagal memuat saldo jenis {jenis}: {str(e)}")
             continue
+
+    # cek jika semua saldo 0, kosongkan data_saldo supaya template bisa menampilkan "Tidak ada simpanan"
+    if all(item['saldo'] == 0 for item in data_saldo):
+        data_saldo = []
 
     return render(request, "detail/simpanan_anggota.html", {
         'username': request.user.username,
