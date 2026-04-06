@@ -1,5 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator, EmailValidator
 from django.contrib.auth import get_user_model
 from .models import Anggota
 
@@ -138,6 +139,53 @@ class AnggotaForm(forms.ModelForm):
         label="Password"
     )
 
+    no_telp = forms.CharField(
+        label="Nomor Telepon",
+        validators=[
+            RegexValidator(
+                regex=r'^\d+$',
+                message='Nomor Telepon hanya boleh berisi angka.'
+            )
+        ]
+    )
+
+    email = forms.CharField(
+        label="Email",
+        validators=[
+            EmailValidator(message="Masukkan alamat email yang valid.")
+        ]
+    )
+
+    umur = forms.IntegerField(
+        label="Umur",
+        min_value=0,
+        error_messages={
+            "required": "Umur wajib diisi.",
+            "invalid": "Umur harus berupa angka bulat (contoh: 15, bukan 15.5).",
+            "min_value": "Umur tidak boleh negatif."
+        }
+    )
+
+    pekerjaan = forms.CharField(
+        label="Pekerjaan",
+        validators=[
+            RegexValidator(
+                regex=r'[a-zA-Z]',
+                message='Pekerjaan harus mengandung huruf.'
+            )
+        ]
+    )
+
+    alamat = forms.CharField(
+        label="Alamat",
+        validators=[
+            RegexValidator(
+                regex=r'[a-zA-Z]',
+                message='Alamat harus mengandung huruf.'
+            )
+        ]
+    )
+
     class Meta:
         model = Anggota
         exclude = ["password_hash"]
@@ -145,13 +193,8 @@ class AnggotaForm(forms.ModelForm):
         labels = {
             "nomor_anggota": "Nomor Anggota",
             "nama": "Nama Lengkap",
-            "umur": "Umur",
             "nip": "NIP",
-            "alamat": "Alamat",
-            "no_telp": "Nomor Telepon",
-            "email": "Email",
             "jenis_kelamin": "Jenis Kelamin",
-            "pekerjaan": "Pekerjaan",
             "tanggal_daftar": "Tanggal Daftar",
             "status": "Status",
             "alasan_nonaktif": "Alasan Tidak Aktif",
@@ -172,37 +215,28 @@ class AnggotaForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # ===============================
         # mode edit vs tambah
-        # ===============================
         if self.instance.pk:
             # edit
             self.fields["password"].required = False
             self.fields["password"].label = "Password Baru"
             self.fields["password"].widget.attrs["placeholder"] = \
                 "Masukkan password baru (opsional)"
-
-            # ❗ penting: nomor anggota tidak boleh diubah
+            # nomor anggota tidak boleh diubah
             self.fields["nomor_anggota"].disabled = True
-
         else:
-            # tambah
             self.fields["password"].required = True
             self.fields["password"].widget.attrs["placeholder"] = \
                 "Masukkan password"
 
-        # ===============================
         # error wajib isi
-        # ===============================
         for field in self.fields.values():
             if field.required:
                 field.error_messages.update({
                     "required": f"{field.label} wajib diisi."
                 })
 
-        # ===============================
         # placeholder
-        # ===============================
         placeholders = {
             "nomor_anggota": "Masukkan nomor anggota",
             "nama": "Masukkan nama lengkap",
@@ -224,9 +258,7 @@ class AnggotaForm(forms.ModelForm):
         self.fields["tanggal_daftar"].input_formats = ["%Y-%m-%d"]
         self.fields["tanggal_nonaktif"].input_formats = ["%Y-%m-%d"]
 
-    # ===============================
     # validasi tambahan
-    # ===============================
     def clean(self):
         cleaned_data = super().clean()
         status = cleaned_data.get("status")
@@ -241,18 +273,18 @@ class AnggotaForm(forms.ModelForm):
 
         return cleaned_data
 
-    # ===============================
+    def clean_no_telp(self):
+        no_telp = self.cleaned_data.get("no_telp")
+        if no_telp and not no_telp.isdigit():
+            raise forms.ValidationError("Nomor Telepon hanya boleh berisi angka.")
+        return no_telp
+
     # simpan data
-    # ===============================
     def save(self, commit=True):
         anggota = super().save(commit=False)
-
         password = self.cleaned_data.get("password")
-
         if password:
             anggota.set_password(password)
-
         if commit:
             anggota.save()
-
         return anggota

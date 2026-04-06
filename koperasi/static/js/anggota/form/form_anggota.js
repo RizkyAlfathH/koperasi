@@ -134,9 +134,12 @@ function konfirmasiSimpan(formEl) {
         title: 'Konfirmasi',
         text: 'Apakah data ingin disimpan?',
         icon: 'question',
+        iconColor: '#ffd700',
         showCancelButton: true,
-        confirmButtonText: '<span style="color: #281b19; font-weight: 600;">Ya, Simpan</span>',
-        cancelButtonText: '<span style="color: #281b19; font-weight: 600;">Batal</span>',
+        confirmButtonColor: '#291B18',
+        cancelButtonColor: '#ffffff',
+        confirmButtonText: '<span style="color:#291B18; font-weight:600;">Ya, Simpan</span>',
+        cancelButtonText: '<span style="color:#291B18; font-weight:600;">Batal</span>',
     }).then((result) => {
 
         /* jika user konfirmasi */
