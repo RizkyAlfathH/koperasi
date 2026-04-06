@@ -7,11 +7,10 @@ from .models import Anggota
 User = get_user_model()
 
 
-# ======================================
-# form admin
-# ======================================
+# form admin (class berbasis ModelForm)
 class AdminForm(forms.ModelForm):
 
+    # field tambahan (objek dari forms.CharField)
     password = forms.CharField(
         widget=forms.PasswordInput(attrs={
             "placeholder": "Masukkan password",
@@ -24,8 +23,9 @@ class AdminForm(forms.ModelForm):
         }
     )
 
+    # class Meta (konfigurasi model form)
     class Meta:
-        model = User
+        model = User  # relasi ke model User
         fields = ["username", "role"]
         labels = {
             "username": "Username",
@@ -37,6 +37,7 @@ class AdminForm(forms.ModelForm):
             }),
         }
 
+    # method constructor (dipanggil saat objek form dibuat)
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -44,7 +45,7 @@ class AdminForm(forms.ModelForm):
         self.fields["username"].required = True
         self.fields["role"].required = True
 
-        # pesan error
+        # pengaturan pesan error
         self.fields["username"].error_messages = {
             "required": "Username wajib diisi."
         }
@@ -52,7 +53,7 @@ class AdminForm(forms.ModelForm):
             "required": "Jabatan wajib dipilih."
         }
 
-        # pilihan jabatan
+        # pengaturan pilihan role
         self.fields["role"].choices = [
             ("", "---------"),
             ("ketua", "Ketua"),
@@ -60,37 +61,42 @@ class AdminForm(forms.ModelForm):
             ("bendahara", "Bendahara"),
         ]
 
-        # mode edit
+        # kondisi mode edit (jika instance sudah ada di database)
         if self.instance.pk:
             self.fields["password"].required = False
             self.fields["password"].label = "Password Baru"
             self.fields["password"].widget.attrs["placeholder"] = \
                 "Masukkan password baru (opsional)"
 
-    # validasi username
+    # method validasi username
     def clean_username(self):
         username = self.cleaned_data.get("username")
 
         if not username:
             return username
 
+        # query ORM (objek queryset)
         qs = User.objects.filter(username=username)
 
+        # jika edit, exclude data sendiri
         if self.instance.pk:
             qs = qs.exclude(pk=self.instance.pk)
 
+        # validasi duplikat
         if qs.exists():
             raise ValidationError("Username sudah digunakan.")
 
+        # validasi panjang karakter
         if len(username) < 4:
             raise ValidationError("Username minimal 4 karakter.")
 
         return username
 
-    # validasi password
+    # method validasi password
     def clean_password(self):
         password = self.cleaned_data.get("password")
 
+        # jika edit dan password kosong → boleh
         if self.instance.pk and not password:
             return password
 
@@ -102,21 +108,23 @@ class AdminForm(forms.ModelForm):
 
         return password
 
-    # validasi role
+    # method validasi role
     def clean_role(self):
         role = self.cleaned_data.get("role")
 
+        # validasi nilai role
         if role and role not in ["ketua", "sekretaris", "bendahara"]:
             raise ValidationError("Jabatan tidak valid.")
 
         return role
 
-    # simpan data
+    # method untuk menyimpan data
     def save(self, commit=True):
-        user = super().save(commit=False)
+        user = super().save(commit=False)  # objek model User
 
         password = self.cleaned_data.get("password")
 
+        # set password terenkripsi
         if password:
             user.set_password(password)
 
@@ -128,17 +136,17 @@ class AdminForm(forms.ModelForm):
         return user
 
 
-# ======================================
-# form anggota
-# ======================================
+# form anggota (class ModelForm)
 class AnggotaForm(forms.ModelForm):
 
+    # field tambahan password
     password = forms.CharField(
         widget=forms.PasswordInput(render_value=False),
         required=False,
         label="Password"
     )
 
+    # field nomor telepon dengan validator
     no_telp = forms.CharField(
         label="Nomor Telepon",
         validators=[
@@ -149,6 +157,7 @@ class AnggotaForm(forms.ModelForm):
         ]
     )
 
+    # field email dengan validator
     email = forms.CharField(
         label="Email",
         validators=[
@@ -156,6 +165,7 @@ class AnggotaForm(forms.ModelForm):
         ]
     )
 
+    # field umur (integer)
     umur = forms.IntegerField(
         label="Umur",
         min_value=0,
@@ -166,6 +176,7 @@ class AnggotaForm(forms.ModelForm):
         }
     )
 
+    # field pekerjaan dengan validasi huruf
     pekerjaan = forms.CharField(
         label="Pekerjaan",
         validators=[
@@ -176,6 +187,7 @@ class AnggotaForm(forms.ModelForm):
         ]
     )
 
+    # field alamat
     alamat = forms.CharField(
         label="Alamat",
         validators=[
@@ -186,6 +198,7 @@ class AnggotaForm(forms.ModelForm):
         ]
     )
 
+    # konfigurasi model
     class Meta:
         model = Anggota
         exclude = ["password_hash"]
@@ -212,31 +225,32 @@ class AnggotaForm(forms.ModelForm):
             ),
         }
 
+    # method constructor
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # mode edit vs tambah
+        # kondisi edit atau tambah
         if self.instance.pk:
-            # edit
             self.fields["password"].required = False
             self.fields["password"].label = "Password Baru"
             self.fields["password"].widget.attrs["placeholder"] = \
                 "Masukkan password baru (opsional)"
-            # nomor anggota tidak boleh diubah
+
+            # field tidak bisa diubah
             self.fields["nomor_anggota"].disabled = True
         else:
             self.fields["password"].required = True
             self.fields["password"].widget.attrs["placeholder"] = \
                 "Masukkan password"
 
-        # error wajib isi
+        # loop semua field untuk set pesan error
         for field in self.fields.values():
             if field.required:
                 field.error_messages.update({
                     "required": f"{field.label} wajib diisi."
                 })
 
-        # placeholder
+        # placeholder untuk field
         placeholders = {
             "nomor_anggota": "Masukkan nomor anggota",
             "nama": "Masukkan nama lengkap",
@@ -248,23 +262,26 @@ class AnggotaForm(forms.ModelForm):
             "pekerjaan": "Masukkan pekerjaan",
         }
 
+        # set placeholder
         for name, text in placeholders.items():
             if name in self.fields:
                 self.fields[name].widget.attrs.update({
                     "placeholder": text
                 })
 
-        # format tanggal
+        # format input tanggal
         self.fields["tanggal_daftar"].input_formats = ["%Y-%m-%d"]
         self.fields["tanggal_nonaktif"].input_formats = ["%Y-%m-%d"]
 
-    # validasi tambahan
+    # method validasi global
     def clean(self):
         cleaned_data = super().clean()
+
         status = cleaned_data.get("status")
         alasan = cleaned_data.get("alasan_nonaktif")
         tanggal = cleaned_data.get("tanggal_nonaktif")
 
+        # validasi jika status nonaktif
         if status and status.lower() == "nonaktif":
             if not alasan:
                 self.add_error("alasan_nonaktif", "Alasan tidak aktif wajib diisi.")
@@ -273,18 +290,25 @@ class AnggotaForm(forms.ModelForm):
 
         return cleaned_data
 
+    # method validasi no_telp
     def clean_no_telp(self):
         no_telp = self.cleaned_data.get("no_telp")
+
         if no_telp and not no_telp.isdigit():
             raise forms.ValidationError("Nomor Telepon hanya boleh berisi angka.")
+
         return no_telp
 
-    # simpan data
+    # method simpan data
     def save(self, commit=True):
-        anggota = super().save(commit=False)
+        anggota = super().save(commit=False)  # objek model Anggota
+
         password = self.cleaned_data.get("password")
+
         if password:
             anggota.set_password(password)
+
         if commit:
             anggota.save()
+
         return anggota
