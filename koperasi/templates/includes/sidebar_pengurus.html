@@ -76,7 +76,7 @@
         {% endif %}
 
         <!-- LAPORAN -->
-        {% if request.user.role in "admin ketua sekretaris bendahara" %}
+        {% if request.user.role in "admin ketua bendahara" %}
         <li>
             <a href="{% url 'laporan:laporan' %}" class="{% if request.resolver_match.app_name == 'laporan' %}active{% endif %}">
                 <i class="ph ph-chart-bar"></i>
