@@ -10,16 +10,20 @@
 
 {% block content %}
 
+<!-- container utama form penarikan -->
 <div class="content-card">
     <h2>Form Penarikan Simpanan</h2>
 
+    <!-- form penarikan -->
+    <!-- method post untuk kirim data -->
+    <!-- novalidate supaya validasi html dimatikan (pakai django) -->
     <form method="post" id="formPenarikan" novalidate>
         {% csrf_token %}
 
-        <!-- ROW 1 -->
+        <!-- row 1: informasi anggota dan jenis simpanan -->
         <div class="row mb-3">
 
-            <!-- NAMA ANGGOTA -->
+            <!-- nama anggota (readonly / disabled) -->
             <div class="col-md-6">
                 <label class="form-label">Nama Anggota</label>
                 <input type="text"
@@ -28,7 +32,7 @@
                     disabled>
             </div>
 
-            <!-- JENIS SIMPANAN -->
+            <!-- jenis simpanan (readonly / disabled) -->
             <div class="col-md-6">
                 <label class="form-label">Jenis Simpanan</label>
                 <input type="text"
@@ -39,24 +43,26 @@
 
         </div>
 
-        <!-- ROW 2 -->
+        <!-- row 2: input tanggal dan jumlah -->
         <div class="row mb-3">
 
-            <!-- TANGGAL -->
+            <!-- field tanggal penarikan -->
             <div class="col-md-6">
                 <label class="form-label">Tanggal Penarikan</label>
 
+                <!-- jika ada error tampilkan invalid -->
                 {% if form.tanggal.errors %}
                     {{ form.tanggal|add_class:"form-control is-invalid" }}
                     <div class="invalid-feedback">
                         {{ form.tanggal.errors.0 }}
                     </div>
                 {% else %}
+                    <!-- kondisi normal -->
                     {{ form.tanggal|add_class:"form-control" }}
                 {% endif %}
             </div>
 
-            <!-- JUMLAH -->
+            <!-- field jumlah penarikan -->
             <div class="col-md-6">
                 <label class="form-label">Jumlah Penarikan</label>
 
@@ -72,11 +78,18 @@
 
         </div>
 
-        <!-- ACTION -->
+        <!-- tombol aksi -->
         <div class="form-actions" style="text-align:right; margin-top:20px;">
+
+            <!-- kembali ke halaman detail simpanan anggota -->
             <a href="{% url 'simpanan:simpanan_anggota' anggota.nomor_anggota %}"
                class="btn-outline">Batal</a>
-            <button type="button" class="btn-simpan" id="btnTarik">Tarik</button>
+
+            <!-- tombol tarik -->
+            <!-- type button biasanya digunakan jika ada validasi / konfirmasi js -->
+            <button type="button" class="btn-simpan" id="btnTarik">
+                Tarik
+            </button>
         </div>
 
     </form>
