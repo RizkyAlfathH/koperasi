@@ -10,80 +10,112 @@
 
 {% block content %}
 
-<!-- ================= DETAIL PINJAMAN ================= -->
+<!-- container detail pinjaman -->
 <div class="content-card">
     <h2>Detail Pinjaman</h2>
 
-    <!-- DATA ANGGOTA -->
+    <!-- data anggota -->
     <div class="row mb-3">
         <div class="col-md-6">
+
+            <!-- nomor anggota -->
             <label>Nomor Anggota</label>
             <input type="text" class="form-control" readonly
                    value="{{ anggota.nomor_anggota }}">
         </div>
+
         <div class="col-md-6">
+
+            <!-- nama anggota -->
             <label>Nama Anggota</label>
             <input type="text" class="form-control" readonly
                    value="{{ anggota.nama }}">
         </div>
     </div>
 
-    <!-- DATA PINJAMAN -->
+    <!-- data utama pinjaman -->
     <div class="row mb-3">
         <div class="col-md-6">
+
+            <!-- tanggal pinjam -->
             <label>Tanggal Pinjam</label>
             <input type="text" class="form-control" readonly
                    value="{{ pinjaman.tanggal_meminjam|date:'d F Y' }}">
         </div>
+
         <div class="col-md-6">
+
+            <!-- jenis pinjaman -->
             <label>Jenis Pinjaman</label>
             <input type="text" class="form-control" readonly
                    value="{{ pinjaman.id_jenis_pinjaman.nama_jenis }}">
         </div>
     </div>
 
+    <!-- jumlah pinjaman dan angsuran -->
     <div class="row mb-3">
         <div class="col-md-6">
+
+            <!-- total pinjaman -->
             <label>Jumlah Pinjaman</label>
             <input type="text" class="form-control rupiah-text" readonly
                    value="Rp {{ pinjaman.jumlah_pinjaman|floatformat:0 }}">
         </div>
+
         <div class="col-md-6">
+
+            <!-- angsuran per bulan -->
             <label>Angsuran Per Bulan</label>
             <input type="text" class="form-control rupiah-text" readonly
                    value="Rp {{ pinjaman.angsuran_per_bulan|floatformat:0 }}">
         </div>
     </div>
 
+    <!-- jasa pinjaman -->
     <div class="row mb-3">
         <div class="col-md-6">
+
+            <!-- kategori jasa -->
             <label>Kategori Jasa</label>
             <input type="text" class="form-control" readonly
                    value="{{ pinjaman.id_kategori_jasa.kategori_jasa }}">
         </div>
+
         <div class="col-md-6">
+
+            <!-- persentase jasa -->
             <label>Persentase Jasa (%)</label>
             <input type="text" class="form-control persen-format" readonly
                    value="{{ pinjaman.jasa_persen }}">
         </div>
     </div>
 
+    <!-- jumlah jasa dan sisa pinjaman -->
     <div class="row mb-3">
         <div class="col-md-6">
+
+            <!-- total jasa dalam rupiah -->
             <label>Jumlah Jasa</label>
             <input type="text" class="form-control rupiah-text" readonly
                     value="Rp {{ jumlah_jasa|floatformat:0 }}">
         </div>
+
         <div class="col-md-6">
+
+            <!-- sisa pinjaman -->
             <label>Sisa Pinjaman</label>
             <input type="text" class="form-control rupiah-text" readonly
                    value="Rp {{ pinjaman.sisa_pinjaman|floatformat:0 }}">
         </div>
     </div>
 
+    <!-- status pinjaman -->
     <div class="row mb-4">
         <div class="col-md-12">
+
             <label>Status</label>
+
+            <!-- class dan value ditentukan berdasarkan status -->
             <input type="text" readonly
                 class="form-control status-input 
                 {% if pinjaman.status == 'Lunas' or pinjaman.status == 'digabung' %}
@@ -100,14 +132,18 @@
     </div>
 </div>
 
-<!-- ================= RIWAYAT PEMBAYARAN ================= -->
-
+<!-- judul riwayat pembayaran -->
 <h2 class="section-title">Riwayat Pembayaran</h2>
 
+<!-- form filter berdasarkan tanggal -->
 <form method="GET" class="search-form" id="date-filter-form">
+
     <label for="tanggal">Cari Tanggal:</label>
 
     <div class="date-input-wrapper" style="display:flex; align-items:center; gap:6px;">
+
+        <!-- input tanggal -->
+        <!-- onchange langsung submit form -->
         <input type="date"
                name="tanggal"
                id="tanggal"
@@ -115,6 +151,7 @@
                value="{{ request.GET.tanggal }}"
                onchange="document.getElementById('date-filter-form').submit();">
 
+        <!-- tombol reset filter jika sedang digunakan -->
         {% if request.GET.tanggal %}
             <a href="{% url 'pinjaman:detail_pinjaman' pinjaman.id_pinjaman %}"
                class="reset-date-btn"
@@ -125,59 +162,84 @@
     </div>
 </form>
 
-<!-- LIST PEMBAYARAN -->
+<!-- daftar riwayat pembayaran -->
 {% if page_obj %}
+
+    <!-- looping data pembayaran -->
     {% for angsuran in page_obj %}
         <div class="angsuran-card {% if angsuran.tipe_bayar == 'jasa' %}jasa-only{% endif %}">
 
+            <!-- bagian informasi pembayaran -->
             <div class="angsuran-info">
+
                 {% if angsuran.tipe_bayar == 'jasa' %}
+
+                    <!-- pembayaran hanya jasa -->
                     <i class="ph-percent text-warning"></i> 
                     <strong>Pembayaran Jasa</strong><br>
                     <small>{{ angsuran.tanggal_bayar|date:"d M Y" }}</small>
+
                 {% else %}
+
+                    <!-- cek apakah cicilan memenuhi angsuran -->
                     {% if angsuran.jumlah_bayar >= pinjaman.angsuran_per_bulan %}
                         <i>&#10003;</i>
                     {% else %}
                         <i class="text-danger">&#10007;</i>
                     {% endif %}
+
+                    <!-- pembayaran cicilan -->
                     <strong>
                         Pembayaran Cicilan + Jasa bulan {{ angsuran.tanggal_bayar|date:"F" }}
                     </strong><br>
                     <small>{{ angsuran.tanggal_bayar|date:"d M Y" }}</small>
+
                 {% endif %}
             </div>
 
+            <!-- bagian nominal dan aksi -->
             <div class="angsuran-actions">
-                <strong class="rupiah-text">Rp {{ angsuran.jumlah_bayar|floatformat:0 }}</strong>
 
+                <!-- jumlah pembayaran -->
+                <strong class="rupiah-text">
+                    Rp {{ angsuran.jumlah_bayar|floatformat:0 }}
+                </strong>
+
+                <!-- tombol lihat detail -->
                 <div class="action-group">
                     <a href="{% url 'pinjaman:detail_pembayaran' angsuran.id_pembayaran %}" 
-                    class="action-view">
+                       class="action-view">
                         <i class="ph-bold ph-eye"></i>
                     </a>
                 </div>
+
             </div>
 
         </div>
     {% endfor %}
+
+<!-- jika tidak ada data pembayaran -->
 {% else %}
     <div class="angsuran-card">
         Tidak ada riwayat pembayaran.
     </div>
 {% endif %}
-    {% include "includes/pagination.html" with page_obj=page_obj param="page_angsuran" %}
+
+<!-- pagination untuk riwayat pembayaran -->
+{% include "includes/pagination.html" with page_obj=page_obj param="page_angsuran" %}
+
 <br>
-<!-- ================= SISA PINJAMAN ================= -->
+
+<!-- ringkasan sisa pinjaman -->
 <div class="sisa-pinjaman-card">
     <span>Sisa Pinjaman:</span>
     <span class="rupiah-text">Rp {{ sisa_pinjaman|floatformat:0 }}</span>
 </div>
 
-<!-- ================= TOMBOL KEMBALI ================= -->
+<!-- tombol kembali -->
 <div class="mt-3">
     <a href="{% url 'pinjaman:pinjaman_anggota' anggota.nomor_anggota %}"
-    class="btn-kembali">
+       class="btn-kembali">
         Kembali
     </a>
 </div>

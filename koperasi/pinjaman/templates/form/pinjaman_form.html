@@ -10,28 +10,40 @@
 
 {% block content %}
 
+<!-- container utama untuk form -->
 <div class="content-card">
     <h2>Form Tambah Pinjaman</h2>
 
+    <!-- form utama -->
+    <!-- method post untuk kirim data ke server -->
+    <!-- novalidate supaya validasi default html dimatikan (pakai validasi django) -->
     <form method="post" novalidate id="formTambahPinjaman">
         {% csrf_token %}
 
-        <!-- ROW 1 -->
+        <!-- row 1: pilih anggota dan jenis pinjaman -->
         <div class="row mb-3">
             <div class="col-md-6">
+
+                <!-- field nomor anggota -->
                 <label>Nama Anggota</label>
+
+                <!-- jika ada error, tampilkan style invalid + pesan -->
                 {% if form.nomor_anggota.errors %}
                     {{ form.nomor_anggota|add_class:"form-control is-invalid" }}
                     <div class="invalid-feedback">
                         {{ form.nomor_anggota.errors.0 }}
                     </div>
                 {% else %}
+                    <!-- kondisi normal tanpa error -->
                     {{ form.nomor_anggota|add_class:"form-control" }}
                 {% endif %}
             </div>
 
             <div class="col-md-6">
+
+                <!-- field jenis pinjaman -->
                 <label>Jenis Pinjaman</label>
+
                 {% if form.id_jenis_pinjaman.errors %}
                     {{ form.id_jenis_pinjaman|add_class:"form-control is-invalid" }}
                     <div class="invalid-feedback">
@@ -43,22 +55,29 @@
             </div>
         </div>
 
-        <!-- ROW 2 -->
+        <!-- row 2: tanggal dan lama pinjaman -->
         <div class="row mb-3">
             <div class="col-md-6">
+
+                <!-- field tanggal meminjam -->
                 <label>Tanggal Pinjam</label>
+
                 {% if form.tanggal_meminjam.errors %}
                     {{ form.tanggal_meminjam|add_class:"form-control is-invalid" }}
                     <div class="invalid-feedback">
                         {{ form.tanggal_meminjam.errors.0 }}
                     </div>
                 {% else %}
+                    <!-- autocomplete dimatikan untuk mencegah autofill browser -->
                     {{ form.tanggal_meminjam|add_class:"form-control"|attr:"autocomplete:off" }}
                 {% endif %}
             </div>
 
             <div class="col-md-6">
+
+                <!-- field lama pinjaman (bulan) -->
                 <label>Lama Pinjaman (bulan)</label>
+
                 {% if form.jatuh_tempo.errors %}
                     {{ form.jatuh_tempo|add_class:"form-control is-invalid" }}
                     <div class="invalid-feedback">
@@ -70,11 +89,15 @@
             </div>
         </div>
 
-        <!-- ROW 3 -->
+        <!-- row 3: jumlah pinjaman dan angsuran -->
         <div class="row mb-3">
             <div class="col-md-6">
+
+                <!-- field jumlah pinjaman -->
                 <label>Jumlah Pinjaman</label>
+
                 {% if form.jumlah_pinjaman.errors %}
+                    <!-- class rupiah-input biasanya dipakai untuk format angka rupiah (js) -->
                     {{ form.jumlah_pinjaman|add_class:"form-control rupiah-input is-invalid" }}
                     <div class="invalid-feedback">
                         {{ form.jumlah_pinjaman.errors.0 }}
@@ -85,7 +108,10 @@
             </div>
 
             <div class="col-md-6">
+
+                <!-- field angsuran per bulan -->
                 <label>Angsuran per Bulan</label>
+
                 {% if form.angsuran_per_bulan.errors %}
                     {{ form.angsuran_per_bulan|add_class:"form-control rupiah-input is-invalid" }}
                     <div class="invalid-feedback">
@@ -97,10 +123,13 @@
             </div>
         </div>
 
-        <!-- ROW 4 -->
+        <!-- row 4: kategori jasa dan persen -->
         <div class="row mb-3">
             <div class="col-md-6">
+
+                <!-- field kategori jasa -->
                 <label>Kategori Jasa</label>
+
                 {% if form.id_kategori_jasa.errors %}
                     {{ form.id_kategori_jasa|add_class:"form-control is-invalid" }}
                     <div class="invalid-feedback">
@@ -112,7 +141,10 @@
             </div>
 
             <div class="col-md-6">
+
+                <!-- field persentase jasa -->
                 <label>Persentase Jasa (%)</label>
+
                 {% if form.jasa_persen.errors %}
                     {{ form.jasa_persen|add_class:"form-control is-invalid" }}
                     <div class="invalid-feedback">
@@ -124,10 +156,13 @@
             </div>
         </div>
 
-        <!-- ROW 5 -->
+        <!-- row 5: hasil perhitungan jasa dan admin -->
         <div class="row mb-4">
             <div class="col-md-6">
+
+                <!-- field jumlah jasa dalam rupiah -->
                 <label>Jumlah Jasa (Rp)</label>
+
                 {% if form.jasa_rupiah.errors %}
                     {{ form.jasa_rupiah|add_class:"form-control is-invalid" }}
                     <div class="invalid-feedback">
@@ -139,16 +174,29 @@
             </div>
 
             <div class="col-md-6">
+
+                <!-- info admin yang sedang login (readonly) -->
                 <label>Admin yang Bertugas</label>
+
+                <!-- hanya untuk ditampilkan ke user -->
                 <input type="text" class="form-control" value="{{ username }} ({{ role|title }})" disabled>
+
+                <!-- field hidden untuk menyimpan id admin ke backend -->
                 {{ form.id_admin }}
             </div>
         </div>
 
-        <!-- BUTTON -->
+        <!-- tombol aksi -->
         <div class="form-actions" style="text-align:right;">
+
+            <!-- kembali ke halaman list -->
             <a href="{% url 'pinjaman:pinjaman_list' %}" class="btn-outline">Batal</a>
-            <button type="button" class="btn-simpan" id="btnSimpanPinjaman">Simpan</button>
+
+            <!-- tombol simpan -->
+            <!-- type button biasanya dipakai kalau ada konfirmasi js sebelum submit -->
+            <button type="button" class="btn-simpan" id="btnSimpanPinjaman">
+                Simpan
+            </button>
         </div>
 
     </form>
