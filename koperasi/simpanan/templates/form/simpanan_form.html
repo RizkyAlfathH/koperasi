@@ -10,36 +10,46 @@
 
 {% block content %}
 
+<!-- container utama form tambah simpanan -->
 <div class="content-card">
     <h2 style="margin-bottom: 15px;">Form Tambah Simpanan</h2>
 
+    <!-- form simpanan -->
+    <!-- method post untuk kirim data -->
+    <!-- novalidate supaya validasi html dimatikan -->
     <form method="post" id="formSimpanan" novalidate>
         {% csrf_token %}
 
+        <!-- row 1: anggota dan tanggal -->
         <div class="row mb-3">
 
-            <!-- nama anggota -->
+            <!-- field anggota (custom select, kemungkinan pakai select2/js) -->
             <div class="col-md-6">
                 <label>Nama Anggota</label>
 
                 {% if form.anggota.errors %}
+                    <!-- select manual karena kemungkinan diisi via javascript -->
                     <select id="id_anggota" name="anggota" class="form-control is-invalid"></select>
+
+                    <!-- pesan error -->
                     <div class="invalid-feedback">
                         {% for error in form.anggota.errors %}
                             {{ error }}
                         {% endfor %}
                     </div>
                 {% else %}
+                    <!-- kondisi normal -->
                     <select id="id_anggota" name="anggota" class="form-control"></select>
                 {% endif %}
             </div>
 
-            <!-- tanggal -->
+            <!-- field tanggal -->
             <div class="col-md-6">
                 <label>Tanggal Menyimpan</label>
 
                 {% if form.tanggal.errors %}
                     {{ form.tanggal|add_class:"form-control is-invalid" }}
+
                     <div class="invalid-feedback">
                         {% for error in form.tanggal.errors %}
                             {{ error }}
@@ -52,14 +62,16 @@
 
         </div>
 
+        <!-- row 2: jenis simpanan dan jumlah -->
         <div class="row mb-3">
 
-            <!-- jenis -->
+            <!-- field jenis simpanan -->
             <div class="col-md-6">
                 <label>Jenis Simpanan</label>
 
                 {% if form.jenis_simpanan.errors %}
                     {{ form.jenis_simpanan|add_class:"form-control is-invalid" }}
+
                     <div class="invalid-feedback">
                         {% for error in form.jenis_simpanan.errors %}
                             {{ error }}
@@ -70,12 +82,14 @@
                 {% endif %}
             </div>
 
-            <!-- jumlah -->
+            <!-- field jumlah simpanan -->
             <div class="col-md-6">
                 <label>Jumlah Menyimpan</label>
 
                 {% if form.jumlah.errors %}
+                    <!-- rupiah-input biasanya untuk format angka -->
                     {{ form.jumlah|add_class:"form-control rupiah-input is-invalid" }}
+
                     <div class="invalid-feedback">
                         {% for error in form.jumlah.errors %}
                             {{ error }}
@@ -88,15 +102,23 @@
 
         </div>
 
+        <!-- row 3: dana sosial (conditional field) -->
         <div class="row mb-3">
 
-            <!-- dana sosial -->
+            <!-- field dana sosial -->
+            <!-- ditampilkan hanya jika diperlukan (misalnya jenis tertentu atau ada error) -->
             <div class="col-md-6" id="field-dana-sosial"
-                {% if form.dana_sosial.errors %}style="display:block;"{% else %}style="display:none;"{% endif %}>
+                {% if form.dana_sosial.errors %}
+                    style="display:block;"
+                {% else %}
+                    style="display:none;"
+                {% endif %}>
+
                 <label>Dana Sosial</label>
 
                 {% if form.dana_sosial.errors %}
                     {{ form.dana_sosial|add_class:"form-control rupiah-input is-invalid" }}
+
                     <div class="invalid-feedback">
                         {% for error in form.dana_sosial.errors %}
                             {{ error }}
@@ -109,13 +131,24 @@
 
         </div>
 
+        <!-- tombol aksi -->
         <div class="form-actions" style="text-align:right; margin-top:20px;">
-            <a href="{% url 'simpanan:daftar_simpanan' %}" class="btn-outline">Batal</a>
-            <button type="submit" class="btn-simpan">Simpan</button>
+
+            <!-- kembali ke daftar simpanan -->
+            <a href="{% url 'simpanan:daftar_simpanan' %}" class="btn-outline">
+                Batal
+            </a>
+
+            <!-- submit form -->
+            <button type="submit" class="btn-simpan">
+                Simpan
+            </button>
         </div>
 
     </form>
 </div>
+
+{% endblock %}
 
 <script>
 $(function () {

@@ -10,69 +10,99 @@
 
 {% block content %}
 
-<!-- ================= DETAIL PEMBAYARAN ================= -->
+<!-- container utama untuk detail pembayaran -->
 <div class="content-card">
     <h2>Detail Pembayaran</h2>
 
+    <!-- informasi anggota dan jenis pinjaman -->
     <div class="row mb-3">
         <div class="col-md-6">
+
+            <!-- nama dan nomor anggota -->
             <label>Nama Anggota</label>
             <input type="text" class="form-control" readonly
                    value="{{ pembayaran.id_pinjaman.nomor_anggota.nomor_anggota }} - {{ pembayaran.id_pinjaman.nomor_anggota.nama }}">
         </div>
+
         <div class="col-md-6">
+
+            <!-- jenis pinjaman -->
             <label>Jenis Pinjaman</label>
             <input type="text" class="form-control" readonly
                    value="{{ pembayaran.id_pinjaman.id_jenis_pinjaman.nama_jenis }}">
         </div>
     </div>
 
+    <!-- informasi angsuran dan persen jasa -->
     <div class="row mb-3">
         <div class="col-md-6">
+
+            <!-- angsuran per bulan -->
             <label>Jumlah Angsuran per Bulan</label>
             <input type="text" class="form-control rupiah-text" readonly
                    value="Rp {{ pembayaran.id_pinjaman.angsuran_per_bulan|floatformat:0 }}">
         </div>
+
         <div class="col-md-6">
+
+            <!-- persentase jasa -->
             <label>Persentase Jasa (%)</label>
             <input type="text" class="form-control persen-format" readonly
                    value="{{ pembayaran.id_pinjaman.jasa_persen|floatformat:2 }}">
         </div>
     </div>
 
+    <!-- informasi jasa dan total pembayaran -->
     <div class="row mb-3">
         <div class="col-md-6">
+
+            <!-- jumlah jasa dalam rupiah -->
             <label>Jumlah Jasa</label>
             <input type="text" class="form-control rupiah-text" readonly
                    value="Rp {{ jasa_rupiah|floatformat:0 }}">
         </div>
+
         <div class="col-md-6">
+
+            <!-- total yang dibayar -->
             <label>Jumlah Dibayar</label>
             <input type="text" class="form-control rupiah-text" readonly
                    value="Rp {{ jumlah_pembayaran|floatformat:0 }}">
         </div>
     </div>
 
+    <!-- informasi admin dan tanggal pembayaran -->
     <div class="row mb-3">
         <div class="col-md-6">
+
+            <!-- admin yang memproses pembayaran -->
             <label>Admin yang Bertugas</label>
             <input type="text" class="form-control" readonly
                    value="{{ pembayaran.id_admin.username }} ({{ request.user.role|title }})">
         </div>
+
         <div class="col-md-6">
+
+            <!-- tanggal pembayaran dilakukan -->
             <label>Tanggal Bayar</label>
             <input type="text" class="form-control" readonly
                    value="{{ pembayaran.tanggal_bayar|date:'d F Y' }}">
         </div>
     </div>
 
+    <!-- informasi sisa pinjaman sebelum dan sesudah pembayaran -->
     <div class="row mb-4">
         <div class="col-md-6">
+
+            <!-- sisa sebelum pembayaran -->
             <label>Sisa Pinjaman Sebelum Dibayar</label>
             <input type="text" class="form-control rupiah-text" readonly
                    value="Rp {{ sisa_sebelum|floatformat:0 }}">
         </div>
+
         <div class="col-md-6">
+
+            <!-- sisa setelah pembayaran -->
             <label>Sisa Pinjaman Sesudah Dibayar</label>
             <input type="text" class="form-control rupiah-text" readonly
                    value="Rp {{ sisa_setelah|floatformat:0 }}">
@@ -80,7 +110,7 @@
     </div>
 </div>
 
-<!-- ================= TOMBOL KEMBALI ================= -->
+<!-- tombol kembali ke halaman detail pinjaman -->
 <div class="mt-3">
     <a href="{% url 'pinjaman:detail_pinjaman' pembayaran.id_pinjaman.id_pinjaman %}"
        class="btn-kembali">

@@ -37,16 +37,19 @@ from collections import defaultdict
 User = get_user_model()
 
 
-# -- KONFIG ROLE -- #
+# konstanta (variabel global) berisi daftar role
 ROLE_ADMIN = ["admin", "ketua", "sekretaris", "bendahara"]
 ROLE_PENGURUS = ["ketua", "sekretaris", "bendahara"]
 
 
-# --REDIRECT UTAMA SETELAH LOGIN -- #
-@login_required
+# fungsi untuk redirect setelah login
+@login_required  # decorator untuk memastikan user sudah login
 def dashboard_redirect(request):
+
+    # objek request → mengambil atribut user
     role = request.user.role
 
+    # percabangan berdasarkan role
     if role == "ketua":
         return redirect("anggota:dashboard_ketua")
     elif role == "sekretaris":
@@ -59,20 +62,24 @@ def dashboard_redirect(request):
         return redirect("admin_koperasi:admin_login")
 
 
-# -- DASHBOARD PER ROLE --#
+# fungsi dashboard untuk role ketua
 @login_required
 def ketua_dashboard(request):
+
+    # validasi role (authorization)
     if request.user.role != "ketua":
         return redirect("anggota:dashboard_redirect")
 
-    # INFO CARD
+    # query ORM (method objects) untuk menghitung jumlah admin/pengurus
     jumlah_admin = User.objects.filter(
         is_superuser=False,
         role__in=["ketua", "sekretaris", "bendahara"]
     ).count()
 
+    # query jumlah anggota aktif
     jumlah_anggota = Anggota.objects.filter(status="aktif").count()
 
+    # aggregate = method untuk menghitung total
     jumlah_simpanan = (
         Simpanan.objects.aggregate(total=Sum("jumlah"))["total"] or 0
     )
@@ -83,37 +90,40 @@ def ketua_dashboard(request):
         .aggregate(total=Sum("sisa_pinjaman"))["total"] or 0
     )
 
-    # DATA BULANAN
+    # list (objek) untuk grafik
     bulan_labels = []
     simpanan_data = []
     pinjaman_data = []
 
+    # objek date
     today = date.today()
     start = date(today.year - 1, today.month, 1)
 
+    # perulangan (loop)
     for i in range(12):
 
         bulan = start + relativedelta(months=i)
 
+        # menghitung akhir bulan
         akhir_bulan = (
             bulan + relativedelta(months=1)
         ) - relativedelta(days=1)
     
-        # TOTAL SIMPANAN
+        # total simpanan sampai bulan tertentu
         total_simpanan = (
             Simpanan.objects
             .filter(tanggal__lte=akhir_bulan)
             .aggregate(total=Sum("jumlah"))["total"] or 0
         )
 
-        # TOTAL PINJAMAN DIAMBIL
+        # total pinjaman diambil
         total_pinjaman = (
             Pinjaman.objects
             .filter(tanggal_meminjam__lte=akhir_bulan)
             .aggregate(total=Sum("jumlah_pinjaman"))["total"] or 0
         )
 
-        # JUMLAH CICILAN SAMPAI BULAN ITU
+        # query cicilan (grouping data)
         total_cicilan = (
             Angsuran.objects
             .filter(
@@ -124,22 +134,30 @@ def ketua_dashboard(request):
             .annotate(jumlah=Count("id_pembayaran"))
         )
 
+        # variabel penampung total pokok
         total_pokok_terbayar = 0
 
+        # loop hasil query
         for cicilan in total_cicilan:
+            # get = method ORM ambil satu objek
             pinjaman = Pinjaman.objects.get(id_pinjaman=cicilan["id_pinjaman"])
+
+            # perhitungan total
             total_pokok_terbayar += cicilan["jumlah"] * pinjaman.angsuran_per_bulan
 
-        # SISA PINJAMAN
+        # menghitung sisa pinjaman
         sisa_pinjaman = total_pinjaman - total_pokok_terbayar
 
+        # validasi agar tidak negatif
         if sisa_pinjaman < 0:
             sisa_pinjaman = 0
 
+        # method list append
         bulan_labels.append(bulan.strftime("%b %Y"))
         simpanan_data.append(float(total_simpanan))
         pinjaman_data.append(float(sisa_pinjaman))
 
+    # dictionary (objek) untuk dikirim ke template
     context = {
         "jumlah_admin": jumlah_admin,
         "jumlah_anggota": jumlah_anggota,
@@ -150,15 +168,18 @@ def ketua_dashboard(request):
         "pinjaman_data": pinjaman_data,
     }
 
+    # render = fungsi untuk menampilkan template
     return render(request, "dashboard/ketua.html", context)
 
 
+# fungsi dashboard sekretaris (struktur sama dengan ketua)
 @login_required
 def sekretaris_dashboard(request):
+
+    # validasi role
     if request.user.role != "sekretaris":
         return redirect("anggota:dashboard_redirect")
 
-    # INFO CARD
     jumlah_admin = User.objects.filter(
         is_superuser=False,
         role__in=["ketua", "sekretaris", "bendahara"]
@@ -176,7 +197,6 @@ def sekretaris_dashboard(request):
         .aggregate(total=Sum("sisa_pinjaman"))["total"] or 0
     )
 
-    # DATA BULANAN
     bulan_labels = []
     simpanan_data = []
     pinjaman_data = []
@@ -192,21 +212,18 @@ def sekretaris_dashboard(request):
             bulan + relativedelta(months=1)
         ) - relativedelta(days=1)
 
-        # TOTAL SIMPANAN
         total_simpanan = (
             Simpanan.objects
             .filter(tanggal__lte=akhir_bulan)
             .aggregate(total=Sum("jumlah"))["total"] or 0
         )
 
-        # TOTAL PINJAMAN DIAMBIL
         total_pinjaman = (
             Pinjaman.objects
             .filter(tanggal_meminjam__lte=akhir_bulan)
             .aggregate(total=Sum("jumlah_pinjaman"))["total"] or 0
         )
 
-        # JUMLAH CICILAN SAMPAI BULAN ITU
         total_cicilan = (
             Angsuran.objects
             .filter(
@@ -223,7 +240,6 @@ def sekretaris_dashboard(request):
             pinjaman = Pinjaman.objects.get(id_pinjaman=cicilan["id_pinjaman"])
             total_pokok_terbayar += cicilan["jumlah"] * pinjaman.angsuran_per_bulan
 
-        # SISA PINJAMAN
         sisa_pinjaman = total_pinjaman - total_pokok_terbayar
 
         if sisa_pinjaman < 0:
@@ -246,12 +262,14 @@ def sekretaris_dashboard(request):
     return render(request, "dashboard/sekretaris.html", context)
 
 
+# fungsi dashboard bendahara (struktur sama)
 @login_required
 def bendahara_dashboard(request):
+
+    # validasi role
     if request.user.role != "bendahara":
         return redirect("anggota:dashboard_redirect")
 
-    # INFO CARD
     jumlah_admin = User.objects.filter(
         is_superuser=False,
         role__in=["ketua", "sekretaris", "bendahara"]
@@ -269,7 +287,6 @@ def bendahara_dashboard(request):
         .aggregate(total=Sum("sisa_pinjaman"))["total"] or 0
     )
 
-    # DATA BULANAN
     bulan_labels = []
     simpanan_data = []
     pinjaman_data = []
@@ -285,21 +302,18 @@ def bendahara_dashboard(request):
             bulan + relativedelta(months=1)
         ) - relativedelta(days=1)
 
-        # TOTAL SIMPANAN
         total_simpanan = (
             Simpanan.objects
             .filter(tanggal__lte=akhir_bulan)
             .aggregate(total=Sum("jumlah"))["total"] or 0
         )
 
-        # TOTAL PINJAMAN DIAMBIL
         total_pinjaman = (
             Pinjaman.objects
             .filter(tanggal_meminjam__lte=akhir_bulan)
             .aggregate(total=Sum("jumlah_pinjaman"))["total"] or 0
         )
 
-        # JUMLAH CICILAN SAMPAI BULAN ITU
         total_cicilan = (
             Angsuran.objects
             .filter(
@@ -316,7 +330,6 @@ def bendahara_dashboard(request):
             pinjaman = Pinjaman.objects.get(id_pinjaman=cicilan["id_pinjaman"])
             total_pokok_terbayar += cicilan["jumlah"] * pinjaman.angsuran_per_bulan
 
-        # SISA PINJAMAN
         sisa_pinjaman = total_pinjaman - total_pokok_terbayar
 
         if sisa_pinjaman < 0:
@@ -340,28 +353,41 @@ def bendahara_dashboard(request):
 
 
 
-# -- KELOLA AKUN (ROLE-BASED) -- #
+# import fungsi custom untuk cek permission halaman
 from admin_koperasi.utils import has_page_permission
 
-@login_required
+
+# fungsi untuk kelola akun (admin & anggota)
+@login_required  # decorator untuk memastikan user login
 def kelola_akun(request):
+
+    # validasi hak akses berdasarkan permission (fungsi custom)
     if not has_page_permission(request.user, "kelola_anggota"):
         return redirect("dashboard")
 
+    # mengambil role dari objek user
     role = request.user.role
 
+    # mengambil query parameter dari URL (method GET)
     search_admin = request.GET.get("searchAdmin", "")
     search_anggota = request.GET.get("searchAnggota", "")
 
+    # query ORM untuk mengambil data admin/pengurus
     admins = User.objects.filter(role__in=ROLE_PENGURUS)
+
+    # filter pencarian admin
     if search_admin:
         admins = admins.filter(username__icontains=search_admin)
 
+    # paginator (objek) untuk membagi halaman
     paginator_admin = Paginator(admins.order_by("id"), 10)
+
+    # mengambil halaman saat ini
     admins_page = paginator_admin.get_page(
         request.GET.get("page_admin", 1)
     )
 
+    # annotate = method untuk menambah field virtual (status_order)
     anggotas = Anggota.objects.annotate(
         status_order=Case(
             When(status__iexact="NONAKTIF", then=Value(1)),
@@ -370,17 +396,21 @@ def kelola_akun(request):
         )
     )
 
+    # filter pencarian anggota
     if search_anggota:
         anggotas = anggotas.filter(nama__icontains=search_anggota)
 
+    # paginator anggota
     paginator_anggota = Paginator(
         anggotas.order_by("status_order", "nomor_anggota"),
         10
     )
+
     anggotas_page = paginator_anggota.get_page(
         request.GET.get("page_anggota", 1)
     )
 
+    # render template dengan context (dictionary)
     return render(request, "kelola_akun/kelola_akun.html", {
         "admins": admins_page,
         "anggotas": anggotas_page,
@@ -390,21 +420,26 @@ def kelola_akun(request):
     })
 
 
-# -- CRUD ADMIN (KETUA / SEKRETARIS / BENDAHARA) -- #
+# fungsi untuk menambah admin
 @login_required
 def tambah_admin(request):
+
+    # validasi role
     if request.user.role not in ROLE_ADMIN:
         return redirect("dashboard")
 
+    # cek method POST
     if request.method == "POST":
-        form = AdminForm(request.POST)
+        form = AdminForm(request.POST)  # objek form
+
+        # validasi form (method)
         if form.is_valid():
-            form.save()
+            form.save()  # simpan ke database
             messages.success(request, "Admin berhasil ditambahkan.")
             return redirect("anggota:kelola_akun")
 
     else:
-        form = AdminForm()
+        form = AdminForm()  # inisialisasi form kosong
 
     return render(request, "kelola_akun/Form/form_admin.html", {
         "form": form,
@@ -412,14 +447,21 @@ def tambah_admin(request):
     })
 
 
+# fungsi untuk edit admin
 @login_required
 def edit_admin(request, user_id):
+
+    # validasi role
     if request.user.role not in ROLE_ADMIN:
         return redirect("dashboard")
 
+    # ambil objek user dari database
     admin = get_object_or_404(User, id=user_id, role__in=ROLE_PENGURUS)
+
+    # form dengan instance (edit data)
     form = AdminForm(request.POST or None, instance=admin)
 
+    # validasi dan simpan
     if form.is_valid():
         form.save()
         messages.success(request, "Admin berhasil diperbarui.")
@@ -431,36 +473,53 @@ def edit_admin(request, user_id):
     })
 
 
+# fungsi untuk hapus admin
 @login_required
 def hapus_admin(request, user_id):
+
+    # validasi role
     if request.user.role not in ROLE_ADMIN:
         return redirect("dashboard")
 
+    # ambil objek admin
     admin = get_object_or_404(User, id=user_id, role__in=ROLE_PENGURUS)
+
+    # hapus objek (method)
     admin.delete()
+
     messages.success(request, "Admin berhasil dihapus.")
     return redirect("anggota:kelola_akun")
 
+
+# fungsi untuk detail admin
 def detail_admin(request, user_id):
+
+    # ambil objek admin
     admin = get_object_or_404(User, id=user_id)
 
+    # menghitung nomor urut (query ORM + method count)
     nomor_urut = User.objects.filter(id__lte=admin.id).count()
 
+    # dictionary context
     context = {
         "admin": admin,
         "nomor_urut": nomor_urut,
     }
+
     return render(request, "kelola_akun/detail/detail_admin.html", context)
 
 
-# -- CRUD ANGGOTA -- #
+# fungsi untuk tambah anggota
 @login_required
 def tambah_anggota(request):
+
+    # validasi role
     if request.user.role not in ROLE_ADMIN:
         return redirect("dashboard")
 
     if request.method == "POST":
         form = AnggotaForm(request.POST)
+
         if form.is_valid():
             form.save()
             messages.success(request, "Anggota berhasil ditambahkan.")
@@ -474,12 +533,18 @@ def tambah_anggota(request):
     })
 
 
+# fungsi untuk edit anggota
 @login_required
 def edit_anggota(request, nomor_anggota):
+
+    # validasi role
     if request.user.role not in ROLE_ADMIN:
         return redirect("dashboard")
 
+    # ambil objek anggota
     anggota = get_object_or_404(Anggota, nomor_anggota=nomor_anggota)
+
+    # form edit
     form = AnggotaForm(request.POST or None, instance=anggota)
 
     if form.is_valid():
@@ -493,22 +558,35 @@ def edit_anggota(request, nomor_anggota):
     })
 
 
+# fungsi untuk hapus anggota
 @login_required
 def hapus_anggota(request, nomor_anggota):
+
+    # validasi role
     if request.user.role not in ROLE_ADMIN:
         return redirect("dashboard")
 
+    # ambil objek anggota
     anggota = get_object_or_404(Anggota, nomor_anggota=nomor_anggota)
+
+    # hapus data
     anggota.delete()
+
     messages.success(request, "Anggota berhasil dihapus.")
     return redirect("anggota:kelola_akun")
 
+
+# fungsi untuk detail anggota
 def detail_anggota(request, nomor_anggota):
+
+    # ambil objek anggota
     anggota = get_object_or_404(Anggota, nomor_anggota=nomor_anggota)
 
+    # context dictionary
     context = {
         "anggota": anggota,
     }
+
     return render(request, "kelola_akun/detail/detail_anggota.html", context)
 
 

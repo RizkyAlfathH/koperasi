@@ -60,35 +60,55 @@
 
 {% block content %}
 
+<!-- judul halaman -->
 <h1>Manajemen Simpanan</h1>
 
+<!-- container utama -->
 <div class="content-card">
+
+    <!-- header section: judul + search + tombol -->
     <div class="section-header">
         <h2 class="section-title">Daftar Simpanan Anggota</h2>
+
         <div class="header-right">
+
+            <!-- form pencarian dan sorting -->
+            <!-- method get supaya parameter masuk ke url -->
             <form method="get" class="search-box">
+
+                <!-- input pencarian -->
                 <input type="text"
                     name="search"
                     placeholder="Cari nama / nomor anggota"
                     value="{{ search_query }}">
 
+                <!-- dropdown sorting -->
+                <!-- onchange submit otomatis -->
                 <select name="sort" onchange="this.form.submit()">
+
+                    <!-- urut berdasarkan nomor anggota -->
                     <option value="nomor" {% if sort_by == 'nomor' %}selected{% endif %}>
                         Urutkan Nomor
                     </option>
+
+                    <!-- urut berdasarkan nama -->
                     <option value="nama" {% if sort_by == 'nama' %}selected{% endif %}>
                         Urutkan Nama
                     </option>
                 </select>
             </form>
 
+            <!-- tombol tambah simpanan -->
             <a href="{% url 'simpanan:simpanan_form' %}" class="add-button">
                 <i class="ph-bold ph-plus"></i> Tambah Simpanan
             </a>
         </div>
     </div>
 
+    <!-- tabel daftar simpanan -->
     <table class="data-table">
+
+        <!-- header tabel -->
         <thead>
             <tr>
                 <th>Nomor Anggota</th>
@@ -100,19 +120,33 @@
                 <th style="text-align:center;">Aksi</th>
             </tr>
         </thead>
+
+        <!-- isi tabel -->
         <tbody>
+
+            <!-- looping data simpanan -->
             {% for row in data %}
                 <tr>
+
+                    <!-- data anggota -->
                     <td>{{ row.nomor_anggota }}</td>
                     <td>{{ row.nama_anggota }}</td>
+
+                    <!-- total simpanan berdasarkan jenis -->
                     <td class="rupiah-text">{{ row.total_pokok|floatformat:0 }}</td>
                     <td class="rupiah-text">{{ row.total_wajib|floatformat:0 }}</td>
                     <td class="rupiah-text">{{ row.total_sukarela|floatformat:0 }}</td>
                     <td class="rupiah-text">{{ row.total_dana_sosial|floatformat:0 }}</td>
+
+                    <!-- aksi -->
                     <td class="action-group">
+
+                        <!-- lihat detail simpanan anggota -->
                         <a href="{% url 'simpanan:simpanan_anggota' row.nomor_anggota %}" class="action-view">
                             <i class="ph-bold ph-eye"></i>
                         </a>
+
+                        <!-- tombol hapus (biasanya diproses dengan javascript/modal konfirmasi) -->
                         <a href="#"
                             class="action-delete"
                             data-nomor="{{ row.nomor_anggota }}"
@@ -121,14 +155,20 @@
                         </a>
                     </td>
                 </tr>
+
+            <!-- jika tidak ada data -->
             {% empty %}
                 <tr>
-                    <td colspan="7" class="empty-state">Tidak ada data simpanan</td>
+                    <td colspan="7" class="empty-state">
+                        Tidak ada data simpanan
+                    </td>
                 </tr>
             {% endfor %}
+
         </tbody>
     </table>
 
+    <!-- pagination -->
     {% include "includes/pagination.html" with page_obj=page_obj param=param %}
 </div>
 

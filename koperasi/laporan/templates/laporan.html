@@ -14,43 +14,59 @@
 
 <div class="laporan-wrapper">
 
-<!-- ================= CARD BULANAN ================= -->
+<!-- card laporan bulanan -->
 <div class="content-card">
+
     <h2>Laporan Bulanan</h2>
+
     <p class="info-text">
         Data tercatat sampai {{ akhir_bulan|date:"d F Y" }}
     </p>
+    {# {{ }} = variable template (objek dari context view) #}
+    {# |date = filter template untuk format tanggal #}
 
+    <!-- form filter -->
     <form method="get" class="filter-form">
+
+        <!-- dropdown bulan -->
         <select name="bulan">
             {% for value, label in bulan_choices %}
+            {# for = tag template (loop) #}
                 <option value="{{ value }}" {% if value == bulan %}selected{% endif %}>
                     {{ label }}
                 </option>
             {% endfor %}
         </select>
 
+        <!-- dropdown tahun -->
         <select name="tahun">
             {% for t in tahun_range %}
-                <option value="{{ t }}" {% if t == tahun_bulan %}selected{% endif %}>{{ t }}</option>
+                <option value="{{ t }}" {% if t == tahun_bulan %}selected{% endif %}>
+                    {{ t }}
+                </option>
             {% endfor %}
         </select>
 
+        <!-- tombol submit -->
         <button type="submit" class="btn btn-primary">
             Tampilkan
         </button>
 
+        <!-- tombol reset -->
         {% if request.GET.bulan != None or request.GET.tahun != None %}
+        {# if = tag template (percabangan) #}
         <a href="{% url 'laporan:laporan' %}" class="reset-btn">
             &#x21bb;
         </a>
         {% endif %}
 
+        <!-- tombol export excel -->
         <a href="{% url 'laporan:export_laporan' %}?periode=bulan&bulan={{ bulan }}&tahun={{ tahun_bulan }}"
            class="btn btn-success action-export">
             <i class="ph-bold ph-file-xls"></i> Download Laporan
         </a>
 
+        <!-- select jumlah data per halaman -->
         <select name="per_page_bulan" id="perPageBulan" class="per-page-select">
             <option value="10" {% if per_page_bulan == 10 %}selected{% endif %}>10</option>
             <option value="25" {% if per_page_bulan == 25 %}selected{% endif %}>25</option>
@@ -59,7 +75,9 @@
         </select>
     </form>
 
+    <!-- tabel laporan -->
     <table class="data-table">
+
         <thead>
             <tr>
                 <th rowspan="2">Nomor Anggota</th>
@@ -78,12 +96,15 @@
                 <th>Total</th>
             </tr>
         </thead>
+
         <tbody>
             {% for item in laporan_bulanan %}
+            {# loop data dari context (list laporan) #}
             <tr>
                 <td>{{ item.no }}</td>
                 <td>{{ item.nama }}</td>
 
+                <!-- akses dictionary bersarang -->
                 <td class="rupiah-text">{{ item.simpanan.pokok|floatformat:0 }}</td>
                 <td class="rupiah-text">{{ item.simpanan.wajib|floatformat:0 }}</td>
                 <td class="rupiah-text">{{ item.simpanan.sukarela|floatformat:0 }}</td>
@@ -94,7 +115,9 @@
                 <td class="rupiah-text">{{ item.pinjaman.barang|floatformat:0 }}</td>
                 <td class="rupiah-text"><strong>{{ item.pinjaman.total|floatformat:0 }}</strong></td>
             </tr>
+
             {% empty %}
+            {# kondisi jika data kosong #}
             <tr>
                 <td colspan="10" class="empty-state">
                     Tidak ada data laporan bulanan
@@ -105,19 +128,28 @@
     </table>
 
     {% include "includes/pagination.html" with page_obj=laporan_bulanan param="page_bulan" %}
+    {# include = tag untuk memanggil template lain (reusable component) #}
+
 </div>
 
 
-<!-- ================= CARD TAHUNAN ================= -->
+<!-- card laporan tahunan -->
 <div class="content-card">
+
     <h2>Laporan Tahunan</h2>
+
     <p class="info-text">
         Data tercatat sampai {{ akhir_tahun|date:"d F Y" }}
     </p>
+
     <form method="get" class="filter-form">
+
+        <!-- dropdown tahun -->
         <select name="tahun_tahunan">
             {% for t in tahun_range %}
-                <option value="{{ t }}" {% if t == tahun_tahunan %}selected{% endif %}>{{ t }}</option>
+                <option value="{{ t }}" {% if t == tahun_tahunan %}selected{% endif %}>
+                    {{ t }}
+                </option>
             {% endfor %}
         </select>
 
@@ -125,17 +157,20 @@
             Tampilkan
         </button>
 
+        <!-- reset -->
         {% if request.GET.tahun_tahunan != None %}
         <a href="{% url 'laporan:laporan' %}" class="reset-btn">
             &#x21bb;
         </a>
         {% endif %}
 
+        <!-- export -->
         <a href="{% url 'laporan:export_laporan' %}?periode=tahun&tahun={{ tahun_tahunan }}"
            class="btn btn-success action-export">
             <i class="ph-bold ph-file-xls"></i> Download Laporan
         </a>
 
+        <!-- pagination size -->
         <select name="per_page_tahun" id="perPageTahun" class="per-page-select">
             <option value="10" {% if per_page_tahun == 10 %}selected{% endif %}>10</option>
             <option value="25" {% if per_page_tahun == 25 %}selected{% endif %}>25</option>
@@ -144,7 +179,9 @@
         </select>
     </form>
 
+    <!-- tabel tahunan (struktur sama seperti bulanan) -->
     <table class="data-table">
+
         <thead>
             <tr>
                 <th rowspan="2">Nomor Anggota</th>
@@ -163,6 +200,7 @@
                 <th>Total</th>
             </tr>
         </thead>
+
         <tbody>
             {% for item in laporan_tahunan %}
             <tr>
@@ -179,6 +217,7 @@
                 <td class="rupiah-text">{{ item.pinjaman.barang|floatformat:0 }}</td>
                 <td class="rupiah-text"><strong>{{ item.pinjaman.total|floatformat:0 }}</strong></td>
             </tr>
+
             {% empty %}
             <tr>
                 <td colspan="10" class="empty-state">
@@ -190,9 +229,11 @@
     </table>
 
     {% include "includes/pagination.html" with page_obj=laporan_tahunan param="page_tahun" %}
+
 </div>
 
 </div>
+
 {% endblock %}
 
 {% block extra_js %}

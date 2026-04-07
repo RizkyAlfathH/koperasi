@@ -59,9 +59,16 @@
 {% block title %}Simpanan Anggota{% endblock %}
 
 {% block content %}
-<div class="content-card">
-  <h2 style="margin-bottom: 25px;">Simpanan {{ anggota.nama }} ({{ anggota.nomor_anggota }})</h2>
 
+<!-- container utama daftar simpanan anggota -->
+<div class="content-card">
+
+  <!-- judul halaman -->
+  <h2 style="margin-bottom: 25px;">
+    Simpanan {{ anggota.nama }} ({{ anggota.nomor_anggota }})
+  </h2>
+
+  <!-- tabel daftar saldo simpanan berdasarkan jenis -->
   <table class="data-table">
     <thead>
       <tr>
@@ -72,26 +79,46 @@
         <th style="text-align:center;">Aksi</th>
       </tr>
     </thead>
+
     <tbody>
+
+      <!-- looping data saldo -->
       {% for item in data_saldo %}
       <tr>
+
+        <!-- data anggota -->
         <td>{{ anggota.nomor_anggota }}</td>
         <td>{{ anggota.nama }}</td>
+
+        <!-- jenis simpanan -->
         <td>{{ item.jenis|title }}</td>
+
+        <!-- total saldo -->
+        <!-- data-value biasanya dipakai untuk javascript -->
         <td class="rupiah-text" data-value="{{ item.saldo }}">
             Rp {{ item.saldo|floatformat:0 }}
         </td>
+
+        <!-- aksi -->
         <td style="text-align:center;">
           <div class="action-group">
+
+            <!-- lihat detail transaksi simpanan -->
             <a href="{% url 'simpanan:detail_simpanan' anggota.nomor_anggota item.jenis_id %}"
                class="action-view btn-detail">
               <i class="ph-bold ph-eye"></i>
             </a>
+
+            <!-- tarik simpanan -->
+            <!-- data-saldo bisa dipakai untuk validasi js -->
             <a href="{% url 'simpanan:tambah_penarikan' anggota.nomor_anggota item.jenis_id %}"
                class="action-tarik btn-penarikan action-export"
                data-saldo="{{ item.saldo }}">
               <i class="ph-bold ph-wallet"></i>
             </a>
+
+            <!-- hapus data simpanan -->
+            <!-- biasanya diproses dengan modal konfirmasi -->
             <a href="#"
                class="action-delete"
                data-nomor="{{ anggota.nomor_anggota }}"
@@ -100,21 +127,32 @@
                data-nama="{{ anggota.nama }}">
               <i class="ph-bold ph-trash"></i>
             </a>
+
           </div>
         </td>
+
       </tr>
+
+      <!-- jika tidak ada data -->
       {% empty %}
       <tr>
-        <td colspan="5" class="empty-state">Belum ada simpanan</td>
+        <td colspan="5" class="empty-state">
+          Belum ada simpanan
+        </td>
       </tr>
       {% endfor %}
+
     </tbody>
   </table>
 </div>
 
+<!-- tombol kembali -->
 <div>
-  <a href="{% url 'simpanan:daftar_simpanan' %}" class="btn-kembali">Kembali</a>
+  <a href="{% url 'simpanan:daftar_simpanan' %}" class="btn-kembali">
+    Kembali
+  </a>
 </div>
+
 {% endblock %}
 
 {% block extra_js %}

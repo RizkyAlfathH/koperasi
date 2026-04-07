@@ -9,19 +9,27 @@
 {% block title %}Bayar Pinjaman{% endblock %}
 
 {% block content %}
+
+<!-- container utama -->
 <div class="content-card">
     <h2>Bayar Pinjaman</h2>
 
+    <!-- form pembayaran -->
     <form method="POST" id="formBayarPinjaman">
         {% csrf_token %}
 
-        <!-- DATA UNTUK JAVASCRIPT -->
+        <!-- data hidden untuk dipakai javascript -->
+        <!-- angsuran pokok per bulan -->
         <input type="hidden" id="angsuran_pokok" value="{{ angsuran_pokok }}">
+
+        <!-- sisa pinjaman awal sebelum pembayaran -->
         <input type="hidden" id="sisa_pinjaman_awal" value="{{ pinjaman.sisa_pinjaman }}">
 
-        <!-- ROW 1 -->
+        <!-- row 1: informasi anggota dan total pinjaman -->
         <div class="row mb-3">
             <div class="col-md-6">
+
+                <!-- nama dan nomor anggota -->
                 <label>Nama Anggota</label>
                 <input type="text" class="form-control"
                        value="{{ pinjaman.nomor_anggota.nomor_anggota }} - {{ pinjaman.nomor_anggota.nama }}"
@@ -29,6 +37,8 @@
             </div>
 
             <div class="col-md-6">
+
+                <!-- total pinjaman awal -->
                 <label>Pinjaman</label>
                 <input type="text" class="form-control rupiah-text"
                        value="{{ pinjaman.jumlah_pinjaman|floatformat:0 }}"
@@ -36,9 +46,11 @@
             </div>
         </div>
 
-        <!-- ROW 2 -->
+        <!-- row 2: sisa pinjaman dan tanggal bayar -->
         <div class="row mb-3">
             <div class="col-md-6">
+
+                <!-- sisa pinjaman saat ini -->
                 <label>Sisa Pinjaman</label>
                 <input type="text" class="form-control rupiah-text"
                        value="{{ pinjaman.sisa_pinjaman|floatformat:0 }}"
@@ -46,14 +58,18 @@
             </div>
 
             <div class="col-md-6">
+
+                <!-- tanggal pembayaran -->
                 <label>Tanggal</label>
                 <input type="date" name="tanggal" id="id_tanggal" class="form-control" required>
             </div>
         </div>
 
-        <!-- ROW 3 -->
+        <!-- row 3: angsuran pokok dan persen jasa -->
         <div class="row mb-3">
             <div class="col-md-6">
+
+                <!-- nilai cicilan pokok per bulan -->
                 <label>Jumlah Cicilan Pokok</label>
                 <input type="text" class="form-control rupiah-text"
                        value="{{ angsuran_pokok|floatformat:0 }}"
@@ -61,6 +77,8 @@
             </div>
 
             <div class="col-md-6">
+
+                <!-- persentase jasa -->
                 <label>Persentase Jasa (%)</label>
                 <input type="text" class="form-control persen-format"
                        value="{{ pinjaman.jasa_persen|floatformat:-2|cut:",0" }}%"
@@ -68,9 +86,11 @@
             </div>
         </div>
 
-        <!-- ROW 4 -->
+        <!-- row 4: jenis pinjaman dan kategori jasa -->
         <div class="row mb-3">
             <div class="col-md-6">
+
+                <!-- jenis pinjaman -->
                 <label>Jenis Pinjaman</label>
                 <input type="text" class="form-control"
                     value="{{ pinjaman.id_jenis_pinjaman.nama_jenis }}"
@@ -78,6 +98,8 @@
             </div>
 
             <div class="col-md-6">
+
+                <!-- kategori jasa -->
                 <label>Kategori Jasa</label>
                 <input type="text" class="form-control"
                        value="{{ pinjaman.id_kategori_jasa.kategori_jasa }}"
@@ -85,9 +107,11 @@
             </div>
         </div>
 
-        <!-- ROW 5 -->
+        <!-- row 5: tipe pembayaran dan jumlah bulan -->
         <div class="row mb-3">
             <div class="col-md-6">
+
+                <!-- pilihan tipe pembayaran -->
                 <label>Pilihan Pembayaran</label>
                 <select id="tipe_bayar" name="tipe_bayar" class="form-control">
                     <option value="cicilan">Cicilan + Jasa</option>
@@ -96,18 +120,25 @@
             </div>
 
             <div class="col-md-6">
+
+                <!-- jumlah bulan yang dibayar -->
                 <label>Jumlah Bulan Dibayar</label>
                 <input type="number" id="jumlah_bulan" name="bulan"
                        class="form-control" min="1" value="1">
+
+                <!-- keterangan sisa cicilan -->
                 <small id="keterangan_bulan" class="text-muted">
                     Cicilan tersisa: {{ sisa_bulan }} bulan
                 </small>
             </div>
         </div>
 
-        <!-- ROW 6 -->
+        <!-- row 6: nominal pembayaran dan admin -->
         <div class="row mb-4">
             <div class="col-md-6">
+
+                <!-- jumlah uang yang dibayar -->
+                <!-- biasanya akan diubah otomatis oleh javascript -->
                 <label>Jumlah Dibayar</label>
                 <input type="text" name="nominal"
                        id="id_nominal"
@@ -117,6 +148,8 @@
             </div>
 
             <div class="col-md-6">
+
+                <!-- informasi admin login -->
                 <label>Admin yang Bertugas</label>
                 <input type="text" class="form-control"
                        value="{{ request.user.username }} ({{ request.user.role|title }})"
@@ -124,10 +157,17 @@
             </div>
         </div>
 
-        <!-- BUTTON -->
+        <!-- tombol aksi -->
         <div class="form-actions" style="text-align:right;">
+
+            <!-- kembali ke halaman list -->
             <a href="{% url 'pinjaman:pinjaman_list' %}" class="btn-outline">Batal</a>
-            <button type="button" class="btn-simpan" id="btnBayarPinjaman">Bayar</button>
+
+            <!-- tombol bayar -->
+            <!-- type button karena biasanya ada proses js dulu -->
+            <button type="button" class="btn-simpan" id="btnBayarPinjaman">
+                Bayar
+            </button>
         </div>
 
     </form>

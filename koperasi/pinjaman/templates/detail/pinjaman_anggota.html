@@ -9,24 +9,31 @@
 
 {% block content %}
 
+<!-- container utama halaman detail pinjaman anggota -->
 <div class="content-card">
 
+    <!-- judul menampilkan nama dan nomor anggota -->
     <h2>Pinjaman {{ anggota.nama }} ({{ anggota.nomor_anggota }})</h2>
 
-    <!-- ===== TOMBOL BAYAR ===== -->
+    <!-- tombol bayar hanya muncul jika ada pinjaman aktif -->
     {% if pinjaman_aktif %}
         <button class="btn-simpan" onclick="openBayarModal()"> Bayar</button>
     {% endif %}
 
-    <!-- ===== MODAL BAYAR ===== -->
+    <!-- modal untuk memilih pinjaman yang akan dibayar -->
     {% if pinjaman_aktif %}
     <div id="bayarModal" class="bayar-modal">
         <div class="bayar-card">
+
+            <!-- judul modal -->
             <h5>Pilih Pinjaman Untuk Dibayar</h5>
 
+            <!-- daftar pinjaman aktif -->
             <ul class="list-pinjaman">
                 {% for p in pinjaman_aktif %}
                     <li>
+
+                        <!-- link menuju halaman pembayaran berdasarkan id pinjaman -->
                         <a href="{% url 'pinjaman:bayar_pinjaman' p.id_pinjaman %}">
                             Pinjaman {{ p.id_jenis_pinjaman.nama_jenis }}
                         </a>
@@ -34,12 +41,13 @@
                 {% endfor %}
             </ul>
 
+            <!-- tombol untuk menutup modal -->
             <button class="btn-tutup" onclick="closeBayarModal()">Tutup</button>
         </div>
     </div>
     {% endif %}
 
-    <!-- ===== TABEL PINJAMAN AKTIF ===== -->
+    <!-- tabel daftar pinjaman aktif -->
     <table class="data-table" style="margin-top:20px;">
         <thead>
             <tr>
@@ -54,7 +62,10 @@
                 <th>Aksi</th>
             </tr>
         </thead>
+
         <tbody>
+
+        <!-- looping pinjaman aktif -->
         {% for p in pinjaman_aktif %}
             <tr>
                 <td>{{ p.tanggal_meminjam|date:"d F Y" }}</td>
@@ -69,12 +80,17 @@
                         Belum Lunas
                     </span>
                 </td>
+
+                <!-- aksi lihat detail -->
                 <td class="action-group">
                     <a href="{% url 'pinjaman:detail_pinjaman' p.id_pinjaman %}" class="action-view">
                         <i class="ph-bold ph-eye"></i>
                     </a>
                 </td>
+
             </tr>
+
+        <!-- jika tidak ada pinjaman aktif -->
         {% empty %}
             <tr>
                 <td colspan="9" class="empty-state">
@@ -82,14 +98,18 @@
                 </td>
             </tr>
         {% endfor %}
+
         </tbody>
     </table>
 </div>
 
-<!-- ===== RIWAYAT PINJAMAN ===== -->
+<!-- container riwayat pinjaman -->
 <div class="content-card" style="margin-top:25px;">
+
+    <!-- judul riwayat -->
     <h2>Riwayat Pinjaman</h2>
 
+    <!-- tabel riwayat -->
     <table class="data-table">
         <thead>
             <tr>
@@ -102,7 +122,10 @@
                 <th>Aksi</th>
             </tr>
         </thead>
+
         <tbody>
+
+        <!-- looping riwayat pinjaman -->
         {% for p in riwayat_pinjaman %}
             <tr>
                 <td>{{ p.tanggal_meminjam|date:"d F Y" }}</td>
@@ -110,17 +133,24 @@
                 <td class="rupiah-text">{{ p.jumlah_pinjaman|floatformat:0 }}</td>
                 <td class="rupiah-text">{{ p.angsuran_per_bulan|floatformat:0 }}</td>
                 <td class="persen-format">{{ p.jasa_persen|floatformat:"-2"|cut:",0" }}%</td>
+
+                <!-- status lunas -->
                 <td>
                     <span class="badge-status badge-lunas">
                         Lunas
                     </span>
                 </td>
+
+                <!-- aksi detail -->
                 <td class="action-group">
                     <a href="{% url 'pinjaman:detail_pinjaman' p.id_pinjaman %}" class="action-view">
                         <i class="ph-bold ph-eye"></i>
                     </a>
                 </td>
+
             </tr>
+
+        <!-- jika belum ada riwayat -->
         {% empty %}
             <tr>
                 <td colspan="7" class="empty-state">
@@ -128,24 +158,30 @@
                 </td>
             </tr>
         {% endfor %}
+
         </tbody>
     </table>
 </div>
+
+<!-- tombol kembali ke halaman list -->
 <div class="mt-3">
     <a href="{% url 'pinjaman:pinjaman_list' %}"
-    class="btn-kembali">
+       class="btn-kembali">
         Kembali
     </a>
 </div>
 
-<!-- ===== JS ===== -->
+<!-- javascript untuk buka dan tutup modal -->
 <script>
+
 function openBayarModal(){
     document.getElementById('bayarModal').classList.add('active');
 }
+
 function closeBayarModal(){
     document.getElementById('bayarModal').classList.remove('active');
 }
+
 </script>
 
 {% endblock %}

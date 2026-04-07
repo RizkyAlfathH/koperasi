@@ -10,34 +10,57 @@
 
 {% block content %}
 
+<!-- judul halaman utama -->
 <h1>Manajemen Pinjaman</h1>
+
+<!-- container utama (card) -->
 <div class="content-card">
+
+    <!-- header section: judul + search + tombol -->
     <div class="section-header">
         <h2 class="section-title">Daftar Pinjaman Anggota</h2>
-        <div class="header-right">
-        <!-- SEARCH BOX (WAJIB class search-box) -->
-        <form method="get" class="search-box">
-            <input type="text"
-                   name="search"
-                   placeholder="Cari nama / nomor anggota"
-                   value="{{ search_query }}">
 
-            <select name="sort" onchange="this.form.submit()">
-                <option value="nomor" {% if sort_by == 'nomor' %}selected{% endif %}>
-                    Urutkan Nomor
-                </option>
-                <option value="nama" {% if sort_by == 'nama' %}selected{% endif %}>
-                    Urutkan Nama
-                </option>
-            </select>
-        </form>
-        <a href="{% url 'pinjaman:pinjaman_form' %}" class="add-button">
-            <i class="ph-bold ph-plus"></i> Tambah Pinjaman
-        </a>
+        <div class="header-right">
+
+            <!-- form pencarian dan sorting -->
+            <!-- menggunakan method get supaya query muncul di url -->
+            <form method="get" class="search-box">
+                
+                <!-- input untuk mencari berdasarkan nama / nomor anggota -->
+                <input type="text"
+                       name="search"
+                       placeholder="Cari nama / nomor anggota"
+                       value="{{ search_query }}">
+
+                <!-- dropdown untuk sorting data -->
+                <!-- onchange submit otomatis saat dipilih -->
+                <select name="sort" onchange="this.form.submit()">
+                    
+                    <!-- opsi urut berdasarkan nomor anggota -->
+                    <option value="nomor" {% if sort_by == 'nomor' %}selected{% endif %}>
+                        Urutkan Nomor
+                    </option>
+
+                    <!-- opsi urut berdasarkan nama -->
+                    <option value="nama" {% if sort_by == 'nama' %}selected{% endif %}>
+                        Urutkan Nama
+                    </option>
+
+                </select>
+            </form>
+
+            <!-- tombol untuk tambah data pinjaman -->
+            <a href="{% url 'pinjaman:pinjaman_form' %}" class="add-button">
+                <i class="ph-bold ph-plus"></i> Tambah Pinjaman
+            </a>
+
         </div>
     </div>
-    <!-- TABLE (WAJIB class data-table) -->
+
+    <!-- tabel data pinjaman -->
     <table class="data-table">
+
+        <!-- header tabel -->
         <thead>
             <tr>
                 <th>Nomor Anggota</th>
@@ -49,21 +72,38 @@
                 <th style="text-align:center;">Aksi</th>
             </tr>
         </thead>
+
+        <!-- isi tabel -->
         <tbody>
+
+            <!-- looping data dari page_obj (pagination django) -->
             {% for a in page_obj %}
             <tr>
+
+                <!-- data anggota -->
                 <td>{{ a.nomor_anggota }}</td>
                 <td>{{ a.nama }}</td>
+
+                <!-- nominal pinjaman, diformat tanpa desimal -->
                 <td class="rupiah-text">{{ a.reguler|floatformat:0 }}</td>
                 <td class="rupiah-text">{{ a.khusus|floatformat:0 }}</td>
                 <td class="rupiah-text">{{ a.barang|floatformat:0 }}</td>
-                <td class="rupiah-text"><strong>{{ a.total|floatformat:0 }}</strong></td>
+
+                <!-- total pinjaman -->
+                <td class="rupiah-text">
+                    <strong>{{ a.total|floatformat:0 }}</strong>
+                </td>
+
+                <!-- aksi (lihat detail pinjaman anggota) -->
                 <td class="action-group">
                     <a href="{% url 'pinjaman:pinjaman_anggota' a.nomor_anggota %}" class="action-view">
                         <i class="ph-bold ph-eye"></i>
                     </a>
                 </td>
+
             </tr>
+
+            <!-- jika tidak ada data -->
             {% empty %}
             <tr>
                 <td colspan="7" class="empty-state">
@@ -71,9 +111,13 @@
                 </td>
             </tr>
             {% endfor %}
+
         </tbody>
     </table>
+
+    <!-- pagination (menggunakan template terpisah) -->
     {% include "includes/pagination.html" with page_obj=page_obj param="page_pinjaman" %}
+
 </div>
 
 {% endblock %}

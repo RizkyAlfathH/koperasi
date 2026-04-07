@@ -3,9 +3,10 @@ from decimal import Decimal
 from .models import Pinjaman
 
 
+# class: form berbasis model untuk input data pinjaman
 class PinjamanForm(forms.ModelForm):
 
-    # ================= FIELD STRING (INPUT RUPIAH) =================
+    # field (form): input jumlah pinjaman dalam bentuk string (format rupiah)
     jumlah_pinjaman = forms.CharField(
         required=True,
         error_messages={
@@ -17,6 +18,7 @@ class PinjamanForm(forms.ModelForm):
         })
     )
 
+    # field (form): input angsuran per bulan dalam format string
     angsuran_per_bulan = forms.CharField(
         required=True,
         error_messages={
@@ -28,6 +30,7 @@ class PinjamanForm(forms.ModelForm):
         })
     )
 
+    # field (form): jasa dalam rupiah (readonly, hasil perhitungan)
     jasa_rupiah = forms.CharField(
         required=False,
         widget=forms.TextInput(attrs={
@@ -36,8 +39,9 @@ class PinjamanForm(forms.ModelForm):
         })
     )
 
+    # class meta: konfigurasi model yang digunakan oleh form
     class Meta:
-        model = Pinjaman
+        model = Pinjaman  # model yang digunakan
         fields = [
             'nomor_anggota',
             'id_jenis_pinjaman',
@@ -50,6 +54,7 @@ class PinjamanForm(forms.ModelForm):
             'jasa_rupiah',
         ]
 
+        # pesan error untuk field tertentu
         error_messages = {
             'nomor_anggota': {
                 'required': 'Nama Anggota wajib diisi.'
@@ -65,6 +70,7 @@ class PinjamanForm(forms.ModelForm):
             },
         }
 
+        # widget: pengaturan tampilan input di form
         widgets = {
             'nomor_anggota': forms.Select(attrs={'class': 'form-control select2'}),
             'id_jenis_pinjaman': forms.Select(attrs={'class': 'form-control'}),
@@ -89,14 +95,16 @@ class PinjamanForm(forms.ModelForm):
             }),
         }
 
+    # method: constructor untuk inisialisasi form
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        # loop: menambahkan pesan error default jika field required
         for name, field in self.fields.items():
             if field.required and "required" not in field.error_messages:
                 field.error_messages["required"] = f"{field.label} wajib diisi."
 
-    # ================= HELPER =================
+    # method (helper): konversi string rupiah ke decimal
     def _rupiah_to_decimal(self, value):
         if not value:
             return None
@@ -111,7 +119,7 @@ class PinjamanForm(forms.ModelForm):
         except:
             raise forms.ValidationError("Format rupiah tidak valid.")
 
-    # ================= CLEAN PER FIELD =================
+    # method: validasi field jatuh_tempo
     def clean_jatuh_tempo(self):
         jatuh_tempo = self.cleaned_data.get("jatuh_tempo")
 
@@ -122,12 +130,14 @@ class PinjamanForm(forms.ModelForm):
 
         return jatuh_tempo
     
+    # method: validasi jumlah pinjaman
     def clean_jumlah_pinjaman(self):
         raw = self.cleaned_data.get('jumlah_pinjaman')
 
         if not raw:
             raise forms.ValidationError("Jumlah pinjaman wajib diisi.")
 
+        # proses: konversi ke decimal
         value = self._rupiah_to_decimal(raw)
 
         if value <= 0:
@@ -137,6 +147,7 @@ class PinjamanForm(forms.ModelForm):
 
         return value
 
+    # method: validasi angsuran per bulan
     def clean_angsuran_per_bulan(self):
         value = self._rupiah_to_decimal(
             self.cleaned_data.get('angsuran_per_bulan')
@@ -149,11 +160,13 @@ class PinjamanForm(forms.ModelForm):
 
         return value
 
+    # method: validasi jasa rupiah
     def clean_jasa_rupiah(self):
         return self._rupiah_to_decimal(
             self.cleaned_data.get('jasa_rupiah')
         )
 
+    # method: validasi jasa persen
     def clean_jasa_persen(self):
         jasa_persen = self.cleaned_data.get('jasa_persen')
 
@@ -168,18 +181,21 @@ class PinjamanForm(forms.ModelForm):
 
         return jasa_persen
 
-    # ================= CLEAN GLOBAL =================
+    # method: validasi global antar field
     def clean(self):
         cleaned_data = super().clean()
 
         jumlah = cleaned_data.get('jumlah_pinjaman')
         persen = cleaned_data.get('jasa_persen')
 
+        # proses: hitung jasa rupiah otomatis
         if jumlah and persen is not None:
             if persen < 0:
                 self.add_error("jasa_persen", "Persentase tidak boleh minus.")
 
             jasa = jumlah * (persen / Decimal('100'))
+
+            # pembulatan ke bilangan bulat
             cleaned_data['jasa_rupiah'] = jasa.quantize(Decimal('1'))
 
         return cleaned_data
