@@ -764,7 +764,7 @@ def import_excel_anggota(request):
                 if not nomor_anggota or not nama:
                     continue
  
-                if not re.match(r"^NA\s*\d+", nomor_anggota):
+                if not re.match(r"^(NA|AN)\s*\d+", nomor_anggota):
                     continue
  
                 # Jenis kelamin: L/P di file → Laki-laki/Perempuan di DB
