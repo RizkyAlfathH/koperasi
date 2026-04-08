@@ -22,8 +22,6 @@
     <p class="info-text">
         Data tercatat sampai {{ akhir_bulan|date:"d F Y" }}
     </p>
-    {# {{ }} = variable template (objek dari context view) #}
-    {# |date = filter template untuk format tanggal #}
 
     <!-- form filter -->
     <form method="get" class="filter-form">
@@ -31,7 +29,6 @@
         <!-- dropdown bulan -->
         <select name="bulan">
             {% for value, label in bulan_choices %}
-            {# for = tag template (loop) #}
                 <option value="{{ value }}" {% if value == bulan %}selected{% endif %}>
                     {{ label }}
                 </option>
@@ -54,7 +51,6 @@
 
         <!-- tombol reset -->
         {% if request.GET.bulan != None or request.GET.tahun != None %}
-        {# if = tag template (percabangan) #}
         <a href="{% url 'laporan:laporan' %}" class="reset-btn">
             &#x21bb;
         </a>
@@ -76,59 +72,52 @@
     </form>
 
     <!-- tabel laporan -->
-    <table class="data-table">
-
-        <thead>
-            <tr>
-                <th rowspan="2">Nomor Anggota</th>
-                <th rowspan="2">Nama</th>
-                <th colspan="4">Simpanan</th>
-                <th colspan="4">Pinjaman</th>
-            </tr>
-            <tr>
-                <th>Pokok</th>
-                <th>Wajib</th>
-                <th>Sukarela</th>
-                <th>Total</th>
-                <th>Reguler</th>
-                <th>Khusus</th>
-                <th>Barang</th>
-                <th>Total</th>
-            </tr>
-        </thead>
-
-        <tbody>
-            {% for item in laporan_bulanan %}
-            {# loop data dari context (list laporan) #}
-            <tr>
-                <td>{{ item.no }}</td>
-                <td>{{ item.nama }}</td>
-
-                <!-- akses dictionary bersarang -->
-                <td class="rupiah-text">{{ item.simpanan.pokok|floatformat:0 }}</td>
-                <td class="rupiah-text">{{ item.simpanan.wajib|floatformat:0 }}</td>
-                <td class="rupiah-text">{{ item.simpanan.sukarela|floatformat:0 }}</td>
-                <td class="rupiah-text"><strong>{{ item.simpanan.total|floatformat:0 }}</strong></td>
-
-                <td class="rupiah-text">{{ item.pinjaman.reguler|floatformat:0 }}</td>
-                <td class="rupiah-text">{{ item.pinjaman.khusus|floatformat:0 }}</td>
-                <td class="rupiah-text">{{ item.pinjaman.barang|floatformat:0 }}</td>
-                <td class="rupiah-text"><strong>{{ item.pinjaman.total|floatformat:0 }}</strong></td>
-            </tr>
-
-            {% empty %}
-            {# kondisi jika data kosong #}
-            <tr>
-                <td colspan="10" class="empty-state">
-                    Tidak ada data laporan bulanan
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th rowspan="2">Nomor Anggota</th>
+                    <th rowspan="2">Nama</th>
+                    <th colspan="4">Simpanan</th>
+                    <th colspan="4">Pinjaman</th>
+                </tr>
+                <tr>
+                    <th>Pokok</th>
+                    <th>Wajib</th>
+                    <th>Sukarela</th>
+                    <th>Total</th>
+                    <th>Reguler</th>
+                    <th>Khusus</th>
+                    <th>Barang</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in laporan_bulanan %}
+                <tr>
+                    <td>{{ item.no }}</td>
+                    <td>{{ item.nama }}</td>
+                    <td class="rupiah-text">{{ item.simpanan.pokok|floatformat:0 }}</td>
+                    <td class="rupiah-text">{{ item.simpanan.wajib|floatformat:0 }}</td>
+                    <td class="rupiah-text">{{ item.simpanan.sukarela|floatformat:0 }}</td>
+                    <td class="rupiah-text"><strong>{{ item.simpanan.total|floatformat:0 }}</strong></td>
+                    <td class="rupiah-text">{{ item.pinjaman.reguler|floatformat:0 }}</td>
+                    <td class="rupiah-text">{{ item.pinjaman.khusus|floatformat:0 }}</td>
+                    <td class="rupiah-text">{{ item.pinjaman.barang|floatformat:0 }}</td>
+                    <td class="rupiah-text"><strong>{{ item.pinjaman.total|floatformat:0 }}</strong></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="10" class="empty-state">
+                        Tidak ada data laporan bulanan
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
     {% include "includes/pagination.html" with page_obj=laporan_bulanan param="page_bulan" %}
-    {# include = tag untuk memanggil template lain (reusable component) #}
 
 </div>
 
@@ -179,54 +168,51 @@
         </select>
     </form>
 
-    <!-- tabel tahunan (struktur sama seperti bulanan) -->
-    <table class="data-table">
-
-        <thead>
-            <tr>
-                <th rowspan="2">Nomor Anggota</th>
-                <th rowspan="2">Nama</th>
-                <th colspan="4">Simpanan</th>
-                <th colspan="4">Pinjaman</th>
-            </tr>
-            <tr>
-                <th>Pokok</th>
-                <th>Wajib</th>
-                <th>Sukarela</th>
-                <th>Total</th>
-                <th>Reguler</th>
-                <th>Khusus</th>
-                <th>Barang</th>
-                <th>Total</th>
-            </tr>
-        </thead>
-
-        <tbody>
-            {% for item in laporan_tahunan %}
-            <tr>
-                <td>{{ item.no }}</td>
-                <td>{{ item.nama }}</td>
-
-                <td class="rupiah-text">{{ item.simpanan.pokok|floatformat:0 }}</td>
-                <td class="rupiah-text">{{ item.simpanan.wajib|floatformat:0 }}</td>
-                <td class="rupiah-text">{{ item.simpanan.sukarela|floatformat:0 }}</td>
-                <td class="rupiah-text"><strong>{{ item.simpanan.total|floatformat:0 }}</strong></td>
-
-                <td class="rupiah-text">{{ item.pinjaman.reguler|floatformat:0 }}</td>
-                <td class="rupiah-text">{{ item.pinjaman.khusus|floatformat:0 }}</td>
-                <td class="rupiah-text">{{ item.pinjaman.barang|floatformat:0 }}</td>
-                <td class="rupiah-text"><strong>{{ item.pinjaman.total|floatformat:0 }}</strong></td>
-            </tr>
-
-            {% empty %}
-            <tr>
-                <td colspan="10" class="empty-state">
-                    Tidak ada data laporan tahunan
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <!-- tabel tahunan -->
+    <div class="table-wrapper">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th rowspan="2">Nomor Anggota</th>
+                    <th rowspan="2">Nama</th>
+                    <th colspan="4">Simpanan</th>
+                    <th colspan="4">Pinjaman</th>
+                </tr>
+                <tr>
+                    <th>Pokok</th>
+                    <th>Wajib</th>
+                    <th>Sukarela</th>
+                    <th>Total</th>
+                    <th>Reguler</th>
+                    <th>Khusus</th>
+                    <th>Barang</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in laporan_tahunan %}
+                <tr>
+                    <td>{{ item.no }}</td>
+                    <td>{{ item.nama }}</td>
+                    <td class="rupiah-text">{{ item.simpanan.pokok|floatformat:0 }}</td>
+                    <td class="rupiah-text">{{ item.simpanan.wajib|floatformat:0 }}</td>
+                    <td class="rupiah-text">{{ item.simpanan.sukarela|floatformat:0 }}</td>
+                    <td class="rupiah-text"><strong>{{ item.simpanan.total|floatformat:0 }}</strong></td>
+                    <td class="rupiah-text">{{ item.pinjaman.reguler|floatformat:0 }}</td>
+                    <td class="rupiah-text">{{ item.pinjaman.khusus|floatformat:0 }}</td>
+                    <td class="rupiah-text">{{ item.pinjaman.barang|floatformat:0 }}</td>
+                    <td class="rupiah-text"><strong>{{ item.pinjaman.total|floatformat:0 }}</strong></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="10" class="empty-state">
+                        Tidak ada data laporan tahunan
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
     {% include "includes/pagination.html" with page_obj=laporan_tahunan param="page_tahun" %}
 
@@ -383,17 +369,14 @@ $(function () {
                         didOpen: () => Swal.showLoading()
                     });
 
-                    // Download via fetch agar bisa tau kapan selesai
                     fetch(url)
                     .then(resp => resp.blob().then(blob => ({ blob, headers: resp.headers })))
                     .then(({ blob, headers }) => {
-                        // Cek nama file dari header Content-Disposition
                         let filename = "file.xlsx";
                         const disposition = headers.get('Content-Disposition');
                         if (disposition && disposition.includes('filename=')) {
                             filename = disposition.split('filename=')[1].replace(/["']/g, '');
                         } else {
-                            // fallback: ambil dari URL
                             filename = url.split("/").pop();
                         }
 
@@ -404,7 +387,7 @@ $(function () {
                         a.click();
                         document.body.removeChild(a);
 
-                        Swal.close(); // stop loader setelah file siap
+                        Swal.close();
                     })
                     .catch(err => {
                         Swal.fire({

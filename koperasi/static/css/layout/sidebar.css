@@ -294,3 +294,27 @@
 .sidebar-collapsed-init .main-content {
     margin-left: 100px !important;
 }
+
+/* overlay gelap di belakang sidebar */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 999;
+}
+.sidebar-overlay.active {
+    display: block;
+}
+
+/* sidebar muncul dari kiri saat mobile-open */
+@media (max-width: 768px) {
+    .sidebar.mobile-open {
+        left: 0 !important;
+    }
+}
+@media (max-width: 768px) {
+    .toggle-btn {
+        display: none;
+    }
+}

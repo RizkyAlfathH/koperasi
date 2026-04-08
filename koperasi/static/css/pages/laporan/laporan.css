@@ -96,3 +96,115 @@
     color: #fff;
     border-color: #e0b800;
 }
+
+.content-card h2 {
+    font-size: 30px;
+    font-weight: 500;
+    color: #291B18;
+    margin-bottom: 12px;
+    line-height: 1.3;
+}
+
+/* ===============================
+   PEMISAH SIMPANAN & PINJAMAN
+   =============================== */
+
+.data-table th,
+.data-table td {
+    border-left: 2px solid #E5E7EB;
+}
+
+.data-table th {
+    text-align: center;
+}
+
+.info-text {
+    font-size: 18px;
+    font-weight: 600;
+    color: #291B18;
+}
+
+/* SEARCH FORM */
+.filter-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+}
+
+.filter-form select {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+
+    background-color: #fff !important;
+
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M6 9L12 15L18 9' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+
+    background-repeat: no-repeat !important;
+    background-position: right 12px center !important;
+    background-size: 16px !important;
+
+    padding-right: 40px !important;
+}
+
+.filter-form input,
+.filter-form select {
+    width: auto;
+    min-width: fit-content;
+    padding: 7px 40px 7px 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 15px;
+    background: #fff;
+    color: #291B18;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.filter-form input:focus,
+.filter-form select:focus {
+    border-color: #000;
+}
+
+.filter-form .per-page-select {
+    margin-left: auto;
+}
+
+/* Tombol reset */
+.reset-btn {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: #f0f0f0;
+    color: #333;
+    text-decoration: none;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    transition: all 0.2s;
+}
+
+.reset-btn:hover {
+    background: #FFD700;
+    color: #fff;
+    border-color: #e0b800;
+}
+
+/* ===============================
+   RESPONSIVE TABLE
+   =============================== */
+
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table-wrapper .data-table {
+    min-width: 900px;
+    width: 100%;
+}

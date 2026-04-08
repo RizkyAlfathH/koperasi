@@ -1,4 +1,7 @@
 <div class="navbar">
+    <button class="hamburger-btn" id="hamburgerBtn">
+        <i class="ph ph-list"></i>
+    </button>
     <div class="title">KOPASMEN</div>
     <div class="user-info">
         <div class="user-avatar">
@@ -8,18 +11,41 @@
     </div>
 </div>
 
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    const navbar = document.querySelector(".navbar");
+    const navbar  = document.querySelector(".navbar");
+    const sidebar = document.getElementById("sidebar");
+    const overlay = document.getElementById("sidebarOverlay");
+    const hamBtn  = document.getElementById("hamburgerBtn");
 
-    // set posisi awal dari localStorage
+    // posisi awal navbar (desktop)
     const isCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
-    navbar.style.left = isCollapsed ? "100px" : "280px";
+    navbar.style.left  = isCollapsed ? "100px" : "280px";
 
-    // update saat toggle
     document.addEventListener("sidebarToggled", function(e) {
-        const collapsed = e.detail.collapsed;
-        navbar.style.left = collapsed ? "100px" : "280px";
+        if (window.innerWidth > 768) {
+            navbar.style.left = e.detail.collapsed ? "100px" : "280px";
+        }
     });
+
+    // mobile hamburger
+    function openSidebar() {
+        sidebar.classList.add("mobile-open");
+        overlay.classList.add("active");
+    }
+    function closeSidebar() {
+        sidebar.classList.remove("mobile-open");
+        overlay.classList.remove("active");
+    }
+
+    hamBtn.addEventListener("click", function() {
+        if (window.innerWidth <= 768) {
+            sidebar.classList.contains("mobile-open")
+                ? closeSidebar() : openSidebar();
+        }
+    });
+    overlay.addEventListener("click", closeSidebar);
 });
 </script>

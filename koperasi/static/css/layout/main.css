@@ -1,5 +1,13 @@
 .main-content {
-    margin-left: 280px;
     margin-top: 60px;
-    padding: 30px;
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 0 !important;
+        margin-top: 60px;
+        padding: 15px;
+        overflow-x: hidden;  /* ← tambah ini */
+        max-width: 100vw;    /* ← dan ini */
+    }
 }

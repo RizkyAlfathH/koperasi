@@ -43,3 +43,23 @@
     font-weight: bold;
     color: #FFD700;
 }
+
+/* hamburger — hidden di desktop */
+.hamburger-btn {
+    display: none;
+    background: transparent;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: #333;
+    padding: 0 8px 0 0;
+}
+
+@media (max-width: 768px) {
+    .navbar {
+        left: 0 !important;
+    }
+    .hamburger-btn {
+        display: block;
+    }
+}

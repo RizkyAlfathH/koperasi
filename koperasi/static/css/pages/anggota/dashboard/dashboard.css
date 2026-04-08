@@ -203,3 +203,48 @@
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 768px) {
+  .dashboard-wrapper {
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .info-cards,
+  .middle-grid,
+  .chart-grid {
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .calendar-days span {
+    font-size: 13px;
+  }
+
+  .calendar-dates span {
+    font-size: 12px;
+    padding: 6px 2px;
+    margin: 2px;
+  }
+}
+
+@media (max-width: 576px) {
+  .info-cards {
+    grid-template-columns: 1fr;
+  }
+  .info-card h2 {
+    font-size: 18px;
+  }
+  .rupiah-text {
+    font-size: 15px !important;
+  }
+  .middle-grid h3,
+  .chart-box h3,
+  .chart-static h3 {
+    font-size: 18px;
+  }
+  .donut-wrapper {
+    width: 220px;
+    height: 220px;
+  }
+}

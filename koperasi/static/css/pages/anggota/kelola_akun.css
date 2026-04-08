@@ -111,3 +111,27 @@
 .swal-small .swal2-actions {
     margin-top: 10px !important;
 }
+/* === responsive tabel === */
+.table-responsive-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.scroll-hint-mobile {
+    display: none;
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 6px;
+}
+
+@media (max-width: 768px) {
+    .scroll-hint-mobile {
+        display: block;
+    }
+
+    .page-kelola-akun .data-table {
+        min-width: 820px;
+    }
+
+    /* hapus sticky — kolom Aksi ikut scroll normal */
+}

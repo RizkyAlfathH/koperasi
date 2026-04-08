@@ -33,43 +33,46 @@
             </div>
         </div>
 
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th style="width:40%">Username</th>
-                    <th style="width:40%">Role</th>
-                    <th style="width:20%; text-align:center;">Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for admin in admins %}
-                <tr>
-                    <td>{{ admin.username }}</td>
-                    <td>{{ admin.role }}</td>
-                    <td>
-                        <div class="action-group">
-                            <a href="{% url 'anggota:detail_admin' admin.id %}" class="action-view" title="Lihat">
-                                <i class="ph-bold ph-eye"></i>
-                            </a>
-                            <a href="{% url 'anggota:edit_admin' admin.id %}" class="action-edit" title="Edit">
-                                <i class="ph-bold ph-pencil-simple"></i>
-                            </a>
-                            <a href="{% url 'anggota:hapus_admin' admin.id %}"
-                               class="action-delete"
-                               data-type="admin"
-                               data-name="{{ admin.username }}">
-                                <i class="ph-bold ph-trash"></i>
-                            </a>
-                        </div>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="3" class="empty-state">Tidak ada admin</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <p class="scroll-hint-mobile">← Geser untuk lihat semua kolom →</p>
+        <div class="table-responsive-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width:40%">Username</th>
+                        <th style="width:40%">Role</th>
+                        <th style="width:20%; text-align:center;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for admin in admins %}
+                    <tr>
+                        <td>{{ admin.username }}</td>
+                        <td>{{ admin.role }}</td>
+                        <td>
+                            <div class="action-group">
+                                <a href="{% url 'anggota:detail_admin' admin.id %}" class="action-view" title="Lihat">
+                                    <i class="ph-bold ph-eye"></i>
+                                </a>
+                                <a href="{% url 'anggota:edit_admin' admin.id %}" class="action-edit" title="Edit">
+                                    <i class="ph-bold ph-pencil-simple"></i>
+                                </a>
+                                <a href="{% url 'anggota:hapus_admin' admin.id %}"
+                                   class="action-delete"
+                                   data-type="admin"
+                                   data-name="{{ admin.username }}">
+                                    <i class="ph-bold ph-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="empty-state">Tidak ada admin</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
         {% include "includes/pagination.html" with page_obj=admins param="page_admin" %}
     </div>
@@ -101,7 +104,6 @@
                     <input type="file" name="excel_file" id="excelInput"
                            accept=".xlsx,.xls" hidden required>
 
-                    <!-- ↓ ubah onclick → panggil fungsi popup import -->
                     <button type="button" class="btn btn-secondary" id="btnImport">
                         <i class="ph-bold ph-file-csv action-import"></i> Import Excel
                     </button>
@@ -109,14 +111,14 @@
                     <button type="submit" id="submitExcel" hidden></button>
                 </form>
 
-                <!-- export excel: tambah id -->
+                <!-- export excel -->
                 <a href="{% url 'anggota:export_excel_anggota' %}"
                    class="btn btn-success"
                    id="btnExportExcel">
                     <i class="ph-bold ph-file-xls action-export"></i> Export Excel
                 </a>
 
-                <!-- export pdf: tambah id -->
+                <!-- export pdf -->
                 <a href="{% url 'anggota:export_pdf_anggota' %}"
                    class="btn btn-danger"
                    id="btnExportPdf">
@@ -125,68 +127,70 @@
             </div>
         </div>
 
-        <!-- tabel anggota -->
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>No. Anggota</th>
-                    <th>Nama</th>
-                    <th>Umur</th>
-                    <th>NIP</th>
-                    <th>Jenis Kelamin</th>
-                    <th>Tanggal Daftar</th>
-                    <th>Status</th>
-                    <th>Alasan Tidak Aktif</th>
-                    <th class="text-center">Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for anggota in anggotas %}
-                <tr>
-                    <td>{{ anggota.nomor_anggota|default:"-" }}</td>
-                    <td>{{ anggota.nama|default:"-" }}</td>
-                    <td>{{ anggota.umur|default:"-" }}</td>
-                    <td>{{ anggota.nip|default:"-" }}</td>
-                    <td>{{ anggota.jenis_kelamin|default:"-" }}</td>
-                    <td>{{ anggota.tanggal_daftar|date:"d M Y"|default:"-" }}</td>
-                    <td>
-                        {% if anggota.status|lower == "aktif" %}
-                            <span class="status-badge badge-aktif">aktif</span>
-                        {% elif anggota.status|lower == "nonaktif" %}
-                            <span class="status-badge badge-nonaktif">non-aktif</span>
-                        {% else %}
-                            <span class="status-badge badge-default">
-                                {{ anggota.status|default:"-" }}
-                            </span>
-                        {% endif %}
-                    </td>
-                    <td title="{{ anggota.alasan_nonaktif }}">
-                        {{ anggota.alasan_nonaktif|default:"-" }}
-                    </td>
-                    <td>
-                        <div class="action-group">
-                            <a href="{% url 'anggota:detail_anggota' anggota.nomor_anggota %}" class="action-view">
-                                <i class="ph-bold ph-eye"></i>
-                            </a>
-                            <a href="{% url 'anggota:edit_anggota' anggota.nomor_anggota %}" class="action-edit">
-                                <i class="ph-bold ph-pencil-simple"></i>
-                            </a>
-                            <a href="{% url 'anggota:hapus_anggota' anggota.nomor_anggota %}"
-                               class="action-delete"
-                               data-type="anggota"
-                               data-name="{{ anggota.nama }}">
-                                <i class="ph-bold ph-trash"></i>
-                            </a>
-                        </div>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="9" class="empty-state">Tidak ada anggota</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <p class="scroll-hint-mobile">← Geser untuk lihat semua kolom →</p>
+        <div class="table-responsive-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>No. Anggota</th>
+                        <th>Nama</th>
+                        <th>Umur</th>
+                        <th>NIP</th>
+                        <th>Jenis Kelamin</th>
+                        <th>Tanggal Daftar</th>
+                        <th>Status</th>
+                        <th>Alasan Tidak Aktif</th>
+                        <th class="text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for anggota in anggotas %}
+                    <tr>
+                        <td>{{ anggota.nomor_anggota|default:"-" }}</td>
+                        <td>{{ anggota.nama|default:"-" }}</td>
+                        <td>{{ anggota.umur|default:"-" }}</td>
+                        <td>{{ anggota.nip|default:"-" }}</td>
+                        <td>{{ anggota.jenis_kelamin|default:"-" }}</td>
+                        <td>{{ anggota.tanggal_daftar|date:"d M Y"|default:"-" }}</td>
+                        <td>
+                            {% if anggota.status|lower == "aktif" %}
+                                <span class="status-badge badge-aktif">aktif</span>
+                            {% elif anggota.status|lower == "nonaktif" %}
+                                <span class="status-badge badge-nonaktif">non-aktif</span>
+                            {% else %}
+                                <span class="status-badge badge-default">
+                                    {{ anggota.status|default:"-" }}
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td title="{{ anggota.alasan_nonaktif }}">
+                            {{ anggota.alasan_nonaktif|default:"-" }}
+                        </td>
+                        <td>
+                            <div class="action-group">
+                                <a href="{% url 'anggota:detail_anggota' anggota.nomor_anggota %}" class="action-view">
+                                    <i class="ph-bold ph-eye"></i>
+                                </a>
+                                <a href="{% url 'anggota:edit_anggota' anggota.nomor_anggota %}" class="action-edit">
+                                    <i class="ph-bold ph-pencil-simple"></i>
+                                </a>
+                                <a href="{% url 'anggota:hapus_anggota' anggota.nomor_anggota %}"
+                                   class="action-delete"
+                                   data-type="anggota"
+                                   data-name="{{ anggota.nama }}">
+                                    <i class="ph-bold ph-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="empty-state">Tidak ada anggota</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
         {% include "includes/pagination.html" with page_obj=anggotas param="page_anggota" %}
     </div>

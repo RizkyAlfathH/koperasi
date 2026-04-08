@@ -150,6 +150,7 @@
 
 {% endblock %}
 
+{% block extra_js %}
 <script>
 $(function () {
 
@@ -247,7 +248,5 @@ $(function () {
 
 });
 </script>
-{% endblock %}
-{% block extra_js %}
     <script src="{% static 'js/simpanan/form/form_simpanan.js' %}"></script>
 {% endblock %}

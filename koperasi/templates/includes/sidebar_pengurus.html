@@ -112,10 +112,11 @@ document.addEventListener("DOMContentLoaded", function() {
     }, 50);
 
     toggleBtn.addEventListener("click", function() {
+        // hanya jalankan collapse di desktop
+        if (window.innerWidth <= 768) return;
+        
         sidebar.classList.toggle("collapsed");
-
         const collapsedNow = sidebar.classList.contains("collapsed");
-
         localStorage.setItem("sidebarCollapsed", collapsedNow);
 
         const event = new CustomEvent("sidebarToggled", {

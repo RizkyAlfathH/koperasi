@@ -17,7 +17,7 @@
 
     <!-- tombol bayar hanya muncul jika ada pinjaman aktif -->
     {% if pinjaman_aktif %}
-        <button class="btn-simpan" onclick="openBayarModal()"> Bayar</button>
+        <button class="btn-simpan" onclick="openBayarModal()" style="margin-bottom: 20px;"> Bayar</button>
     {% endif %}
 
     <!-- modal untuk memilih pinjaman yang akan dibayar -->
@@ -48,7 +48,9 @@
     {% endif %}
 
     <!-- tabel daftar pinjaman aktif -->
-    <table class="data-table" style="margin-top:20px;">
+    <p class="scroll-hint-mobile">← Geser untuk lihat semua kolom →</p>
+    <div class="table-responsive-wrapper">
+    <table class="data-table">
         <thead>
             <tr>
                 <th>Tanggal Pinjam</th>
@@ -101,6 +103,7 @@
 
         </tbody>
     </table>
+    </div>
 </div>
 
 <!-- container riwayat pinjaman -->
@@ -110,6 +113,8 @@
     <h2>Riwayat Pinjaman</h2>
 
     <!-- tabel riwayat -->
+    <p class="scroll-hint-mobile" style="margin-top: 20px;">← Geser untuk lihat semua kolom →</p>
+    <div class="table-responsive-wrapper">
     <table class="data-table">
         <thead>
             <tr>
@@ -162,9 +167,10 @@
         </tbody>
     </table>
 </div>
+</div>
 
 <!-- tombol kembali ke halaman list -->
-<div class="mt-3">
+<div >
     <a href="{% url 'pinjaman:pinjaman_list' %}"
        class="btn-kembali">
         Kembali
