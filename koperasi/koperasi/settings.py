@@ -190,3 +190,7 @@ CSRF_TRUSTED_ORIGINS = [
     'https://koperasi.up.railway.app',
     'https://*.up.railway.app',
 ]
+
+SECURE_SSL_REDIRECT = False
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
