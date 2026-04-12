@@ -411,7 +411,7 @@ def kelola_akun(request):
     )
 
     # render template dengan context (dictionary)
-    return render(request, "kelola_akun/kelola_akun.html", {
+    return render(request, "Kelola_akun/kelola_akun.html", {
         "admins": admins_page,
         "anggotas": anggotas_page,
         "searchAdmin": search_admin,
