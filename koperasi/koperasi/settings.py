@@ -120,6 +120,7 @@ DATABASES = {
         'PORT': config('MYSQL_PORT', default='3306'),
         'OPTIONS': {
             'charset': 'utf8mb4',
+            'connect_timeout': 10,
         },
     }
 }
