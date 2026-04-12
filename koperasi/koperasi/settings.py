@@ -185,3 +185,8 @@ LANGUAGE_CODE = 'id'
 USE_L10N = True
 LOGIN_REDIRECT_URL = "anggota:dashboard_redirect"
 LOGOUT_REDIRECT_URL = "admin_koperasi:admin_login"
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://koperasi.up.railway.app',
+    'https://*.up.railway.app',
+]
