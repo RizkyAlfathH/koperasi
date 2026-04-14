@@ -33,6 +33,9 @@ from django.db.models.functions import TruncMonth
 from simpanan.models import Simpanan, Penarikan
 from pinjaman.models import Pinjaman, Angsuran
 from collections import defaultdict
+from django.http import JsonResponse
+from django.db.models import Sum
+from simpanan.models import HistoryTabungan
 
 User = get_user_model()
 
@@ -411,7 +414,7 @@ def kelola_akun(request):
     )
 
     # render template dengan context (dictionary)
-    return render(request, "kelola_akun/kelola_akun.html", {
+    return render(request, "Kelola_akun/kelola_akun.html", {
         "admins": admins_page,
         "anggotas": anggotas_page,
         "searchAdmin": search_admin,
@@ -562,18 +565,44 @@ def edit_anggota(request, nomor_anggota):
 @login_required
 def hapus_anggota(request, nomor_anggota):
 
-    # validasi role
     if request.user.role not in ROLE_ADMIN:
         return redirect("dashboard")
 
-    # ambil objek anggota
     anggota = get_object_or_404(Anggota, nomor_anggota=nomor_anggota)
 
-    # hapus data
-    anggota.delete()
+    # 🔒 validasi backend — tidak bisa dibypass walau akses URL langsung
+    history = HistoryTabungan.objects.filter(anggota=anggota)
+    total_setor = history.filter(jenis_transaksi="SETOR").aggregate(total=Sum('jumlah'))['total'] or 0
+    total_tarik = history.filter(jenis_transaksi="TARIK").aggregate(total=Sum('jumlah'))['total'] or 0
+    saldo = total_setor - total_tarik
 
+    if saldo > 0:
+        messages.error(
+            request,
+            f"Anggota tidak dapat dihapus. Masih memiliki saldo simpanan "
+            f"sebesar Rp{saldo:,.0f}. Lakukan penarikan semua simpanan terlebih dahulu."
+        )
+        return redirect("anggota:kelola_akun")
+
+    anggota.delete()
     messages.success(request, "Anggota berhasil dihapus.")
     return redirect("anggota:kelola_akun")
+
+def cek_saldo_anggota(request, nomor_anggota):
+    if request.user.role not in ROLE_ADMIN:
+        return JsonResponse({"error": "Unauthorized"}, status=403)
+
+    anggota = get_object_or_404(Anggota, nomor_anggota=nomor_anggota)
+    history = HistoryTabungan.objects.filter(anggota=anggota)
+
+    total_setor = history.filter(jenis_transaksi="SETOR").aggregate(
+        total=Sum('jumlah'))['total'] or 0
+    total_tarik = history.filter(jenis_transaksi="TARIK").aggregate(
+        total=Sum('jumlah'))['total'] or 0
+
+    saldo = total_setor - total_tarik
+
+    return JsonResponse({"saldo": float(saldo)})
 
 
 # fungsi untuk detail anggota

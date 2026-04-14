@@ -175,10 +175,11 @@
                                     <i class="ph-bold ph-pencil-simple"></i>
                                 </a>
                                 <a href="{% url 'anggota:hapus_anggota' anggota.nomor_anggota %}"
-                                   class="action-delete"
-                                   data-type="anggota"
-                                   data-name="{{ anggota.nama }}">
-                                    <i class="ph-bold ph-trash"></i>
+                                    class="action-delete"
+                                    data-type="anggota"
+                                    data-name="{{ anggota.nama }}"
+                                    data-cek-url="{% url 'anggota:cek_saldo_anggota' anggota.nomor_anggota %}">
+                                        <i class="ph-bold ph-trash"></i>
                                 </a>
                             </div>
                         </td>
