@@ -35,7 +35,8 @@ class PinjamanForm(forms.ModelForm):
         required=False,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'readonly': 'readonly'
+            'readonly': 'readonly',
+            'placeholder': 'Akan dihitung otomatis'
         })
     )
 
@@ -99,7 +100,10 @@ class PinjamanForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # loop: menambahkan pesan error default jika field required
+        # placeholder untuk dropdown
+        self.fields['id_jenis_pinjaman'].empty_label = "Pilih Jenis Pinjaman"
+
+        # loop error messages
         for name, field in self.fields.items():
             if field.required and "required" not in field.error_messages:
                 field.error_messages["required"] = f"{field.label} wajib diisi."

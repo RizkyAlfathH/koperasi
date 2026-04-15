@@ -110,6 +110,10 @@
         min-width: 750px; /* naikkan supaya konten tidak kepepet */
     }
 
+    .content-card .section-title h2 {
+        width: 100%;
+    }
+
     /* cegah teks angka rupiah wrap */
     .content-card .data-table .rupiah-text {
         white-space: nowrap;

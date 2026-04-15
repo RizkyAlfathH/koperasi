@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'pinjaman',
     'static',
     'api',
+    'django_apscheduler',
 
     'widget_tweaks',
     "django_extensions",
@@ -132,7 +133,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Jakarta'
 
 USE_I18N = True
 

@@ -75,6 +75,10 @@
         display: block;
     }
 
+    .content-card .section-title h2 {
+        width: 100%;
+    }
+
     .content-card .data-table {
         min-width: 750px; /* naikkan supaya konten tidak kepepet */
     }
@@ -88,5 +92,61 @@
     .content-card .data-table th,
     .content-card .data-table td {
         white-space: nowrap;
+    }
+
+    .content-card .add-button {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* ===============================
+   FIX HEADER RESPONSIVE (SEARCH + BUTTON)
+   =============================== */
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+
+    .section-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .header-right {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+    }
+
+    /* search full */
+    .content-card .search-box {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .content-card .search-box input,
+    .content-card .search-box select {
+        width: 100%;
+    }
+
+    /* tombol full */
+    .content-card .add-button {
+        width: 100%;
+        text-align: center;
     }
 }
