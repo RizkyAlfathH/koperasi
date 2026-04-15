@@ -16,6 +16,7 @@ from anggota.models import Anggota
 from simpanan.models import Simpanan, JenisSimpanan
 from admin_koperasi.utils import has_page_permission
 from dateutil.relativedelta import relativedelta
+import calendar
 
 # fungsi view untuk menampilkan daftar pinjaman
 @login_required
@@ -31,8 +32,15 @@ def pinjaman_list(request):
     search_query = request.GET.get('search', '')
     sort_by = request.GET.get('sort', 'nomor')
 
+    # DEBUG — cek nilai parameter yang masuk
+    print(f"[DEBUG] search_query: {search_query}")
+    print(f"[DEBUG] sort_by: {sort_by}")
+
     # query anggota aktif (ORM method)
     anggotas = Anggota.objects.filter(status='aktif')
+
+    # DEBUG — cek berapa anggota aktif ditemukan
+    print(f"[DEBUG] jumlah anggota aktif: {anggotas.count()}")
 
     # filter pencarian (Q object untuk OR query)
     if search_query:
@@ -52,9 +60,8 @@ def pinjaman_list(request):
             status='aktif'
         )
 
-        # proses auto bayar (fungsi custom)
-        for pinjaman in pinjaman_aktif_qs:
-            cek_auto_sukarela_ke_pinjaman(pinjaman, admin_login)
+        # DEBUG — cek per anggota
+        print(f"[DEBUG] anggota: {anggota.nama}, pinjaman aktif: {pinjaman_aktif_qs.count()}")
 
         # fungsi lokal (nested function) untuk hitung total pinjaman
         def total_pinjaman(jenis):
@@ -231,9 +238,6 @@ def pinjaman_anggota(request, nomor_anggota):
     # loop semua pinjaman
     for pinjaman in pinjaman_qs:
 
-        # fungsi custom auto bayar
-        cek_auto_sukarela_ke_pinjaman(pinjaman, admin_login)
-
         # ambil angsuran per bulan
         angsuran_pokok = pinjaman.angsuran_per_bulan or Decimal('0')
 
@@ -352,295 +356,245 @@ def detail_pinjaman(request, id_pinjaman):
 
 # fungsi view untuk pembayaran pinjaman
 @login_required
-@transaction.atomic  # decorator untuk transaksi database (rollback jika gagal)
+@transaction.atomic
 def bayar_pinjaman(request, id_pinjaman):
+    """
+    Memproses pembayaran cicilan pinjaman anggota.
 
-    # ambil data pinjaman (method ORM)
-    pinjaman = get_object_or_404(Pinjaman, id_pinjaman=id_pinjaman)
+    Catatan Penting (logika tunggakan):
+        - Sistem TIDAK memperbolehkan lompat bulan pembayaran.
+        - Jika anggota terakhir bayar April dan baru bayar lagi September,
+          maka bulan Mei s/d September dianggap tunggakan dan harus dibayar urut.
+        - Semua tanggal cicilan tunggakan dihitung OTOMATIS dari server:
+            cicilan ke-i → tanggal_mulai + relativedelta(months = cicilan_terbayar + i)
+          Tidak ada input tanggal dari user saat ada tunggakan.
+        - Input tanggal dari user HANYA dipakai saat tidak ada tunggakan
+          (bayar normal 1 bulan ke depan / bulan berjalan).
+        - Input tanggal dari user juga dipakai untuk tipe "jasa saja".
+        - Jumlah bulan yang dibayar DIKUNCI = jumlah tunggakan.
+    """
 
-    admin_login = request.user  # objek user login
+    pinjaman    = get_object_or_404(Pinjaman, id_pinjaman=id_pinjaman)
+    admin_login = request.user
 
-    # konversi ke Decimal untuk perhitungan aman
-    angsuran_pokok = Decimal(pinjaman.angsuran_per_bulan or 0)
+    angsuran_pokok  = Decimal(pinjaman.angsuran_per_bulan or 0)
     jumlah_pinjaman = Decimal(pinjaman.jumlah_pinjaman or 0)
-    jasa_persen = Decimal(pinjaman.jasa_persen or 0)
+    jasa_persen     = Decimal(pinjaman.jasa_persen or 0)
 
-    # hitung jumlah cicilan yang sudah dibayar (method count)
+    # hitung cicilan yang sudah dibayar (tipe cicilan saja)
     cicilan_terbayar = Angsuran.objects.filter(
         id_pinjaman=pinjaman, tipe_bayar="cicilan"
     ).count()
 
-    # hitung sisa pinjaman (operasi aritmatika)
-    sisa_pinjaman = jumlah_pinjaman - (cicilan_terbayar * angsuran_pokok)
-
-    # validasi agar tidak negatif
-    sisa_pinjaman = max(sisa_pinjaman, Decimal("0"))
-
-    # update field sisa_pinjaman (method save)
+    # hitung sisa pinjaman
+    sisa_pinjaman = max(
+        jumlah_pinjaman - (cicilan_terbayar * angsuran_pokok),
+        Decimal("0")
+    )
     pinjaman.sisa_pinjaman = sisa_pinjaman
     pinjaman.save(update_fields=["sisa_pinjaman"])
 
-    # hitung bulan berjalan
-    today = date.today()
+    today         = date.today()
     tanggal_mulai = pinjaman.tanggal_meminjam
+    tenor         = pinjaman.jatuh_tempo or 36  # field di model adalah jatuh_tempo
 
-    # rumus bulan berjalan
-    bulan_berjalan = (today.year - tanggal_mulai.year) * 12 + (today.month - tanggal_mulai.month) + 1
+    # ── Hitung bulan yang sudah melewati jatuh tempo ────────────────────────
+    # Jatuh tempo cicilan ke-N = akhir bulan ke-(N-1) dari tanggal_mulai.
+    # Cicilan ke-1 jatuh tempo akhir bulan pertama (bulan yang sama dg pinjam).
+    # Cicilan dianggap NUNGGAK hanya jika today sudah MELEWATI akhir bulan tsb.
+    # Contoh: pinjam 1 April, today = 15 April → cicilan ke-1 belum lewat → bukan tunggakan.
+    #         pinjam 1 April, today = 1 Mei   → cicilan ke-1 sudah lewat  → tunggakan.
+    #
+    # Rumus: hitung berapa cicilan yang jatuh temponya sudah lewat hari ini.
+    # Jatuh tempo cicilan ke-N = akhir bulan (tanggal_mulai + (N-1) bulan).
+    # → sama dengan: akhir bulan (tanggal_mulai + bulan_index bulan),
+    #   di mana bulan_index = 0 untuk cicilan ke-1, 1 untuk cicilan ke-2, dst.
+    # Cicilan ke-(bulan_index+1) sudah lewat jika today > akhir_bulan(bulan_index).
 
-    # sisa bulan yang bisa dicicil
-    sisa_bulan_aktif = max(bulan_berjalan - cicilan_terbayar, 0)
+    def akhir_bulan_ke(n):
+        """Tanggal akhir bulan ke-n dari tanggal_mulai (0-based index cicilan)."""
+        target = tanggal_mulai + relativedelta(months=n)
+        return target.replace(day=calendar.monthrange(target.year, target.month)[1])
 
-    # proses jika request POST
+    # Hitung berapa cicilan yang jatuh temponya sudah lewat hari ini
+    # (yaitu akhir bulannya < today, bukan <=, karena hari jatuh tempo masih bisa bayar)
+    bulan_sudah_jatuh_tempo = sum(
+        1 for i in range(tenor)
+        if akhir_bulan_ke(i) < today
+    )
+    # batasi agar tidak melebihi tenor
+    bulan_seharusnya   = min(bulan_sudah_jatuh_tempo, tenor)
+    bulan_nunggak      = max(bulan_seharusnya - cicilan_terbayar, 0)
+    sisa_cicilan_total = max(tenor - cicilan_terbayar, 0)
+
+    ada_tunggakan      = bulan_nunggak > 0
+    jumlah_bulan_bayar = bulan_nunggak if ada_tunggakan else 1
+
+    # cicilan_terbayar = indeks bulan berikutnya yang harus dibayar
+    # Contoh: sudah bayar 4 cicilan (s/d Apr) → tunggakan pertama = akhir Mei
+    if ada_tunggakan:
+        # cicilan ke-1 → bulan ke-1 dari tanggal_mulai (bukan bulan ke-0)
+        tanggal_cicilan_pertama = tanggal_mulai + relativedelta(months=cicilan_terbayar + 1)
+    else:
+        tanggal_cicilan_pertama = None  # pakai input user saat bayar normal
+
+    # ── Hitung total bayar untuk form ────────────────────────────────────────
+    def hitung_total_cicilan(bulan, sisa_awal):
+        total = Decimal("0")
+        temp  = sisa_awal
+        for _ in range(bulan):
+            if temp <= 0:
+                break
+            jasa = (
+                temp * (jasa_persen / 100)
+                if pinjaman.id_kategori_jasa.kategori_jasa.lower() == "turunan"
+                else jumlah_pinjaman * (jasa_persen / 100)
+            )
+            total += angsuran_pokok + jasa
+            temp  -= angsuran_pokok
+        return total
+
+    total_bayar = hitung_total_cicilan(jumlah_bulan_bayar, sisa_pinjaman)
+
+    # ── POST ─────────────────────────────────────────────────────────────────
     if request.method == "POST":
 
-        # ambil input dari form
-        tanggal_input_str = request.POST.get("tanggal")
-        tipe_bayar = request.POST.get("tipe_bayar")
-        bulan_input = int(request.POST.get("bulan", 1))
+        tipe_bayar  = request.POST.get("tipe_bayar")
         nominal_raw = request.POST.get("nominal")
 
-        # parsing nominal ke Decimal
         try:
             nominal = Decimal(
                 nominal_raw.replace("Rp", "").replace(".", "").replace(",", "").strip()
             )
-        except:
+        except Exception:
             messages.error(request, "Nominal tidak valid.")
             return redirect("pinjaman:bayar_pinjaman", id_pinjaman=id_pinjaman)
 
-        # validasi tanggal
-        if not tanggal_input_str:
-            messages.error(request, "Tanggal wajib diisi.")
-            return redirect("pinjaman:bayar_pinjaman", id_pinjaman=id_pinjaman)
-
-        # parsing tanggal (fungsi datetime)
-        tanggal_input = datetime.strptime(tanggal_input_str, "%Y-%m-%d").date()
-
-        # jika tipe bayar cicilan
+        # ── Tipe cicilan ─────────────────────────────────────────────────────
         if tipe_bayar == "cicilan":
 
-            # validasi bulan tidak melebihi sisa
-            bulan_valid = min(bulan_input, sisa_bulan_aktif)
+            bulan_bayar_final = jumlah_bulan_bayar
+            total_wajib       = hitung_total_cicilan(bulan_bayar_final, sisa_pinjaman)
 
-            total_wajib = Decimal("0")
-            temp_sisa = sisa_pinjaman
+            if nominal < total_wajib:
+                messages.error(
+                    request,
+                    f"Minimal bayar Rp {total_wajib:,.0f} "
+                    f"({'lunasi tunggakan ' + str(bulan_bayar_final) + ' bulan' if ada_tunggakan else '1 bulan cicilan'})"
+                )
+                return redirect("pinjaman:bayar_pinjaman", id_pinjaman=id_pinjaman)
 
-            # loop hitung total kewajiban
-            for i in range(bulan_valid):
+            # Parsing tanggal input user — hanya dipakai saat tidak ada tunggakan
+            tanggal_user = None
+            if not ada_tunggakan:
+                tanggal_input_str = request.POST.get("tanggal")
+                if not tanggal_input_str:
+                    messages.error(request, "Tanggal wajib diisi.")
+                    return redirect("pinjaman:bayar_pinjaman", id_pinjaman=id_pinjaman)
+                tanggal_user = datetime.strptime(tanggal_input_str, "%Y-%m-%d").date()
+
+            temp_sisa = pinjaman.sisa_pinjaman
+
+            for i in range(bulan_bayar_final):
 
                 if temp_sisa <= 0:
                     break
 
-                # hitung jasa
-                if pinjaman.id_kategori_jasa.kategori_jasa.lower() == "turunan":
-                    jasa = temp_sisa * (jasa_persen / 100)
+                bulan_ke = cicilan_terbayar + i  # indeks 0-based
+
+                # ── Tanggal per cicilan ──────────────────────────────────────
+                # Ada tunggakan → semua tanggal otomatis urut dari server
+                # Tidak ada tunggakan → tanggal dari input user
+                if ada_tunggakan:
+                    # bulan_ke = cicilan_terbayar + i
+                    # cicilan pertama (i=0, cicilan_terbayar=0) → +1 bulan dari tanggal_mulai
+                    tanggal_bayar_real = tanggal_mulai + relativedelta(months=bulan_ke + 1)
                 else:
-                    jasa = jumlah_pinjaman * (jasa_persen / 100)
+                    tanggal_bayar_real = tanggal_user
 
-                total_wajib += angsuran_pokok + jasa
-                temp_sisa -= angsuran_pokok
-
-            # validasi minimal pembayaran
-            if nominal < total_wajib:
-                messages.error(request, f"Minimal bayar Rp {total_wajib:,.0f}")
-                return redirect("pinjaman:bayar_pinjaman", id_pinjaman=id_pinjaman)
-
-            # simpan cicilan ke database
-            for i in range(bulan_valid):
-
-                if pinjaman.sisa_pinjaman <= 0:
-                    break
-
-                bulan_ke = cicilan_terbayar + i
-
-                # logika tanggal pembayaran
-                if i == 0:
-                    tanggal_bayar_real = tanggal_input
-                else:
-                    tanggal_bayar_real = (
-                        tanggal_mulai + relativedelta(months=bulan_ke)
-                    ).replace(day=1)
-
-                # hitung jasa lagi (per cicilan)
-                if pinjaman.id_kategori_jasa.kategori_jasa.lower() == "turunan":
-                    jasa = pinjaman.sisa_pinjaman * (jasa_persen / 100)
-                else:
-                    jasa = jumlah_pinjaman * (jasa_persen / 100)
-
-                total_bayar = angsuran_pokok + jasa
-
-                # create data angsuran (method ORM create)
-                Angsuran.objects.create(
-                    id_pinjaman=pinjaman,
-                    id_admin=admin_login,
-                    tanggal_bayar=tanggal_bayar_real,
-                    jumlah_bayar=total_bayar,
-                    tipe_bayar="cicilan"
+                # hitung jasa per cicilan
+                jasa = (
+                    temp_sisa * (jasa_persen / 100)
+                    if pinjaman.id_kategori_jasa.kategori_jasa.lower() == "turunan"
+                    else jumlah_pinjaman * (jasa_persen / 100)
                 )
 
-                # kurangi sisa pinjaman
+                Angsuran.objects.create(
+                    id_pinjaman   = pinjaman,
+                    id_admin      = admin_login,
+                    tanggal_bayar = tanggal_bayar_real,
+                    jumlah_bayar  = angsuran_pokok + jasa,
+                    tipe_bayar    = "cicilan",
+                )
+
+                temp_sisa              -= angsuran_pokok
                 pinjaman.sisa_pinjaman -= angsuran_pokok
 
             pinjaman.sisa_pinjaman = max(pinjaman.sisa_pinjaman, Decimal("0"))
 
-            # hitung kelebihan pembayaran
+            # kelebihan → simpanan sukarela
             kelebihan = nominal - total_wajib
-
-            # jika ada kelebihan, masukkan ke simpanan sukarela
             if kelebihan > 0:
                 jenis = JenisSimpanan.objects.get(nama_jenis__iexact="SUKARELA")
-
                 Simpanan.objects.create(
-                    anggota=pinjaman.nomor_anggota,
-                    admin=admin_login,
-                    jenis_simpanan=jenis,
-                    tanggal=today,
-                    jumlah=kelebihan,
-                    sumber_pinjaman=pinjaman
+                    anggota         = pinjaman.nomor_anggota,
+                    admin           = admin_login,
+                    jenis_simpanan  = jenis,
+                    tanggal         = today,
+                    jumlah          = kelebihan,
+                    sumber_pinjaman = pinjaman,
                 )
 
-        # jika tipe bayar jasa saja
+        # ── Tipe jasa saja ───────────────────────────────────────────────────
         elif tipe_bayar == "jasa":
 
-            # hitung nilai jasa
-            if pinjaman.id_kategori_jasa.kategori_jasa.lower() == "turunan":
-                jasa_rupiah = pinjaman.sisa_pinjaman * (jasa_persen / 100)
-            else:
-                jasa_rupiah = jumlah_pinjaman * (jasa_persen / 100)
+            # tanggal input selalu dipakai untuk jasa
+            tanggal_input_str = request.POST.get("tanggal")
+            if not tanggal_input_str:
+                messages.error(request, "Tanggal wajib diisi.")
+                return redirect("pinjaman:bayar_pinjaman", id_pinjaman=id_pinjaman)
+            tanggal_input = datetime.strptime(tanggal_input_str, "%Y-%m-%d").date()
 
-            # validasi tidak boleh lebih
+            jasa_rupiah = (
+                pinjaman.sisa_pinjaman * (jasa_persen / 100)
+                if pinjaman.id_kategori_jasa.kategori_jasa.lower() == "turunan"
+                else jumlah_pinjaman * (jasa_persen / 100)
+            )
+
             if nominal > jasa_rupiah:
                 messages.error(request, "Bayar jasa tidak boleh melebihi nilai jasa.")
                 return redirect("pinjaman:bayar_pinjaman", id_pinjaman=id_pinjaman)
 
-            # simpan pembayaran jasa
             Angsuran.objects.create(
-                id_pinjaman=pinjaman,
-                id_admin=admin_login,
-                tanggal_bayar=today,
-                jumlah_bayar=nominal,
-                tipe_bayar="jasa"
+                id_pinjaman   = pinjaman,
+                id_admin      = admin_login,
+                tanggal_bayar = tanggal_input,
+                jumlah_bayar  = nominal,
+                tipe_bayar    = "jasa",
             )
 
-        # update status pinjaman
+        # update status
         if pinjaman.sisa_pinjaman <= 0:
             pinjaman.status = "Lunas"
-
         pinjaman.save()
 
         messages.success(request, "Pembayaran berhasil disimpan.")
         return redirect("pinjaman:pinjaman_list")
 
-    # render form pembayaran
+    # ── GET: render form ─────────────────────────────────────────────────────
     return render(request, "form/bayar_pinjaman.html", {
-        "pinjaman": pinjaman,
-        "angsuran_pokok": angsuran_pokok,
-        "sisa_bulan": sisa_bulan_aktif,
+        "pinjaman"               : pinjaman,
+        "angsuran_pokok"         : angsuran_pokok,
+        "sisa_bulan"             : sisa_cicilan_total,
+        "bulan_nunggak"          : bulan_nunggak,
+        "ada_tunggakan"          : ada_tunggakan,
+        "jumlah_bulan_bayar"     : jumlah_bulan_bayar,
+        "total_bayar"            : total_bayar,
+        # tanggal cicilan pertama yg tertunggak (None jika tidak ada tunggakan)
+        "tanggal_cicilan_pertama": tanggal_cicilan_pertama,
     })
 
-# fungsi: helper function untuk auto pembayaran dari simpanan sukarela ke pinjaman
-def cek_auto_sukarela_ke_pinjaman(pinjaman, admin_login):
-    # objek: mengambil tanggal hari ini
-    today = date.today()
-    bulan_ini = today.month
-    tahun_ini = today.year
 
-    # kondisi: tidak melakukan auto bayar jika pinjaman dibuat di bulan yang sama
-    if (
-        pinjaman.tanggal_meminjam.month == bulan_ini and
-        pinjaman.tanggal_meminjam.year == tahun_ini
-    ):
-        return
-
-    # kondisi: jika pinjaman sudah lunas maka proses dihentikan
-    if pinjaman.status.lower() == "lunas":
-        return
-
-    # objek: mengambil nilai angsuran dan jasa dalam bentuk decimal
-    angsuran_pokok = Decimal(pinjaman.angsuran_per_bulan or 0)
-    jasa_persen = Decimal(pinjaman.jasa_persen or 0)
-
-    # proses: menghitung jumlah cicilan yang sudah dibayar
-    cicilan_terbayar = Angsuran.objects.filter(
-        id_pinjaman=pinjaman,
-        tipe_bayar="cicilan"
-    ).count()
-
-    # proses: menghitung sisa pinjaman
-    sisa_pinjaman = Decimal(pinjaman.jumlah_pinjaman) - (
-        cicilan_terbayar * angsuran_pokok
-    )
-
-    # kondisi: jika sisa pinjaman sudah habis maka update status menjadi lunas
-    if sisa_pinjaman <= 0:
-        pinjaman.status = "Lunas"
-        pinjaman.sisa_pinjaman = 0
-        pinjaman.save()
-        return
-
-    # proses: menghitung jasa berdasarkan jenis kategori jasa
-    if pinjaman.id_kategori_jasa.kategori_jasa.lower() == "turunan":
-        jasa_rupiah = sisa_pinjaman * (jasa_persen / Decimal("100"))
-    else:
-        jasa_rupiah = Decimal(pinjaman.jumlah_pinjaman) * (jasa_persen / Decimal("100"))
-
-    # proses: total pembayaran bulan ini (pokok + jasa)
-    total_bulan_ini = angsuran_pokok + jasa_rupiah
-
-    # kondisi: cek apakah sudah ada pembayaran cicilan di bulan ini
-    if Angsuran.objects.filter(
-        id_pinjaman=pinjaman,
-        tanggal_bayar__month=bulan_ini,
-        tanggal_bayar__year=tahun_ini,
-        tipe_bayar="cicilan"
-    ).exists():
-        return
-
-    # proses: mengambil saldo simpanan sukarela yang terkait pinjaman
-    saldo_sukarela = Simpanan.objects.filter(
-        anggota=pinjaman.nomor_anggota,
-        jenis_simpanan__nama_jenis__iexact="SUKARELA",
-        sumber_pinjaman=pinjaman
-    ).aggregate(total=Sum("jumlah"))["total"] or Decimal("0")
-
-    # kondisi: jika saldo tidak mencukupi maka tidak dilakukan auto bayar
-    if saldo_sukarela < total_bulan_ini:
-        return
-
-    # objek: mengambil atau membuat jenis simpanan sukarela
-    jenis_sukarela, _ = JenisSimpanan.objects.get_or_create(
-        nama_jenis="SUKARELA"
-    )
-
-    # proses: mengurangi saldo sukarela (dicatat sebagai nilai negatif)
-    Simpanan.objects.create(
-        anggota=pinjaman.nomor_anggota,
-        admin=admin_login,
-        jenis_simpanan=jenis_sukarela,
-        tanggal=today,
-        jumlah=-total_bulan_ini,
-        sumber_pinjaman=pinjaman
-    )
-
-    # proses: mencatat pembayaran cicilan bulan ini
-    Angsuran.objects.create(
-        id_pinjaman=pinjaman,
-        id_admin=admin_login,
-        tanggal_bayar=today,
-        jumlah_bayar=total_bulan_ini,
-        tipe_bayar="cicilan"
-    )
-
-    # proses: update sisa pinjaman setelah pembayaran
-    pinjaman.sisa_pinjaman = sisa_pinjaman - angsuran_pokok
-
-    # kondisi: jika sudah lunas setelah pembayaran
-    if pinjaman.sisa_pinjaman <= 0:
-        pinjaman.status = "Lunas"
-        pinjaman.sisa_pinjaman = 0
-
-    # method: menyimpan perubahan pada objek pinjaman
-    pinjaman.save()
 
 
 # fungsi: menampilkan detail satu transaksi pembayaran

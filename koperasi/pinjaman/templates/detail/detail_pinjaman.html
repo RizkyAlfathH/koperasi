@@ -132,109 +132,92 @@
     </div>
 </div>
 
-<!-- judul riwayat pembayaran -->
-<h2 class="section-title">Riwayat Pembayaran</h2>
+<!-- CARD RIWAYAT PEMBAYARAN -->
+<div class="content-card mt-4">
 
-<!-- form filter berdasarkan tanggal -->
-<form method="GET" class="search-form" id="date-filter-form">
+    <!-- judul -->
+    <h2 class="section-title">Riwayat Pembayaran</h2>
 
-    <label for="tanggal">Cari Tanggal:</label>
+    <!-- form filter berdasarkan tanggal -->
+    <form method="GET" class="search-form" id="date-filter-form">
 
-    <div class="date-input-wrapper" style="display:flex; align-items:center; gap:6px;">
+        <label for="tanggal">Cari Tanggal:</label>
 
-        <!-- input tanggal -->
-        <!-- onchange langsung submit form -->
-        <input type="date"
-               name="tanggal"
-               id="tanggal"
-               class="form-control"
-               value="{{ request.GET.tanggal }}"
-               onchange="document.getElementById('date-filter-form').submit();">
+        <div class="date-input-wrapper">
 
-        <!-- tombol reset filter jika sedang digunakan -->
-        {% if request.GET.tanggal %}
-            <a href="{% url 'pinjaman:detail_pinjaman' pinjaman.id_pinjaman %}"
-               class="reset-date-btn"
-               title="Reset Tanggal">
-                &#x21bb;
-            </a>
-        {% endif %}
-    </div>
-</form>
+            <input type="date"
+                   name="tanggal"
+                   id="tanggal"
+                   class="form-control"
+                   value="{{ request.GET.tanggal }}"
+                   onchange="document.getElementById('date-filter-form').submit();">
 
-<!-- daftar riwayat pembayaran -->
-{% if page_obj %}
+            {% if request.GET.tanggal %}
+                <a href="{% url 'pinjaman:detail_pinjaman' pinjaman.id_pinjaman %}"
+                   class="reset-date-btn"
+                   title="Reset Tanggal">
+                    &#x21bb;
+                </a>
+            {% endif %}
+        </div>
+    </form>
 
-    <!-- looping data pembayaran -->
-    {% for angsuran in page_obj %}
-        <div class="angsuran-card {% if angsuran.tipe_bayar == 'jasa' %}jasa-only{% endif %}">
+    <!-- daftar riwayat pembayaran -->
+    {% if page_obj %}
 
-            <!-- bagian informasi pembayaran -->
-            <div class="angsuran-info">
+        {% for angsuran in page_obj %}
+            <div class="angsuran-card {% if angsuran.tipe_bayar == 'jasa' %}jasa-only{% endif %}">
+                
+                <div class="angsuran-info">
 
-                {% if angsuran.tipe_bayar == 'jasa' %}
-
-                    <!-- pembayaran hanya jasa -->
-                    <i class="ph-percent text-warning"></i> 
-                    <strong>Pembayaran Jasa</strong><br>
-                    <small>{{ angsuran.tanggal_bayar|date:"d M Y" }}</small>
-
-                {% else %}
-
-                    <!-- cek apakah cicilan memenuhi angsuran -->
-                    {% if angsuran.jumlah_bayar >= pinjaman.angsuran_per_bulan %}
-                        <i>&#10003;</i>
+                    {% if angsuran.tipe_bayar == 'jasa' %}
+                        <i class="ph-percent text-warning"></i> 
+                        <strong>Pembayaran Jasa</strong><br>
+                        <small>{{ angsuran.tanggal_bayar|date:"d M Y" }}</small>
                     {% else %}
-                        <i class="text-danger">&#10007;</i>
+
+                        {% if angsuran.jumlah_bayar >= pinjaman.angsuran_per_bulan %}
+                            <i>&#10003;</i>
+                        {% else %}
+                            <i class="text-danger">&#10007;</i>
+                        {% endif %}
+
+                        <strong>
+                            Pembayaran Cicilan + Jasa bulan {{ angsuran.tanggal_bayar|date:"F" }}
+                        </strong><br>
+                        <small>{{ angsuran.tanggal_bayar|date:"d M Y" }}</small>
+
                     {% endif %}
+                </div>
 
-                    <!-- pembayaran cicilan -->
-                    <strong>
-                        Pembayaran Cicilan + Jasa bulan {{ angsuran.tanggal_bayar|date:"F" }}
-                    </strong><br>
-                    <small>{{ angsuran.tanggal_bayar|date:"d M Y" }}</small>
+                <div class="angsuran-actions">
+                    <strong class="rupiah-text">
+                        Rp {{ angsuran.jumlah_bayar|floatformat:0 }}
+                    </strong>
 
-                {% endif %}
-            </div>
-
-            <!-- bagian nominal dan aksi -->
-            <div class="angsuran-actions">
-
-                <!-- jumlah pembayaran -->
-                <strong class="rupiah-text">
-                    Rp {{ angsuran.jumlah_bayar|floatformat:0 }}
-                </strong>
-
-                <!-- tombol lihat detail -->
-                <div class="action-group">
-                    <a href="{% url 'pinjaman:detail_pembayaran' angsuran.id_pembayaran %}" 
-                       class="action-view">
-                        <i class="ph-bold ph-eye"></i>
-                    </a>
+                    <div class="action-group">
+                        <a href="{% url 'pinjaman:detail_pembayaran' angsuran.id_pembayaran %}" 
+                           class="action-view">
+                            <i class="ph-bold ph-eye"></i>
+                        </a>
+                    </div>
                 </div>
 
             </div>
+        {% endfor %}
 
+    {% else %}
+        <div class="angsuran-card">
+            Tidak ada riwayat pembayaran.
         </div>
-    {% endfor %}
+    {% endif %}
 
-<!-- jika tidak ada data pembayaran -->
-{% else %}
-    <div class="angsuran-card">
-        Tidak ada riwayat pembayaran.
-    </div>
-{% endif %}
+    <!-- pagination -->
+    {% include "includes/pagination.html" with page_obj=page_obj param="page_angsuran" %}
 
-<!-- pagination untuk riwayat pembayaran -->
-{% include "includes/pagination.html" with page_obj=page_obj param="page_angsuran" %}
+</div>
 
 <br>
-
-<!-- ringkasan sisa pinjaman -->
-<div class="sisa-pinjaman-card">
-    <span>Sisa Pinjaman:</span>
-    <span class="rupiah-text">Rp {{ sisa_pinjaman|floatformat:0 }}</span>
-</div>
 
 <!-- tombol kembali -->
 <div class="mt-3">

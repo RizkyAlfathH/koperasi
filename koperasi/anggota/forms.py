@@ -55,7 +55,7 @@ class AdminForm(forms.ModelForm):
 
         # pengaturan pilihan role
         self.fields["role"].choices = [
-            ("", "---------"),
+            ("", "Pilih Jabatan"),
             ("ketua", "Ketua"),
             ("sekretaris", "Sekretaris"),
             ("bendahara", "Bendahara"),
@@ -272,6 +272,13 @@ class AnggotaForm(forms.ModelForm):
         # format input tanggal
         self.fields["tanggal_daftar"].input_formats = ["%Y-%m-%d"]
         self.fields["tanggal_nonaktif"].input_formats = ["%Y-%m-%d"]
+
+        if "jenis_kelamin" in self.fields:
+            self.fields["jenis_kelamin"].choices = [
+                ("", "Pilih Jenis Kelamin"),
+                ("Laki-laki", "Laki-laki"),
+                ("Perempuan", "Perempuan"),
+            ]
 
     # method validasi global
     def clean(self):

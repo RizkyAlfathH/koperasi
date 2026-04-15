@@ -53,76 +53,78 @@
     </div>
 </div>
 
-<!-- riwayat transaksi -->
-<h2 class="section-title">Riwayat Transaksi {{ jenis_simpanan|title }}</h2>
+<div class="content-card mt-4">
+    <!-- riwayat transaksi -->
+    <h2 class="section-title">Riwayat Transaksi {{ jenis_simpanan|title }}</h2>
 
-<!-- filter tanggal -->
-<form method="GET" class="search-form" id="date-filter-form">
-    <label for="search_date">Cari Tanggal:</label>
+    <!-- filter tanggal -->
+    <form method="GET" class="search-form" id="date-filter-form">
+        <label for="search_date">Cari Tanggal:</label>
 
-    <div class="date-input-wrapper" style="display:flex; align-items:center; gap:6px;">
-        <input type="date"
-            name="tanggal"
-            id="search_date"
-            class="form-control"
-            value="{{ tanggal_filter }}"
-            onchange="document.getElementById('date-filter-form').submit();">
+        <div class="date-input-wrapper" style="display:flex; align-items:center; gap:6px;">
+            <input type="date"
+                name="tanggal"
+                id="search_date"
+                class="form-control"
+                value="{{ tanggal_filter }}"
+                onchange="document.getElementById('date-filter-form').submit();">
 
-        {% if tanggal_filter %}
-            <a href="{% url 'simpanan:detail_simpanan' anggota.nomor_anggota jenis_simpanan.id %}"
-               class="reset-date-btn"
-               title="Reset Tanggal">
-                &#x21bb;
-            </a>
-        {% endif %}
-    </div>
-</form>
-
-<!-- list transaksi -->
-{% for h in history %}
-<div class="angsuran-card">
-
-    <div class="angsuran-info">
-        <strong>
-        {% if h.sumber_pinjaman and h.jumlah < 0 %}
-            Bayar Pinjaman {{ h.sumber_pinjaman.id_jenis_pinjaman.nama_jenis }}
-        {% elif h.sumber_pinjaman and h.jumlah > 0 %}
-            Dari Pinjaman {{ h.sumber_pinjaman.id_jenis_pinjaman.nama_jenis }}
-        {% else %}
-            {{ h.get_jenis_transaksi_display }}
-        {% endif %}
-        </strong><br>
-        <small>{{ h.tanggal|date:"d M Y" }}</small>
-    </div>
-
-    <div class="angsuran-actions">
-        <strong class="rupiah-text"
-                data-value="{{ h.jumlah|floatformat:0 }}">
-        </strong>
-
-        <div class="action-group">
-            <a href="{% url 'simpanan:detail_transaksi' h.id %}"
-               class="action-view" title="Lihat">
-                <i class="ph-bold ph-eye"></i>
-            </a>
-
-            <a href="{% url 'simpanan:download_kwitansi' h.id %}"
-               class="action-download action-export"
-               title="Download Kwitansi">
-                <i class="ph-fill ph-download-simple"></i>
-            </a>
+            {% if tanggal_filter %}
+                <a href="{% url 'simpanan:detail_simpanan' anggota.nomor_anggota jenis_simpanan.id %}"
+                class="reset-date-btn"
+                title="Reset Tanggal">
+                    &#x21bb;
+                </a>
+            {% endif %}
         </div>
+    </form>
+
+    <!-- list transaksi -->
+    {% for h in history %}
+    <div class="angsuran-card">
+
+        <div class="angsuran-info">
+            <strong>
+            {% if h.sumber_pinjaman and h.jumlah < 0 %}
+                Bayar Pinjaman {{ h.sumber_pinjaman.id_jenis_pinjaman.nama_jenis }}
+            {% elif h.sumber_pinjaman and h.jumlah > 0 %}
+                Dari Pinjaman {{ h.sumber_pinjaman.id_jenis_pinjaman.nama_jenis }}
+            {% else %}
+                {{ h.get_jenis_transaksi_display }}
+            {% endif %}
+            </strong><br>
+            <small>{{ h.tanggal|date:"d M Y" }}</small>
+        </div>
+
+        <div class="angsuran-actions">
+            <strong class="rupiah-text"
+                    data-value="{{ h.jumlah|floatformat:0 }}">
+            </strong>
+
+            <div class="action-group">
+                <a href="{% url 'simpanan:detail_transaksi' h.id %}"
+                class="action-view" title="Lihat">
+                    <i class="ph-bold ph-eye"></i>
+                </a>
+
+                <a href="{% url 'simpanan:download_kwitansi' h.id %}"
+                class="action-download action-export"
+                title="Download Kwitansi">
+                    <i class="ph-fill ph-download-simple"></i>
+                </a>
+            </div>
+        </div>
+
     </div>
 
-</div>
+    {% empty %}
+    <div class="angsuran-card">
+        Belum ada transaksi
+    </div>
+    {% endfor %}
 
-{% empty %}
-<div class="angsuran-card">
-    Belum ada transaksi
+    {% include "includes/pagination.html" with page_obj=page_obj param=param %}
 </div>
-{% endfor %}
-
-{% include "includes/pagination.html" with page_obj=page_obj param=param %}
 
 <br>
 
