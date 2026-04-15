@@ -460,16 +460,103 @@ document.getElementById("btnExportPdf").addEventListener("click", function (e) {
     });
 });
 
-/* ── KONFIRMASI HAPUS DATA ── */
-document.querySelectorAll(".action-delete").forEach(function(btn){
-
-    btn.addEventListener("click", function(e){
+document.querySelectorAll(".action-delete").forEach(function(btn) {
+    btn.addEventListener("click", async function(e) {
         e.preventDefault();
 
-        const url  = this.getAttribute("href");
-        const name = this.dataset.name;
-        const type = this.dataset.type;
+        const url    = this.getAttribute("href");
+        const name   = this.dataset.name;
+        const type   = this.dataset.type;
+        const cekUrl = this.dataset.cekUrl;
 
+        // cek saldo dulu kalau ini anggota
+        if (type === "anggota" && cekUrl) {
+
+            Swal.fire({
+                title: "Memeriksa data...",
+                background: "#fffdf0",
+                color: "#3d2e00",
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            try {
+                const res  = await fetch(cekUrl);
+                const data = await res.json();
+
+                // kalau masih ada saldo → tampilkan peringatan, stop
+                if (data.saldo > 0) {
+                    const formatted = new Intl.NumberFormat("id-ID", {
+                        style: "currency",
+                        currency: "IDR",
+                        minimumFractionDigits: 0
+                    }).format(data.saldo);
+
+                    // ambil nomor anggota dari cekUrl
+                    // contoh url: /anggota/cek-saldo/AN 01/
+                    const rawNomor = cekUrl.split("/cek-saldo/")[1].replace(/\/$/, "");
+                    const nomorAnggota = decodeURIComponent(rawNomor);
+                    const penarikanUrl = `/simpanan/${encodeURIComponent(nomorAnggota)}/`; // ke halaman simpanan anggota
+
+                    Swal.fire({
+                        icon: "error",
+                        iconColor: "#dc2626",
+                        title: "Tidak Dapat Dihapus",
+                        background: "#fffdf0",
+                        color: "#3d2e00",
+                        customClass: {
+                            popup:         "swal-small",
+                            title:         "swal-small-title",
+                            confirmButton: "swal-small-btn",
+                            cancelButton:  "swal-small-btn"
+                        },
+                        html: `
+                            <p style="margin-bottom:8px; color:#92400e;">
+                                Anggota <b>${name}</b> masih memiliki saldo simpanan:
+                            </p>
+                            <div style="
+                                background:#fef2f2;
+                                border:1px solid #fca5a5;
+                                padding:10px;
+                                border-radius:6px;
+                                font-weight:700;
+                                font-size:18px;
+                                color:#dc2626;
+                                margin-bottom:12px;
+                            ">
+                                ${formatted}
+                            </div>
+                            <p style="font-size:13px; color:#a07800;">
+                                Lakukan <b>penarikan semua simpanan</b> terlebih dahulu 
+                                sebelum menghapus anggota ini.
+                            </p>
+                        `,
+                        showCancelButton: true,
+                        confirmButtonText: 'Ke Halaman Penarikan',
+                        cancelButtonText: "Tutup",
+                        confirmButtonColor: "#d97706",
+                        cancelButtonColor: "#dc3545",
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = penarikanUrl;
+                        }
+                    });
+                    return;
+                }
+
+            } catch (err) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Gagal memeriksa data",
+                    text: "Terjadi kesalahan saat mengecek saldo anggota.",
+                    confirmButtonColor: "#dc3545",
+                });
+                return;
+            }
+        }
+
+        // lanjut ke konfirmasi hapus normal (saldo 0 atau bukan anggota)
         Swal.fire({
             icon: "warning",
             iconColor: "#f5a623",
@@ -537,9 +624,7 @@ document.querySelectorAll(".action-delete").forEach(function(btn){
                     color: "#3d2e00",
                     allowOutsideClick: false,
                     showConfirmButton: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
+                    didOpen: () => Swal.showLoading()
                 });
 
                 setTimeout(() => {
@@ -549,5 +634,4 @@ document.querySelectorAll(".action-delete").forEach(function(btn){
         });
 
     });
-
 });
