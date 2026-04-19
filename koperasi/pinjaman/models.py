@@ -21,7 +21,6 @@ class KategoriJasa(models.Model):
     def __str__(self):
         return self.kategori_jasa
 
-
 # class: model untuk jenis pinjaman (reguler, khusus, barang)
 class JenisPinjaman(models.Model):
     # konstanta: pilihan jenis pinjaman
