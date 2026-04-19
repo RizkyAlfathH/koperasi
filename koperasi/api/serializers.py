@@ -28,7 +28,6 @@ class ResetPasswordSerializer(serializers.Serializer):
     nomor_anggota = serializers.CharField()
     password = serializers.CharField(write_only=True)
 
-
 # =========================
 # ANGGOTA
 # =========================
