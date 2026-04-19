@@ -5,56 +5,54 @@
 {% block title %}{{ judul }}{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/pages/anggota/form/tambah_anggota.css' %}">
+<link rel="stylesheet" href="{% static 'css/pages/anggota/form/tambah_admin.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="page-tambah-anggota">
+<div class="page-tambah-admin">
 
     <div class="form-card">
+
         <h2>{{ judul }}</h2>
 
-        <form method="post" id="formAnggota" novalidate>
+        <form method="post" id="formAdmin" novalidate>
             {% csrf_token %}
 
             <div class="row g-3">
                 {% for field in form %}
-                <div class="col-12 col-md-6 field-{{ field.name }}">
+                    <div class="col-md-4">
 
-                    <!-- label -->
-                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        <!-- label -->
+                        <label>{{ field.label }}</label>
 
-                    <!-- input -->
-                    {% if field.errors %}
+                        <!-- input -->
                         {% if "password" in field.name %}
                             <div class="input-wrapper">
+                                {% if field.errors %}
+                                    {{ field|add_class:"form-control is-invalid" }}
+                                {% else %}
+                                    {{ field|add_class:"form-control" }}
+                                {% endif %}
+                                <i class="bi bi-eye-slash-fill input-icon toggle-password"></i>
+                            </div>
+                        {% else %}
+                            {% if field.errors %}
                                 {{ field|add_class:"form-control is-invalid" }}
-                                <i class="bi bi-eye-slash-fill input-icon toggle-password"></i>
-                            </div>
-                        {% else %}
-                            {{ field|add_class:"form-control is-invalid" }}
-                        {% endif %}
-                    {% else %}
-                        {% if "password" in field.name %}
-                            <div class="input-wrapper">
+                            {% else %}
                                 {{ field|add_class:"form-control" }}
-                                <i class="bi bi-eye-slash-fill input-icon toggle-password"></i>
-                            </div>
-                        {% else %}
-                            {{ field|add_class:"form-control" }}
+                            {% endif %}
                         {% endif %}
-                    {% endif %}
 
-                    <!-- pesan error -->
-                    {% if field.errors %}
-                    <div class="invalid-feedback">
-                        {% for error in field.errors %}
-                            {{ error }}
-                        {% endfor %}
+                        <!-- pesan error -->
+                        {% if field.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in field.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
                     </div>
-                    {% endif %}
-
-                </div>
                 {% endfor %}
             </div>
 
@@ -65,6 +63,7 @@
             </div>
 
         </form>
+
     </div>
 
 </div>
