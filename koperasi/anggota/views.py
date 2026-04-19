@@ -444,7 +444,7 @@ def tambah_admin(request):
     else:
         form = AdminForm()  # inisialisasi form kosong
 
-    return render(request, "kelola_akun/Form/form_admin.html", {
+    return render(request, "kelola_akun/form/form_admin.html", {
         "form": form,
         "judul": "Tambah Admin"
     })
@@ -470,7 +470,7 @@ def edit_admin(request, user_id):
         messages.success(request, "Admin berhasil diperbarui.")
         return redirect("anggota:kelola_akun")
 
-    return render(request, "kelola_akun/Form/form_admin.html", {
+    return render(request, "kelola_akun/form/form_admin.html", {
         "form": form,
         "judul": "Edit Admin"
     })
@@ -530,7 +530,7 @@ def tambah_anggota(request):
     else:
         form = AnggotaForm()
 
-    return render(request, "kelola_akun/Form/form_anggota.html", {
+    return render(request, "kelola_akun/form/form_anggota.html", {
         "form": form,
         "judul": "Tambah Anggota"
     })
@@ -555,7 +555,7 @@ def edit_anggota(request, nomor_anggota):
         messages.success(request, "Anggota berhasil diperbarui.")
         return redirect("anggota:kelola_akun")
 
-    return render(request, "kelola_akun/Form/form_anggota.html", {
+    return render(request, "kelola_akun/form/form_anggota.html", {
         "form": form,
         "judul": "Edit Anggota"
     })
