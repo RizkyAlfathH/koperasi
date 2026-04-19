@@ -115,10 +115,10 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': config('MYSQL_DATABASE'),
-        'USER': config('MYSQL_USER'),
-        'PASSWORD': config('MYSQL_PASSWORD'),
-        'HOST': config('MYSQL_HOST'),
-        'PORT': config('MYSQL_PORT', default='3306'),
+        'USER': config('MYSQLUSER'),
+        'PASSWORD': config('MYSQLPASSWORD'),
+        'HOST': config('MYSQLHOST'),
+        'PORT': config('MYSQLPORT', default='3306'),
         'OPTIONS': {
             'charset': 'utf8mb4',
             'connect_timeout': 10,
