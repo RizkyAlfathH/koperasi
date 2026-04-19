@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}{{ judul }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/anggota/form/tambah_anggota.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="page-tambah-anggota">
+
+    <div class="form-card">
+        <h2>{{ judul }}</h2>
+
+        <form method="post" id="formAnggota" novalidate>
+            {% csrf_token %}
+
+            <div class="row g-3">
+                {% for field in form %}
+                <div class="col-12 col-md-6 field-{{ field.name }}">
+
+                    <!-- label -->
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+
+                    <!-- input -->
+                    {% if field.errors %}
+                        {% if "password" in field.name %}
+                            <div class="input-wrapper">
+                                {{ field|add_class:"form-control is-invalid" }}
+                                <i class="bi bi-eye-slash-fill input-icon toggle-password"></i>
+                            </div>
+                        {% else %}
+                            {{ field|add_class:"form-control is-invalid" }}
+                        {% endif %}
+                    {% else %}
+                        {% if "password" in field.name %}
+                            <div class="input-wrapper">
+                                {{ field|add_class:"form-control" }}
+                                <i class="bi bi-eye-slash-fill input-icon toggle-password"></i>
+                            </div>
+                        {% else %}
+                            {{ field|add_class:"form-control" }}
+                        {% endif %}
+                    {% endif %}
+
+                    <!-- pesan error -->
+                    {% if field.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in field.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- tombol aksi -->
+            <div class="text-end mt-4">
+                <a href="{% url 'anggota:kelola_akun' %}" class="btn-outline">Batal</a>
+                <button type="submit" class="btn-simpan">Simpan</button>
+            </div>
+
+        </form>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/anggota/form/form_anggota.js' %}"></script>
+{% endblock %}
