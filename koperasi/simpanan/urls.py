@@ -25,8 +25,4 @@ urlpatterns = [
     path("transaksi/<int:id>/",views.detail_transaksi,name="detail_transaksi"),
 
     path("kwitansi/<int:history_id>/", views.download_kwitansi, name="download_kwitansi"),
-
-    # HAPUS SIMPANAN
-    path("hapus/<str:nomor_anggota>/", views.hapus_simpanan, name="hapus_simpanan"),
-    path("hapus-transaksi/<str:nomor_anggota>/<int:jenis_id>/", views.hapus_transaksi_terakhir, name="hapus_transaksi_terakhir"),
 ]

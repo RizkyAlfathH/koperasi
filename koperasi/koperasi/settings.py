@@ -100,31 +100,31 @@ WSGI_APPLICATION = 'koperasi.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'kopasmen11',
-#         'USER': 'root',
-#         'PASSWORD': '',  
-#         'HOST': 'localhost',
-#         'PORT': '3306',
-#     }
-# }
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': config('MYSQL_DATABASE'),
-        'USER': config('MYSQL_USER'),
-        'PASSWORD': config('MYSQL_PASSWORD'),
-        'HOST': config('MYSQL_HOST'),
-        'PORT': config('MYSQL_PORT', default='3306'),
-        'OPTIONS': {
-            'charset': 'utf8mb4',
-            'connect_timeout': 10,
-        },
+        'NAME': 'kopasmen11',
+        'USER': 'root',
+        'PASSWORD': '',  
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': config('MYSQL_DATABASE'),
+#         'USER': config('MYSQL_USER'),
+#         'PASSWORD': config('MYSQL_PASSWORD'),
+#         'HOST': config('MYSQL_HOST'),
+#         'PORT': config('MYSQL_PORT', default='3306'),
+#         'OPTIONS': {
+#             'charset': 'utf8mb4',
+#             'connect_timeout': 10,
+#         },
+#     }
+# }
 
 
 # Password validation
