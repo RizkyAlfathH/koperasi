@@ -751,3 +751,196 @@ def download_kwitansi(request, history_id):
     except Exception as e:  # ✅ tangkap error generate PDF
         messages.error(request, f"Gagal membuat kwitansi PDF: {str(e)}")
         return redirect("simpanan:detail_transaksi", history_id)
+
+from .utils_import import proses_file_import
+
+# ================================================================
+# VIEW 1: halaman upload file
+# ================================================================
+@login_required
+def import_simpanan(request):
+
+    if request.user.role not in ["bendahara", "ketua"]:
+        messages.error(request, "Tidak punya akses")
+        return redirect("dashboard")
+
+    if request.method == "POST":
+        file    = request.FILES.get("file_import")
+        tanggal_str = request.POST.get("tanggal", "")
+
+        # --- validasi file ---
+        if not file:
+            messages.error(request, "File wajib diupload.")
+            return render(request, "form/import_simpanan.html")
+
+        if not file.name.endswith('.xlsx'):
+            messages.error(request, "File harus berformat .xlsx")
+            return render(request, "form/import_simpanan.html")
+
+        # --- validasi tanggal ---
+        try:
+            tanggal = datetime.date.fromisoformat(tanggal_str)
+        except (TypeError, ValueError):
+            messages.error(request, "Tanggal tidak valid.")
+            return render(request, "form/import_simpanan.html")
+
+        # --- proses file ---
+        rows, error = proses_file_import(file)
+        if error:
+            messages.error(request, error)
+            return render(request, "form/import_simpanan.html")
+
+        # hitung ringkasan untuk ditampilkan di preview
+        jumlah_cocok      = sum(1 for r in rows if r['cocok'])
+        jumlah_tidak_cocok = sum(1 for r in rows if not r['cocok'])
+
+        return render(request, "form/preview_import.html", {
+            "rows"              : rows,
+            "tanggal"           : tanggal,
+            "tanggal_str"       : tanggal_str,
+            "jumlah_cocok"      : jumlah_cocok,
+            "jumlah_tidak_cocok": jumlah_tidak_cocok,
+            "semua_anggota"     : Anggota.objects.filter(status='aktif').order_by('nama'),
+        })
+
+    return render(request, "form/import_simpanan.html")
+
+
+# ================================================================
+# VIEW 2: simpan data setelah user konfirmasi preview
+# ================================================================
+@login_required
+@transaction.atomic
+@login_required
+@transaction.atomic
+def proses_import_simpanan(request):
+
+    if request.user.role not in ["bendahara", "ketua"]:
+        messages.error(request, "Tidak punya akses")
+        return redirect("dashboard")
+
+    if request.method != "POST":
+        return redirect("simpanan:import_simpanan")
+
+    # DEBUG: print semua POST data
+    print("=== DEBUG POST DATA ===")
+    for key, val in request.POST.items():
+        print(f"  {key} = {val}")
+    print("======================")
+
+    try:
+        tanggal = datetime.date.fromisoformat(request.POST.get("tanggal", ""))
+    except (TypeError, ValueError):
+        messages.error(request, "Tanggal tidak valid.")
+        return redirect("simpanan:import_simpanan")
+
+    jumlah_baris = int(request.POST.get("jumlah_baris", 0))
+    print(f"jumlah_baris = {jumlah_baris}")
+
+    berhasil = 0
+    dilewati = 0
+    duplikat = 0
+    gagal    = []
+
+    for i in range(jumlah_baris):
+        skip       = request.POST.get(f"skip_{i}")
+        anggota_id = request.POST.get(f"anggota_id_{i}", "").strip()
+
+        print(f"\n--- baris {i} ---")
+        print(f"  skip={skip}")
+        print(f"  anggota_id={anggota_id}")
+        print(f"  pokok={request.POST.get(f'pokok_{i}')}")
+        print(f"  wajib={request.POST.get(f'wajib_{i}')}")
+        print(f"  sukarela={request.POST.get(f'sukarela_{i}')}")
+        print(f"  id_pokok={request.POST.get(f'id_pokok_{i}')}")
+        print(f"  id_wajib={request.POST.get(f'id_wajib_{i}')}")
+        print(f"  id_sukarela={request.POST.get(f'id_sukarela_{i}')}")
+
+        if skip == "1":
+            dilewati += 1
+            continue
+
+        if not anggota_id:
+            dilewati += 1
+            continue
+
+        try:
+            anggota = Anggota.objects.get(nomor_anggota=anggota_id)
+        except Anggota.DoesNotExist:
+            gagal.append(f"Baris {i+1}: anggota '{anggota_id}' tidak ditemukan")
+            continue
+
+        def nilai(key):
+            try:
+                return float(request.POST.get(key, 0) or 0)
+            except ValueError:
+                return 0
+
+        data_simpanan = [
+            {
+                'jenis_id': request.POST.get(f"id_pokok_{i}"),
+                'jumlah'  : nilai(f"pokok_{i}"),
+                'dansos'  : 0,
+            },
+            {
+                'jenis_id': request.POST.get(f"id_wajib_{i}"),
+                'jumlah'  : nilai(f"wajib_{i}"),
+                'dansos'  : nilai(f"dansos_{i}"),
+            },
+            {
+                'jenis_id': request.POST.get(f"id_sukarela_{i}"),
+                'jumlah'  : nilai(f"sukarela_{i}"),
+                'dansos'  : 0,
+            },
+        ]
+
+        for s in data_simpanan:
+            if s['jumlah'] <= 0 or not s['jenis_id']:
+                print(f"  SKIP jenis_id={s['jenis_id']} jumlah={s['jumlah']}")
+                continue
+
+            try:
+                jenis = JenisSimpanan.objects.get(pk=s['jenis_id'])
+            except JenisSimpanan.DoesNotExist:
+                print(f"  jenis {s['jenis_id']} tidak ditemukan di DB")
+                continue
+
+            sudah_ada = Simpanan.objects.filter(
+                anggota=anggota,
+                jenis_simpanan=jenis,
+                tanggal__month=tanggal.month,
+                tanggal__year=tanggal.year,
+            ).exists()
+
+            if sudah_ada:
+                print(f"  DUPLIKAT: {anggota.nama} {jenis.nama_jenis}")
+                duplikat += 1
+                continue
+
+            try:
+                Simpanan.objects.create(
+                    anggota        = anggota,
+                    admin          = request.user,
+                    jenis_simpanan = jenis,
+                    tanggal        = tanggal,
+                    jumlah         = s['jumlah'],
+                    dana_sosial    = s['dansos'],
+                )
+                print(f"  ✅ SIMPAN: {anggota.nama} {jenis.nama_jenis} {s['jumlah']}")
+                berhasil += 1
+            except Exception as e:
+                print(f"  ❌ ERROR SIMPAN: {e}")
+                gagal.append(f"{anggota.nama} ({jenis.nama_jenis}): {e}")
+
+    print(f"\n=== HASIL: berhasil={berhasil} dilewati={dilewati} duplikat={duplikat} gagal={len(gagal)} ===")
+
+    if berhasil:
+        messages.success(request, f"✅ {berhasil} simpanan berhasil diimport.")
+    if duplikat:
+        messages.warning(request, f"⚠️ {duplikat} simpanan dilewati karena sudah ada di bulan yang sama.")
+    if dilewati:
+        messages.info(request, f"ℹ️ {dilewati} baris dilewati.")
+    for f in gagal:
+        messages.error(request, f"❌ {f}")
+
+    return redirect("simpanan:daftar_simpanan")
