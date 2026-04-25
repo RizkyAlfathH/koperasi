@@ -1,0 +1,363 @@
+/* ============================================================
+   laporan_keanggotaan.css
+   Gaya halaman Laporan Keanggotaan KOPASMEN
+   ============================================================ */
+
+:root {
+    --color-masuk   : #16a34a;
+    --color-keluar  : #dc2626;
+    --color-aktif   : #2563eb;
+    --color-nonaktif: #9ca3af;
+    --color-total   : #d97706;
+    --color-gender  : #7c3aed;
+    --gold          : #FFD700;
+    --dark          : #291B18;
+    --radius        : 14px;
+}
+
+/* ── Page title & subtitle ──────────────────────────────────── */
+.page-subtitle {
+    color: #6b7280;
+    font-size: .9rem;
+    margin-top: -8px;
+    margin-bottom: 20px;
+}
+
+/* ── Wrapper ────────────────────────────────────────────────── */
+.laporan-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* ── Filter card ────────────────────────────────────────────── */
+.filter-card {
+    padding: 16px 20px;
+}
+
+.filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.filter-group label {
+    font-size: .78rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.filter-group select,
+.filter-group input[type="text"] {
+    padding: 8px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: .9rem;
+    background: #fff;
+    min-width: 130px;
+    transition: border-color .2s;
+}
+
+.filter-group input[type="text"] {
+    min-width: 200px;
+}
+
+.filter-group select:focus,
+.filter-group input:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(255,215,0,.2);
+}
+
+.reset-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 1.1rem;
+    text-decoration: none;
+    transition: all .2s;
+    align-self: flex-end;
+}
+
+.reset-btn:hover {
+    background: #fef9c3;
+    border-color: var(--gold);
+    color: var(--dark);
+}
+
+/* ── Stat grid ─────────────────────────────────────────────── */
+.stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+}
+
+.stat-card {
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    border-left: 4px solid transparent;
+    transition: transform .15s, box-shadow .15s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,.1);
+}
+
+.stat-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+
+.stat-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-num {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--dark);
+}
+
+.stat-label {
+    font-size: .75rem;
+    color: #6b7280;
+    margin-top: 2px;
+}
+
+/* Warna per jenis kartu */
+.stat-total   { border-color: var(--color-total); }
+.stat-total   .stat-icon { background: #fef3c7; color: var(--color-total); }
+
+.stat-aktif   { border-color: var(--color-aktif); }
+.stat-aktif   .stat-icon { background: #dbeafe; color: var(--color-aktif); }
+
+.stat-nonaktif { border-color: var(--color-nonaktif); }
+.stat-nonaktif .stat-icon { background: #f3f4f6; color: var(--color-nonaktif); }
+
+.stat-masuk   { border-color: var(--color-masuk); }
+.stat-masuk   .stat-icon { background: #dcfce7; color: var(--color-masuk); }
+
+.stat-keluar  { border-color: var(--color-keluar); }
+.stat-keluar  .stat-icon { background: #fee2e2; color: var(--color-keluar); }
+
+.stat-gender  { border-color: var(--color-gender); }
+.stat-gender  .stat-icon { background: #ede9fe; color: var(--color-gender); }
+
+.gender-lk  { color: var(--color-aktif); }
+.gender-pr  { color: #db2777; }
+.gender-sep { color: #9ca3af; margin: 0 2px; }
+
+/* ── Content card ───────────────────────────────────────────── */
+.content-card {
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+
+.content-card h2 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ── Table ──────────────────────────────────────────────────── */
+.table-wrapper {
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .875rem;
+}
+
+.data-table th {
+    background: #fafafa;
+    border-bottom: 2px solid #f3f4f6;
+    padding: 10px 12px;
+    font-weight: 600;
+    color: #374151;
+    white-space: nowrap;
+    text-align: left;
+}
+
+.data-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #f3f4f6;
+    color: #374151;
+}
+
+.data-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.data-table tbody tr:hover {
+    background: #fafafa;
+}
+
+.text-center { text-align: center !important; }
+.text-muted  { color: #9ca3af; }
+
+/* Highlight baris bulan ini pada rekap tabel */
+.row-highlight {
+    background: #fffbeb !important;
+}
+
+.row-highlight td {
+    font-weight: 500;
+}
+
+/* Badge bulan ini */
+.badge-bulan-ini {
+    display: inline-block;
+    background: var(--gold);
+    color: var(--dark);
+    font-size: .65rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 20px;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+/* Badge masuk / keluar */
+.badge {
+    display: inline-block;
+    font-weight: 700;
+    font-size: .8rem;
+    padding: 2px 10px;
+    border-radius: 20px;
+}
+
+.badge-masuk  { background: #dcfce7; color: var(--color-masuk); }
+.badge-keluar { background: #fee2e2; color: var(--color-keluar); }
+
+/* Status badge pada tabel daftar anggota */
+.status-badge {
+    display: inline-block;
+    font-size: .75rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+}
+
+.status-aktif   { background: #dcfce7; color: var(--color-masuk); }
+.status-nonaktif { background: #f3f4f6; color: #6b7280; }
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    color: #9ca3af;
+    padding: 32px !important;
+    font-style: italic;
+}
+
+/* ── Sub filter form (tabel daftar anggota) ─────────────────── */
+.sub-filter-form {
+    margin-bottom: 16px;
+}
+
+.search-group input {
+    min-width: 220px;
+}
+
+/* ── Button ─────────────────────────────────────────────────── */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: .875rem;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: all .2s;
+    align-self: flex-end;
+}
+
+.btn-primary {
+    background: var(--gold);
+    color: var(--dark);
+}
+
+.btn-primary:hover {
+    background: #e6c200;
+}
+
+.btn-success {
+    background: #16a34a;
+    color: #fff;
+}
+
+.btn-success:hover {
+    background: #15803d;
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .stat-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .filter-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .btn, .reset-btn {
+        align-self: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .stat-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ── PDF button ─────────────────────────────────────────────── */
+.btn-pdf {
+    background: #dc2626;
+    color: #fff;
+}
+
+.btn-pdf:hover {
+    background: #b91c1c;
+    color: #fff;
+}

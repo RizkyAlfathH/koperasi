@@ -4,15 +4,94 @@
 <!-- Phosphor Icons CDN -->
 <link rel="stylesheet" href="https://unpkg.com/phosphor-icons@1.4.1/src/css/phosphor.css"/>
 
+<style>
+/* ── Sidebar dropdown (submenu laporan) ─────────────────────── */
+.sidebar-submenu {
+    list-style: none;
+    margin: 4px 0 0 30px;
+    padding: 0;
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height .3s ease, opacity .25s ease;
+    opacity: 0;
+    border-left: 2px solid rgba(255, 215, 0, .45);
+}
+
+.sidebar-submenu.open {
+    max-height: 200px;
+    opacity: 1;
+}
+
+/* Override penuh style yang diwarisi dari .sidebar ul li a */
+.sidebar ul li.has-submenu .sidebar-submenu li {
+    margin-bottom: 2px;
+}
+
+.sidebar ul li.has-submenu .sidebar-submenu li a {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 8px !important;
+    padding: 7px 12px 7px 14px !important;
+    font-size: .82rem !important;
+    font-weight: 400 !important;
+    color: #444 !important;
+    border-radius: 8px;
+    transform: none !important;
+    transition: background .15s, color .15s !important;
+}
+
+.sidebar ul li.has-submenu .sidebar-submenu li a i {
+    font-size: 16px !important;
+    flex-shrink: 0;
+    color: #666;
+    transition: color .15s;
+}
+
+.sidebar ul li.has-submenu .sidebar-submenu li a:hover {
+    background: rgba(255, 215, 0, .2) !important;
+    color: #291B18 !important;
+    transform: none !important;
+}
+
+.sidebar ul li.has-submenu .sidebar-submenu li a:hover i {
+    color: #291B18 !important;
+}
+
+.sidebar ul li.has-submenu .sidebar-submenu li a.active {
+    background: rgba(255, 215, 0, .35) !important;
+    color: #291B18 !important;
+    font-weight: 600 !important;
+    transform: none !important;
+}
+
+/* Panah rotasi dropdown */
+.dropdown-arrow {
+    margin-left: auto;
+    font-size: .75rem;
+    transition: transform .3s ease;
+    flex-shrink: 0;
+    opacity: .65;
+}
+
+.has-submenu.open .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+/* Saat sidebar collapsed: sembunyikan submenu */
+.sidebar.collapsed .sidebar-submenu {
+    display: none !important;
+    opacity: 0 !important;
+    max-height: 0 !important;
+}
+</style>
+
 <script>
 (function() {
     const collapsed = localStorage.getItem("sidebarCollapsed") === "true";
-
     if (collapsed) {
         document.documentElement.classList.add("sidebar-collapsed-init");
     }
-
-    // tandai bahwa ini first load
     document.documentElement.classList.add("no-transition");
 })();
 </script>
@@ -34,9 +113,11 @@
     </div>
 
     <ul id="sidebarMenu">
+
         <!-- DASHBOARD -->
         <li>
-            <a href="{% url 'anggota:dashboard_redirect' %}" class="{% if request.resolver_match.url_name in menu_dashboard_urls %}active{% endif %}">
+            <a href="{% url 'anggota:dashboard_redirect' %}"
+               class="{% if request.resolver_match.url_name in menu_dashboard_urls %}active{% endif %}">
                 <i class="ph ph-house"></i>
                 <span class="menu-text">Dashboard</span>
             </a>
@@ -46,7 +127,8 @@
         {% can_access request.user "kelola_anggota" as can_kelola %}
         {% if can_kelola %}
         <li>
-            <a href="{% url 'anggota:kelola_akun' %}" class="{% if request.resolver_match.url_name in menu_akun_urls %}active{% endif %}">
+            <a href="{% url 'anggota:kelola_akun' %}"
+               class="{% if request.resolver_match.url_name in menu_akun_urls %}active{% endif %}">
                 <i class="ph ph-user-list"></i>
                 <span class="menu-text">Kelola Akun</span>
             </a>
@@ -57,7 +139,8 @@
         {% can_access request.user "simpanan" as can_simpanan %}
         {% if can_simpanan %}
         <li>
-            <a href="{% url 'simpanan:daftar_simpanan' %}" class="{% if request.resolver_match.app_name == 'simpanan' %}active{% endif %}">
+            <a href="{% url 'simpanan:daftar_simpanan' %}"
+               class="{% if request.resolver_match.app_name == 'simpanan' %}active{% endif %}">
                 <i class="ph ph-wallet"></i>
                 <span class="menu-text">Manajemen Simpanan</span>
             </a>
@@ -68,22 +151,59 @@
         {% can_access request.user "pinjaman" as can_pinjaman %}
         {% if can_pinjaman %}
         <li>
-            <a href="{% url 'pinjaman:pinjaman_list' %}" class="{% if request.resolver_match.url_name in menu_pinjaman_urls %}active{% endif %}">
+            <a href="{% url 'pinjaman:pinjaman_list' %}"
+               class="{% if request.resolver_match.url_name in menu_pinjaman_urls %}active{% endif %}">
                 <i class="ph ph-handshake"></i>
                 <span class="menu-text">Manajemen Pinjaman</span>
             </a>
         </li>
         {% endif %}
 
-        <!-- LAPORAN -->
-        {% if request.user.role in "admin ketua bendahara" %}
-        <li>
-            <a href="{% url 'laporan:laporan' %}" class="{% if request.resolver_match.app_name == 'laporan' %}active{% endif %}">
+        <!-- LAPORAN (dropdown) -->
+        {% if request.user.role in "admin ketua bendahara sekretaris" %}
+        <li class="has-submenu {% if request.resolver_match.app_name == 'laporan' %}open{% endif %}"
+            id="laporanDropdown">
+
+            <!-- Tombol dropdown (bukan link) -->
+            <a href="#" class="dropdown-toggle
+               {% if request.resolver_match.app_name == 'laporan' %}active{% endif %}"
+               id="laporanToggle">
                 <i class="ph ph-chart-bar"></i>
                 <span class="menu-text">Laporan</span>
+                <i class="ph ph-caret-down dropdown-arrow menu-text"></i>
             </a>
+
+            <!-- Submenu -->
+            <ul class="sidebar-submenu
+                {% if request.resolver_match.app_name == 'laporan' %}open{% endif %}"
+                id="laporanSubmenu">
+
+                <!-- Laporan Keuangan -->
+                {% if request.user.role in "admin ketua bendahara" %}
+                <li>
+                    <a href="{% url 'laporan:laporan' %}"
+                       class="{% if request.resolver_match.url_name == 'laporan' or request.resolver_match.url_name == 'laporan_index' %}active{% endif %}">
+                        <i class="ph ph-money"></i>
+                        <span>Laporan Keuangan</span>
+                    </a>
+                </li>
+                {% endif %}
+
+                <!-- Laporan Keanggotaan -->
+                {% if request.user.role in "admin ketua sekretaris" %}
+                <li>
+                    <a href="{% url 'laporan:laporan_keanggotaan' %}"
+                       class="{% if request.resolver_match.url_name == 'laporan_keanggotaan' %}active{% endif %}">
+                        <i class="ph ph-users"></i>
+                        <span>Laporan Keanggotaan</span>
+                    </a>
+                </li>
+                {% endif %}
+
+            </ul>
         </li>
         {% endif %}
+
     </ul>
 
     <div class="logout-btn">
@@ -95,34 +215,56 @@
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-    const sidebar = document.getElementById("sidebar");
-    const toggleBtn = document.getElementById("toggleSidebar");
+document.addEventListener("DOMContentLoaded", function () {
+    const sidebar    = document.getElementById("sidebar");
+    const toggleBtn  = document.getElementById("toggleSidebar");
+    const laporanLi  = document.getElementById("laporanDropdown");
+    const laporanToggle  = document.getElementById("laporanToggle");
+    const laporanSubmenu = document.getElementById("laporanSubmenu");
 
+    // ── Restore sidebar collapsed state ───────────────────────
     const isCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
+    if (isCollapsed) sidebar.classList.add("collapsed");
 
-    if (isCollapsed) {
-        sidebar.classList.add("collapsed");
-    }
-
-    // 🔥 hapus disable transition SETELAH render
     setTimeout(() => {
         document.documentElement.classList.remove("no-transition");
         document.documentElement.classList.remove("sidebar-collapsed-init");
     }, 50);
 
-    toggleBtn.addEventListener("click", function() {
-        // hanya jalankan collapse di desktop
+    // ── Toggle sidebar (desktop only) ─────────────────────────
+    toggleBtn.addEventListener("click", function () {
         if (window.innerWidth <= 768) return;
-        
         sidebar.classList.toggle("collapsed");
         const collapsedNow = sidebar.classList.contains("collapsed");
         localStorage.setItem("sidebarCollapsed", collapsedNow);
-
-        const event = new CustomEvent("sidebarToggled", {
+        document.dispatchEvent(new CustomEvent("sidebarToggled", {
             detail: { collapsed: collapsedNow }
-        });
-        document.dispatchEvent(event);
+        }));
     });
+
+    // ── Dropdown Laporan ──────────────────────────────────────
+    if (laporanToggle && laporanSubmenu) {
+        laporanToggle.addEventListener("click", function (e) {
+            e.preventDefault();
+
+            // Jangan expand kalau sidebar sedang collapsed di desktop
+            if (sidebar.classList.contains("collapsed") && window.innerWidth > 768) {
+                return;
+            }
+
+            const isOpen = laporanLi.classList.toggle("open");
+            laporanSubmenu.classList.toggle("open", isOpen);
+            localStorage.setItem("laporanDropdownOpen", isOpen);
+        });
+
+        // Restore dropdown state dari localStorage
+        const dropdownWasOpen = localStorage.getItem("laporanDropdownOpen") === "true";
+        const isOnLaporanPage = laporanLi.classList.contains("open");
+
+        if ((dropdownWasOpen || isOnLaporanPage) && !sidebar.classList.contains("collapsed")) {
+            laporanLi.classList.add("open");
+            laporanSubmenu.classList.add("open");
+        }
+    }
 });
 </script>
