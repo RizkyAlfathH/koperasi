@@ -79,10 +79,43 @@
 }
 
 /* Saat sidebar collapsed: sembunyikan submenu */
+/* Submenu jadi popup saat collapsed */
 .sidebar.collapsed .sidebar-submenu {
-    display: none !important;
-    opacity: 0 !important;
-    max-height: 0 !important;
+    position: absolute;
+    left: 100%;
+    top: 0;
+    margin: 0;
+    padding: 6px;
+    min-width: 185px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 4px 4px 16px rgba(0,0,0,0.15);
+    border-left: none;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s ease, max-height .2s ease;
+}
+
+/* Tampil saat open */
+.sidebar.collapsed .has-submenu.open .sidebar-submenu {
+    max-height: 300px;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Pastikan li parent punya position relative */
+.sidebar.collapsed .has-submenu {
+    position: relative;
+}
+
+/* Fix link di dalam popup collapsed */
+.sidebar.collapsed .sidebar-submenu li a {
+    justify-content: flex-start !important;
+    padding: 8px 12px !important;
+    white-space: nowrap;
+    color: #333 !important;
 }
 </style>
 
@@ -170,7 +203,7 @@
                id="laporanToggle">
                 <i class="ph ph-chart-bar"></i>
                 <span class="menu-text">Laporan</span>
-                <i class="ph ph-caret-down dropdown-arrow menu-text"></i>
+                {% comment %} <i class="ph ph-caret-down dropdown-arrow menu-text"></i> {% endcomment %}
             </a>
 
             <!-- Submenu -->
@@ -247,9 +280,10 @@ document.addEventListener("DOMContentLoaded", function () {
         laporanToggle.addEventListener("click", function (e) {
             e.preventDefault();
 
-            // Jangan expand kalau sidebar sedang collapsed di desktop
+            // Saat collapsed di desktop → toggle class open saja (untuk hover popup)
             if (sidebar.classList.contains("collapsed") && window.innerWidth > 768) {
-                return;
+                laporanLi.classList.toggle("open");
+                return; // tidak perlu simpan ke localStorage
             }
 
             const isOpen = laporanLi.classList.toggle("open");
@@ -257,7 +291,14 @@ document.addEventListener("DOMContentLoaded", function () {
             localStorage.setItem("laporanDropdownOpen", isOpen);
         });
 
-        // Restore dropdown state dari localStorage
+        // Tutup popup kalau klik di luar (untuk collapsed mode)
+        document.addEventListener("click", function(e) {
+            if (sidebar.classList.contains("collapsed") && !laporanLi.contains(e.target)) {
+                laporanLi.classList.remove("open");
+            }
+        });
+
+        // Restore dropdown state
         const dropdownWasOpen = localStorage.getItem("laporanDropdownOpen") === "true";
         const isOnLaporanPage = laporanLi.classList.contains("open");
 

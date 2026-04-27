@@ -1,8 +1,9 @@
 {% extends "base.html" %}
+{% load widget_tweaks %}
 {% load static %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/pages/laporan/laporan_keanggotaan.css' %}">
+<link rel="stylesheet" href="{% static 'css\pages\laporan\laporan_keanggotaan.css' %}">
 {% endblock %}
 
 {% block title %}Laporan Keanggotaan{% endblock %}
@@ -160,88 +161,96 @@
         </div>
     </div>
 
-    {# ── Anggota Masuk Bulan Ini ─────────────────────────────────── #}
+    {# ── Anggota Masuk & Keluar — satu card dengan tab ──────────── #}
     <div class="content-card">
-        <h2>
-            <i class="ph ph-user-plus" style="color: var(--color-masuk);"></i>
-            Anggota Masuk – {{ nama_bulan }} {{ tahun }}
-        </h2>
 
-        <div class="table-wrapper">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>Nomor Anggota</th>
-                        <th>Nama</th>
-                        <th>Jenis Kelamin</th>
-                        <th>Pekerjaan</th>
-                        <th>Tanggal Daftar</th>
-                    </tr>
-                </thead>
-                <tbody id="tbodyMasuk">
-                    {% for ang in anggota_masuk %}
-                    <tr>
-                        <td>{{ forloop.counter }}</td>
-                        <td>{{ ang.nomor_anggota }}</td>
-                        <td>{{ ang.nama }}</td>
-                        <td>{{ ang.jenis_kelamin|default:"-" }}</td>
-                        <td>{{ ang.pekerjaan|default:"-" }}</td>
-                        <td>{{ ang.tanggal_daftar|date:"d M Y" }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6" class="empty-state">
-                            Tidak ada anggota baru masuk pada {{ nama_bulan }} {{ tahun }}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="tab-nav">
+            <button class="tab-btn active-masuk" id="btn-tab-masuk" onclick="switchTab('masuk', this)">
+                <i class="ph ph-user-plus"></i>
+                Anggota Masuk – {{ nama_bulan }} {{ tahun }}
+                <span class="tab-badge tab-badge-masuk">{{ anggota_masuk|length }}</span>
+            </button>
+            <button class="tab-btn" id="btn-tab-keluar" onclick="switchTab('keluar', this)">
+                <i class="ph ph-user-minus"></i>
+                Anggota Keluar – {{ nama_bulan }} {{ tahun }}
+                <span class="tab-badge tab-badge-keluar">{{ anggota_keluar|length }}</span>
+            </button>
         </div>
-    </div>
 
-    {# ── Anggota Keluar/Nonaktif Bulan Ini ──────────────────────── #}
-    <div class="content-card">
-        <h2>
-            <i class="ph ph-user-minus" style="color: var(--color-keluar);"></i>
-            Anggota Keluar – {{ nama_bulan }} {{ tahun }}
-        </h2>
-
-        <div class="table-wrapper">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>Nomor Anggota</th>
-                        <th>Nama</th>
-                        <th>Jenis Kelamin</th>
-                        <th>Tanggal Daftar</th>
-                        <th>Tanggal Nonaktif</th>
-                        <th>Alasan</th>
-                    </tr>
-                </thead>
-                <tbody id="tbodyKeluar">
-                    {% for ang in anggota_keluar %}
-                    <tr>
-                        <td>{{ forloop.counter }}</td>
-                        <td>{{ ang.nomor_anggota }}</td>
-                        <td>{{ ang.nama }}</td>
-                        <td>{{ ang.jenis_kelamin|default:"-" }}</td>
-                        <td>{{ ang.tanggal_daftar|date:"d M Y" }}</td>
-                        <td>{{ ang.tanggal_nonaktif|date:"d M Y"|default:"-" }}</td>
-                        <td>{{ ang.alasan_nonaktif|default:"-" }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="7" class="empty-state">
-                            Tidak ada anggota keluar pada {{ nama_bulan }} {{ tahun }}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        {# Tab Masuk #}
+        <div class="tab-pane active" id="tab-masuk">
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Nomor Anggota</th>
+                            <th>Nama</th>
+                            <th>Jenis Kelamin</th>
+                            <th>Pekerjaan</th>
+                            <th>Tanggal Daftar</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyMasuk">
+                        {% for ang in anggota_masuk %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ ang.nomor_anggota }}</td>
+                            <td>{{ ang.nama }}</td>
+                            <td>{{ ang.jenis_kelamin|default:"-" }}</td>
+                            <td>{{ ang.pekerjaan|default:"-" }}</td>
+                            <td>{{ ang.tanggal_daftar|date:"d M Y" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="empty-state">
+                                Tidak ada anggota baru masuk pada {{ nama_bulan }} {{ tahun }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
+
+        {# Tab Keluar #}
+        <div class="tab-pane" id="tab-keluar">
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Nomor Anggota</th>
+                            <th>Nama</th>
+                            <th>Jenis Kelamin</th>
+                            <th>Tanggal Daftar</th>
+                            <th>Tanggal Nonaktif</th>
+                            <th>Alasan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyKeluar">
+                        {% for ang in anggota_keluar %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ ang.nomor_anggota }}</td>
+                            <td>{{ ang.nama }}</td>
+                            <td>{{ ang.jenis_kelamin|default:"-" }}</td>
+                            <td>{{ ang.tanggal_daftar|date:"d M Y" }}</td>
+                            <td>{{ ang.tanggal_nonaktif|date:"d M Y"|default:"-" }}</td>
+                            <td>{{ ang.alasan_nonaktif|default:"-" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="empty-state">
+                                Tidak ada anggota keluar pada {{ nama_bulan }} {{ tahun }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 
     {# ── Tabel Semua Anggota ─────────────────────────────────────── #}
@@ -250,7 +259,6 @@
 
         {# filter & search inline #}
         <form method="get" class="filter-form sub-filter-form">
-            {# pertahankan bulan & tahun yang sedang aktif #}
             <input type="hidden" name="bulan" value="{{ bulan }}">
             <input type="hidden" name="tahun" value="{{ tahun }}">
 
@@ -339,6 +347,21 @@
 
 {% block extra_js %}
 <script>
+// ── Tab switcher ──────────────────────────────────────────────
+function switchTab(tab, clickedBtn) {
+    // sembunyiin semua pane
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    // aktifkan pane yang dipilih
+    document.getElementById('tab-' + tab).classList.add('active');
+
+    // reset semua tombol
+    document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('active-masuk', 'active-keluar');
+    });
+    // aktifkan tombol yang diklik
+    clickedBtn.classList.add('active-' + tab);
+}
+
 $(function () {
 
     // ── SweetAlert style KOPASMEN ─────────────────────────────────
@@ -360,17 +383,16 @@ $(function () {
     $(".action-export-keanggotaan").on("click", function (e) {
         e.preventDefault();
         const url    = $(this).attr("href");
-        const format = $(this).data("format"); // "excel" atau "pdf"
+        const format = $(this).data("format");
 
-        const isExcel    = format === "excel";
-        const labelFmt   = isExcel ? "Excel (.xlsx)" : "PDF (.pdf)";
-        const iconFmt    = isExcel ? "ph-file-xls"   : "ph-file-pdf";
-        const defFile    = isExcel ? "Laporan_Keanggotaan.xlsx" : "Laporan_Keanggotaan.pdf";
-        const descFmt    = isExcel
+        const isExcel  = format === "excel";
+        const labelFmt = isExcel ? "Excel (.xlsx)" : "PDF (.pdf)";
+        const iconFmt  = isExcel ? "ph-file-xls"   : "ph-file-pdf";
+        const defFile  = isExcel ? "Laporan_Keanggotaan.xlsx" : "Laporan_Keanggotaan.pdf";
+        const descFmt  = isExcel
             ? "File Excel berisi 4 sheet: <strong>Rekap Statistik, Daftar Anggota, Anggota Masuk, Anggota Keluar</strong>."
             : "File PDF berisi: <strong>Ringkasan Statistik, Rekap Bulanan, Anggota Masuk, Anggota Keluar, dan Daftar Semua Anggota</strong>.";
 
-        // cek apakah ada data
         const adaData = $("#tbodyAll tr:not(.empty-state-row)").length > 0 &&
                         $("#tbodyAll td.empty-state").length === 0;
 
@@ -378,9 +400,7 @@ $(function () {
             Swal.fire({
                 icon: "warning", iconColor: "#FFD700",
                 title: "Tidak Ada Data",
-                html: `<div style="margin-top:12px;font-size:14px;color:#92400e;">
-                         Belum ada data keanggotaan yang bisa diekspor.
-                       </div>`,
+                html: `<div style="margin-top:12px;font-size:14px;color:#92400e;">Belum ada data keanggotaan yang bisa diekspor.</div>`,
                 confirmButtonText: "Oke",
                 customClass: { popup:'kopasmen-swal-popup', title:'kopasmen-swal-title', confirmButton:'kopasmen-confirm-btn' }
             });
