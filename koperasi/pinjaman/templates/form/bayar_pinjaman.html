@@ -22,21 +22,37 @@
         <div>
             <strong>Terdapat Tunggakan!</strong><br>
             Anggota memiliki <strong>{{ bulan_nunggak }} bulan</strong> cicilan yang belum dibayar.
-            Seluruh tunggakan wajib dilunasi sekaligus. Tanggal dan jumlah bulan
-            ditetapkan otomatis oleh sistem.
+            Bulan kewajiban dikunci ke bulan tunggakan pertama.
         </div>
     </div>
     {% endif %}
+
+    <!-- ── ACUAN CICILAN (info saja, tidak disimpan) ───────────────────── -->
+    <div class="alert d-flex align-items-center mb-3" role="alert"
+         style="border-left: 4px solid #4CAF50; background: #f1f8f1;
+                border-radius: 8px; padding: 12px 16px; gap: 10px;">
+        <span style="font-size: 1.2rem;"><i class="ph ph-info"></i></span>
+        <div style="font-size: 13.5px;">
+            <strong>Acuan Cicilan Bulan Ini</strong> &nbsp;|&nbsp;
+            Pokok: <strong>Rp {{ angsuran_pokok|floatformat:0 }}</strong>
+            &nbsp;+&nbsp;
+            Jasa ({{ pinjaman.jasa_persen|floatformat:-2 }}%): <strong>Rp {{ jasa_bulan_ini|floatformat:0 }}</strong>
+            &nbsp;=&nbsp;
+            <strong style="color:#2e7d32;">Rp {{ acuan_per_bulan|floatformat:0 }}</strong>
+            &nbsp;<small class="text-muted">(hanya referensi, tidak disimpan)</small>
+        </div>
+    </div>
 
     <form method="POST" id="formBayarPinjaman">
         {% csrf_token %}
 
         <!-- ── hidden inputs untuk JS ─────────────────────────────────── -->
-        <input type="hidden" id="angsuran_pokok"    value="{{ angsuran_pokok }}">
-        <input type="hidden" id="sisa_pinjaman_awal" value="{{ pinjaman.sisa_pinjaman }}">
-        <input type="hidden" id="jumlah_pinjaman"   value="{{ pinjaman.jumlah_pinjaman }}">
-        <input type="hidden" id="ada_tunggakan"     value="{{ ada_tunggakan|yesno:'true,false' }}">
-        <input type="hidden" id="jumlah_bulan_wajib" value="{{ jumlah_bulan_bayar }}">
+        <input type="hidden" id="angsuran_pokok_std"  value="{{ angsuran_pokok }}">
+        <input type="hidden" id="sisa_pinjaman_awal"  value="{{ pinjaman.sisa_pinjaman }}">
+        <input type="hidden" id="jumlah_pinjaman"     value="{{ pinjaman.jumlah_pinjaman }}">
+        <input type="hidden" id="ada_tunggakan"       value="{{ ada_tunggakan|yesno:'true,false' }}">
+        <input type="hidden" id="jasa_persen_val"     value="{{ jasa_persen }}">
+        <input type="hidden" id="kategori_jasa_val"   value="{{ pinjaman.id_kategori_jasa.kategori_jasa|lower }}">
 
         <!-- row 1: anggota & pinjaman -->
         <div class="row mb-3">
@@ -47,67 +63,33 @@
                        readonly>
             </div>
             <div class="col-md-6">
-                <label>Pinjaman</label>
+                <label>Jumlah Pinjaman Awal</label>
                 <input type="text" class="form-control rupiah-text"
                        value="{{ pinjaman.jumlah_pinjaman|floatformat:0 }}" readonly>
             </div>
         </div>
 
-        <!-- row 2: sisa pinjaman & tanggal -->
+        <!-- row 2: sisa pokok nominal & tanggal transaksi -->
         <div class="row mb-3">
-            <div class="col-md-6">
-                <label>Sisa Pinjaman</label>
-                <input type="text" class="form-control rupiah-text"
-                       value="{{ pinjaman.sisa_pinjaman|floatformat:0 }}" readonly>
-            </div>
-
             <div class="col-md-6">
                 <!--
-                    LOGIKA TANGGAL:
-                    ● Ada tunggakan → field readonly, value = tanggal_cicilan_pertama
-                      (cicilan pertama yang tertunggak, dihitung server)
-                      Cicilan berikutnya otomatis urut di server.
-                    ● Tidak ada tunggakan → field bisa diisi bebas oleh user
-                    ● Tipe jasa → field selalu bisa diisi (tanggal pembayaran jasa)
+                    Sebelumnya: "Cicilan tersisa: X bulan"
+                    Sekarang: nominal sisa pokok dalam rupiah
                 -->
-                {% if ada_tunggakan %}
-                <label>
-                    Tanggal Bayar
-                    <small class="text-muted">(otomatis, tidak dapat diubah)</small>
-                </label>
-                <!-- Tampilkan tanggal otomatis, tidak bisa diubah -->
-                <!-- Value dikirim via hidden input agar tetap masuk POST -->
-                <input type="text"
-                       class="form-control"
-                       value="{{ tanggal_cicilan_pertama|date:'d F Y' }}"
-                       readonly
-                       style="background:#f5f5f5; cursor:not-allowed;">
-                <!-- hidden field agar tanggal tetap ikut POST (dipakai mode jasa) -->
-                <input type="hidden" name="tanggal" value="{{ tanggal_cicilan_pertama|date:'Y-m-d' }}">
-                {% else %}
-                <label>Tanggal</label>
+                <label>Sisa Pokok</label>
+                <input type="text" class="form-control rupiah-text"
+                       value="{{ sisa_pokok_nominal|floatformat:0 }}" readonly
+                       style="font-weight:600; color:#c62828;">
+                <small class="text-muted">Sisa cicilan: {{ sisa_cicilan_total }} bulan lagi</small>
+            </div>
+            <div class="col-md-6">
+                <label>Tanggal Transaksi</label>
                 <input type="date" name="tanggal" id="id_tanggal"
                        class="form-control" required>
-                {% endif %}
             </div>
         </div>
 
-        <!-- row 3: angsuran pokok & persen jasa -->
-        <div class="row mb-3">
-            <div class="col-md-6">
-                <label>Jumlah Cicilan Pokok</label>
-                <input type="text" class="form-control rupiah-text"
-                       value="{{ angsuran_pokok|floatformat:0 }}" readonly>
-            </div>
-            <div class="col-md-6">
-                <label>Persentase Jasa (%)</label>
-                <input type="text" class="form-control"
-                       value="{{ pinjaman.jasa_persen|floatformat:-2|cut:",0" }}%"
-                       readonly>
-            </div>
-        </div>
-
-        <!-- row 4: jenis & kategori jasa -->
+        <!-- row 3: jenis pinjaman & kategori jasa -->
         <div class="row mb-3">
             <div class="col-md-6">
                 <label>Jenis Pinjaman</label>
@@ -121,49 +103,92 @@
             </div>
         </div>
 
-        <!-- row 5: tipe bayar & jumlah bulan -->
+        <!-- row 4: tipe bayar & bulan kewajiban -->
         <div class="row mb-3">
             <div class="col-md-6">
                 <label>Pilihan Pembayaran</label>
                 <select id="tipe_bayar" name="tipe_bayar" class="form-control">
-                    <option value="cicilan">Cicilan + Jasa</option>
+                    <option value="cicilan">Cicilan (Pokok + Jasa)</option>
                     <option value="jasa">Jasa Saja</option>
                 </select>
             </div>
             <div class="col-md-6">
-                <label>Jumlah Bulan Dibayar</label>
                 <!--
-                    Ada tunggakan → readonly, dikunci = jumlah tunggakan
-                    Tidak ada tunggakan → bisa diubah user
+                    LOGIKA BULAN KEWAJIBAN:
+                    ● Ada tunggakan → dropdown readonly, dikunci ke bulan tunggakan pertama
+                    ● Tidak ada tunggakan → bebas pilih dari dropdown
+                    ● Tipe "jasa saja" → bulan kewajiban = bulan mulai jasa
                 -->
-                <input type="number"
-                       id="jumlah_bulan"
-                       name="bulan"
-                       class="form-control"
-                       min="1"
-                       value="{{ jumlah_bulan_bayar }}"
-                       {% if ada_tunggakan %}readonly style="background:#f5f5f5; cursor:not-allowed;"{% endif %}>
-
-                <small id="keterangan_bulan" class="text-muted">
-                    {% if ada_tunggakan %}
-                        ⚠️ Tunggakan {{ bulan_nunggak }} bulan — wajib dilunasi sekaligus
-                    {% else %}
-                        Cicilan tersisa: {{ sisa_bulan }} bulan
-                    {% endif %}
-                </small>
+                <label>Bulan Kewajiban</label>
+                <select id="bulan_kewajiban" name="bulan_kewajiban" class="form-control"
+                        {% if ada_tunggakan %}disabled style="background:#f5f5f5; cursor:not-allowed;"{% endif %}>
+                    {% for b in pilihan_bulan %}
+                    <option value="{{ b.value }}"
+                            {% if b.value == bulan_kewajiban_default %}selected{% endif %}>
+                        {{ b.label }}
+                    </option>
+                    {% endfor %}
+                </select>
+                {% if ada_tunggakan %}
+                <!-- Pastikan value tetap terkirim meski disabled -->
+                <input type="hidden" name="bulan_kewajiban" value="{{ bulan_kewajiban_default }}">
+                <small class="text-muted">⚠️ Dikunci — lunasi tunggakan dulu</small>
+                {% endif %}
             </div>
         </div>
 
-        <!-- row 6: nominal & admin -->
+        <!-- row 5: nominal pokok (cicilan) & jumlah bulan jasa -->
+        <div class="row mb-3">
+
+            <!-- Pokok — tampil hanya saat tipe cicilan -->
+            <div class="col-md-6" id="row_pokok">
+                <label>Jumlah Pokok Dibayar</label>
+                <input type="text"
+                       name="nominal_pokok"
+                       id="id_nominal_pokok"
+                       class="form-control rupiah-input rupiah-text"
+                       value="{{ angsuran_pokok|floatformat:0 }}"
+                       placeholder="Min: Rp {{ angsuran_pokok|floatformat:0 }}">
+                <small class="text-muted">
+                    Min: Rp {{ angsuran_pokok|floatformat:0 }} &nbsp;|&nbsp;
+                    Max (lunas): Rp {{ sisa_pokok_nominal|floatformat:0 }}
+                </small>
+            </div>
+
+            <!-- Jumlah bulan jasa — tampil hanya saat tipe jasa -->
+            <div class="col-md-6" id="row_bulan_jasa" style="display:none;">
+                <label>Jumlah Bulan Jasa</label>
+                <div class="input-group">
+                    <button type="button" class="btn btn-outline-secondary" id="btnJasaMinus">−</button>
+                    <input type="number" id="jumlah_bulan_jasa" name="jumlah_bulan_jasa"
+                           class="form-control text-center" value="1" min="1"
+                           style="max-width:80px;">
+                    <button type="button" class="btn btn-outline-secondary" id="btnJasaPlus">+</button>
+                </div>
+                <small class="text-muted">
+                    Jasa/bulan: <strong id="jasa_per_bulan_label">Rp 0</strong>
+                </small>
+            </div>
+
+            <!-- Jasa (readonly, dihitung otomatis) — tampil hanya saat cicilan -->
+            <div class="col-md-6" id="row_jasa_info">
+                <label>Jasa Bulan Ini <small class="text-muted">(otomatis)</small></label>
+                <input type="text" id="id_jasa_display" class="form-control"
+                       readonly style="background:#f5f5f5;">
+            </div>
+        </div>
+
+        <!-- row 6: nominal total & admin -->
         <div class="row mb-4">
             <div class="col-md-6">
-                <label>Jumlah Dibayar</label>
+                <label>Jumlah Dibayar (Total)</label>
                 <input type="text"
                        name="nominal"
                        id="id_nominal"
                        class="form-control rupiah-text rupiah-input"
-                       value="{{ total_bayar|floatformat:0 }}"
+                       value="{{ total_bayar_default|floatformat:0 }}"
                        required>
+                <small id="keterangan_nominal" class="text-muted"></small>
             </div>
             <div class="col-md-6">
                 <label>Admin yang Bertugas</label>
@@ -191,87 +216,111 @@
 document.addEventListener("DOMContentLoaded", function () {
 
     // ── Konstanta dari server ─────────────────────────────────────────────
-    const angsuranPokok    = parseFloat(document.getElementById("angsuran_pokok").value    || 0);
-    const jasaPersen       = parseFloat("{{ pinjaman.jasa_persen }}".replace(",", "."))    / 100;
-    const kategoriJasa     = "{{ pinjaman.id_kategori_jasa.kategori_jasa|lower }}";
-    const jumlahPinjaman   = parseFloat(document.getElementById("jumlah_pinjaman").value   || 0);
-    const sisaPinjamanAwal = parseFloat(document.getElementById("sisa_pinjaman_awal").value|| 0);
+    const angsuranPokokStd = parseFloat(document.getElementById("angsuran_pokok_std").value || 0);
+    const sisaPinjamanAwal = parseFloat(document.getElementById("sisa_pinjaman_awal").value || 0);
+    const jumlahPinjaman   = parseFloat(document.getElementById("jumlah_pinjaman").value    || 0);
     const adaTunggakan     = document.getElementById("ada_tunggakan").value === "true";
-    const bulanWajib       = parseInt(document.getElementById("jumlah_bulan_wajib").value  || 1);
+    const jasaPersenVal    = parseFloat(document.getElementById("jasa_persen_val").value    || 0) / 100;
+    const kategoriJasa     = document.getElementById("kategori_jasa_val").value;
 
+    // ── Elemen DOM ────────────────────────────────────────────────────────
     const tipeBayar        = document.getElementById("tipe_bayar");
-    const jumlahBulanInput = document.getElementById("jumlah_bulan");
     const nominalInput     = document.getElementById("id_nominal");
-    const keteranganBulan  = document.getElementById("keterangan_bulan");
+    const nominalPokokInput= document.getElementById("id_nominal_pokok");
+    const jasaDisplay      = document.getElementById("id_jasa_display");
+    const keteranganNominal= document.getElementById("keterangan_nominal");
+    const rowPokok         = document.getElementById("row_pokok");
+    const rowBulanJasa     = document.getElementById("row_bulan_jasa");
+    const rowJasaInfo      = document.getElementById("row_jasa_info");
+    const jumlahBulanJasa  = document.getElementById("jumlah_bulan_jasa");
+    const jasaPerBulanLabel= document.getElementById("jasa_per_bulan_label");
+    const btnJasaMinus     = document.getElementById("btnJasaMinus");
+    const btnJasaPlus      = document.getElementById("btnJasaPlus");
 
-    // ── Hitung total bayar ────────────────────────────────────────────────
-    function hitungBayar() {
-        let totalBayar = 0;
-        let tempSisa   = sisaPinjamanAwal;
-
-        // Jumlah bulan:
-        //   ada tunggakan → dikunci ke bulanWajib
-        //   tidak ada tunggakan → ambil dari input user
-        let bulan = adaTunggakan
-            ? bulanWajib
-            : parseInt(jumlahBulanInput.value || 1);
-
-        const maxBulan = angsuranPokok > 0 ? Math.ceil(tempSisa / angsuranPokok) : 1;
-        if (bulan > maxBulan) bulan = maxBulan;
-        if (bulan < 1)        bulan = 1;
-
-        if (tipeBayar.value === "cicilan") {
-
-            for (let i = 0; i < bulan; i++) {
-                if (tempSisa <= 0) break;
-                const jasa = kategoriJasa === "turunan"
-                    ? tempSisa      * jasaPersen
-                    : jumlahPinjaman * jasaPersen;
-                totalBayar += angsuranPokok + jasa;
-                tempSisa   -= angsuranPokok;
-            }
-
-            if (!adaTunggakan) {
-                const sisaSetelah      = Math.max(tempSisa, 0);
-                const sisaBulanSetelah = angsuranPokok > 0
-                    ? Math.ceil(sisaSetelah / angsuranPokok) : 0;
-                keteranganBulan.innerText = `Cicilan tersisa: ${sisaBulanSetelah} bulan`;
-            }
-
-        } else if (tipeBayar.value === "jasa") {
-
-            // Jasa saja: hitung dari sisa pinjaman saat ini, hanya 1 bulan
-            const jasa = kategoriJasa === "turunan"
-                ? sisaPinjamanAwal  * jasaPersen
-                : jumlahPinjaman     * jasaPersen;
-            totalBayar = jasa;
-
-            if (!adaTunggakan) {
-                keteranganBulan.innerText = "Mode jasa: pokok tidak berkurang";
-            }
-        }
-
-        // Sinkronkan input bulan
-        jumlahBulanInput.value = adaTunggakan ? bulanWajib : bulan;
-
-        // Format rupiah
-        nominalInput.value = 'Rp ' + formatRupiahNumber(Math.round(totalBayar));
+    // ── Helpers ───────────────────────────────────────────────────────────
+    function fmt(n) {
+        return 'Rp ' + Math.round(n).toLocaleString('id-ID');
     }
 
-    // ── Event listeners ───────────────────────────────────────────────────
-    tipeBayar.addEventListener("change", function () {
-        if (adaTunggakan) {
-            keteranganBulan.innerText = this.value === "jasa"
-                ? "Mode jasa saja: pokok tidak berkurang"
-                : `⚠️ Tunggakan ${bulanWajib} bulan — wajib dilunasi sekaligus`;
+    function parseFmt(str) {
+        return parseFloat((str || '0').replace(/Rp\s?/g, '').replace(/\./g, '').replace(',', '.').trim()) || 0;
+    }
+
+    function hitungJasa(sisa) {
+        return kategoriJasa === 'turunan'
+            ? sisa         * jasaPersenVal
+            : jumlahPinjaman * jasaPersenVal;
+    }
+
+    // ── Recalculate ───────────────────────────────────────────────────────
+    function hitungBayar() {
+        const tipe = tipeBayar.value;
+
+        if (tipe === 'cicilan') {
+            // Tampil/sembunyikan baris yang relevan
+            rowPokok.style.display    = '';
+            rowJasaInfo.style.display = '';
+            rowBulanJasa.style.display= 'none';
+
+            // Pokok dari input
+            let pokok = parseFmt(nominalPokokInput.value);
+            if (pokok < angsuranPokokStd) pokok = angsuranPokokStd;
+            if (pokok > sisaPinjamanAwal) pokok = sisaPinjamanAwal;
+
+            // Jasa dari sisa pokok sebelum bayar
+            const jasa  = hitungJasa(sisaPinjamanAwal);
+            const total = pokok + jasa;
+
+            jasaDisplay.value        = fmt(jasa);
+            nominalInput.value       = fmt(total);
+            keteranganNominal.innerText = `Pokok ${fmt(pokok)} + Jasa ${fmt(jasa)}`;
+
+        } else if (tipe === 'jasa') {
+            // Tampil/sembunyikan baris yang relevan
+            rowPokok.style.display    = 'none';
+            rowJasaInfo.style.display = 'none';
+            rowBulanJasa.style.display= '';
+
+            const bln       = parseInt(jumlahBulanJasa.value || 1);
+            const jasaBulan = hitungJasa(sisaPinjamanAwal);
+            const total     = jasaBulan * bln;
+
+            jasaPerBulanLabel.innerText = fmt(jasaBulan);
+            nominalInput.value          = fmt(total);
+            keteranganNominal.innerText = `${bln} bulan × ${fmt(jasaBulan)} jasa`;
         }
+    }
+
+    // ── Rupiah input formatting untuk pokok ──────────────────────────────
+    nominalPokokInput.addEventListener('input', function () {
+        const raw = this.value.replace(/[^0-9]/g, '');
+        this.value = raw ? 'Rp ' + parseInt(raw).toLocaleString('id-ID') : '';
+        hitungBayar();
+    });
+    nominalPokokInput.addEventListener('blur', function () {
+        let val = parseFmt(this.value);
+        if (val < angsuranPokokStd) val = angsuranPokokStd;
+        if (val > sisaPinjamanAwal) val = sisaPinjamanAwal;
+        this.value = fmt(val);
         hitungBayar();
     });
 
-    if (!adaTunggakan) {
-        jumlahBulanInput.addEventListener("input", hitungBayar);
-    }
+    // ── Tombol +/- jumlah bulan jasa ─────────────────────────────────────
+    btnJasaMinus.addEventListener('click', function () {
+        let v = parseInt(jumlahBulanJasa.value || 1);
+        if (v > 1) { jumlahBulanJasa.value = v - 1; hitungBayar(); }
+    });
+    btnJasaPlus.addEventListener('click', function () {
+        let v = parseInt(jumlahBulanJasa.value || 1);
+        jumlahBulanJasa.value = v + 1;
+        hitungBayar();
+    });
+    jumlahBulanJasa.addEventListener('input', hitungBayar);
 
+    // ── Tipe bayar change ─────────────────────────────────────────────────
+    tipeBayar.addEventListener('change', hitungBayar);
+
+    // ── Init ──────────────────────────────────────────────────────────────
     hitungBayar();
 
     // ── SweetAlert styles ─────────────────────────────────────────────────
@@ -311,43 +360,46 @@ document.addEventListener("DOMContentLoaded", function () {
     // ── Konfirmasi submit ─────────────────────────────────────────────────
     document.getElementById('btnBayarPinjaman').addEventListener('click', function () {
 
-        // Validasi tanggal — hanya saat tidak ada tunggakan (input bebas)
-        {% if not ada_tunggakan %}
+        // Validasi tanggal
         const tanggalInput = document.getElementById('id_tanggal');
         if (!tanggalInput || !tanggalInput.value) {
             Swal.fire({
                 title: 'Perhatian',
-                text: 'Silakan isi tanggal pembayaran terlebih dahulu.',
-                icon: 'warning',
-                iconColor: '#FFD700',
+                text: 'Silakan isi tanggal transaksi terlebih dahulu.',
+                icon: 'warning', iconColor: '#FFD700',
                 confirmButtonText: '<span style="color:#291B18; font-weight:600;">Oke</span>',
-                customClass: {
-                    popup: 'kopasmen-swal-popup', title: 'kopasmen-swal-title',
-                    confirmButton: 'kopasmen-confirm-btn',
-                },
+                customClass: { popup: 'kopasmen-swal-popup', title: 'kopasmen-swal-title', confirmButton: 'kopasmen-confirm-btn' },
             });
             return;
         }
-        {% endif %}
 
         const namaAnggota   = "{{ pinjaman.nomor_anggota.nomor_anggota }} - {{ pinjaman.nomor_anggota.nama }}";
         const jenisPinjaman = "{{ pinjaman.id_jenis_pinjaman.nama_jenis }}";
         const kategoriLabel = "{{ pinjaman.id_kategori_jasa.kategori_jasa }}";
         const tipeBayarText = tipeBayar.options[tipeBayar.selectedIndex].text;
-        const bulan         = jumlahBulanInput.value;
         const nominal       = nominalInput.value || "-";
+        const tanggalVal    = tanggalInput.value;
 
-        // Keterangan tanggal di popup konfirmasi
+        // Bulan kewajiban yang dipilih
+        const bulanSelect   = document.getElementById('bulan_kewajiban');
+        const bulanLabel    = bulanSelect
+            ? bulanSelect.options[bulanSelect.selectedIndex]?.text
+            : "{{ pilihan_bulan.0.label }}";
+
+        // Detail ekstra sesuai tipe
+        let detailTambahan = '';
+        if (tipeBayar.value === 'cicilan') {
+            detailTambahan = `<b>Pokok &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</b> ${document.getElementById('id_nominal_pokok').value}<br>
+                              <b>Jasa &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</b> ${jasaDisplay.value}<br>`;
+        } else {
+            detailTambahan = `<b>Bulan Jasa &nbsp;:</b> ${jumlahBulanJasa.value} bulan<br>`;
+        }
+
         {% if ada_tunggakan %}
-        const tanggalLabel = "{{ tanggal_cicilan_pertama|date:'d F Y' }} (otomatis)";
-        const tunggakanInfo = tipeBayar.value === "cicilan"
-            ? `<br><span style="color:#b8860b; font-size:12px;">
-                   <i class="ph ph-warning"></i> Melunasi ${bulan} bulan tunggakan sekaligus.
-                   Seluruh tanggal cicilan ditetapkan otomatis oleh sistem.
-               </span>`
-            : '';
+        const tunggakanInfo = `<br><span style="color:#b8860b; font-size:12px;">
+            <i class="ph ph-warning"></i> Terdapat tunggakan — bulan kewajiban dikunci otomatis.
+        </span>`;
         {% else %}
-        const tanggalLabel  = document.getElementById('id_tanggal').value;
         const tunggakanInfo = '';
         {% endif %}
 
@@ -357,17 +409,17 @@ document.addEventListener("DOMContentLoaded", function () {
                 <div style="text-align:left; font-size:14px; line-height:2;
                             background:#f9f9f9; border-radius:12px;
                             padding:12px 16px; border-left:4px solid #FFD700;">
-                    <b>Anggota &nbsp;&nbsp;:</b> ${namaAnggota}<br>
-                    <b>Jenis &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; :</b> ${jenisPinjaman}<br>
-                    <b>Kategori &nbsp;&nbsp;:</b> ${kategoriLabel}<br>
-                    <b>Tipe &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; :</b> ${tipeBayarText}<br>
-                    <b>Bulan &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; :</b> ${bulan} bulan<br>
-                    <b>Tanggal &nbsp;&nbsp; :</b> ${tanggalLabel}<br>
-                    <b>Total &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; :</b> ${nominal}
+                    <b>Anggota &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</b> ${namaAnggota}<br>
+                    <b>Jenis &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</b> ${jenisPinjaman}<br>
+                    <b>Kategori &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</b> ${kategoriLabel}<br>
+                    <b>Tipe &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</b> ${tipeBayarText}<br>
+                    <b>Kewajiban &nbsp;&nbsp;:</b> ${bulanLabel}<br>
+                    <b>Tgl Transaksi:</b> ${tanggalVal}<br>
+                    ${detailTambahan}
+                    <b>Total &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</b> ${nominal}
                     ${tunggakanInfo}
                 </div>`,
-            icon: 'question',
-            iconColor: '#FFD700',
+            icon: 'question', iconColor: '#FFD700',
             showCancelButton: true,
             confirmButtonText: '<span style="color:#291B18; font-weight:600;">Ya, Bayar</span>',
             cancelButtonText:  '<span style="color:#291B18; font-weight:600;">Batal</span>',
