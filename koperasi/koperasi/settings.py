@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
     'admin_koperasi',
     'anggota',
     'koperasi',
@@ -99,31 +100,31 @@ WSGI_APPLICATION = 'koperasi.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'kopasmen11',
-#         'USER': 'root',
-#         'PASSWORD': '',  
-#         'HOST': 'localhost',
-#         'PORT': '3306',
-#     }
-# }
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('MYSQL_DATABASE', 'railway'),
-        'USER': os.environ.get('MYSQLUSER', 'root'),
-        'PASSWORD': os.environ.get('MYSQLPASSWORD', ''),
-        'HOST': os.environ.get('MYSQLHOST', 'localhost'),
-        'PORT': os.environ.get('MYSQLPORT', '3306'),
-        'OPTIONS': {
-            'charset': 'utf8mb4',
-            'connect_timeout': 10,
-        },
+        'NAME': 'kopasmen11',
+        'USER': 'root',
+        'PASSWORD': '',  
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': os.environ.get('MYSQL_DATABASE', 'railway'),
+#         'USER': os.environ.get('MYSQLUSER', 'root'),
+#         'PASSWORD': os.environ.get('MYSQLPASSWORD', ''),
+#         'HOST': os.environ.get('MYSQLHOST', 'localhost'),
+#         'PORT': os.environ.get('MYSQLPORT', '3306'),
+#         'OPTIONS': {
+#             'charset': 'utf8mb4',
+#             'connect_timeout': 10,
+#         },
+#     }
+# }
 
 
 # Password validation

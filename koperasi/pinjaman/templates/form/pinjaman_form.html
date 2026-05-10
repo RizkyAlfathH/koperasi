@@ -10,193 +10,137 @@
 
 {% block content %}
 
-<!-- container utama untuk form -->
 <div class="content-card">
     <h2>Form Tambah Pinjaman</h2>
 
-    <!-- form utama -->
-    <!-- method post untuk kirim data ke server -->
-    <!-- novalidate supaya validasi default html dimatikan (pakai validasi django) -->
     <form method="post" novalidate id="formTambahPinjaman">
         {% csrf_token %}
 
-        <!-- row 1: pilih anggota dan jenis pinjaman -->
+        <!-- ── row 1: anggota & tanggal (shared, 1x) ─────────────────── -->
         <div class="row mb-3">
             <div class="col-md-6">
-
-                <!-- field nomor anggota -->
                 <label>Nama Anggota</label>
-
-                <!-- jika ada error, tampilkan style invalid + pesan -->
                 {% if form.nomor_anggota.errors %}
                     {{ form.nomor_anggota|add_class:"form-control is-invalid" }}
-                    <div class="invalid-feedback">
-                        {{ form.nomor_anggota.errors.0 }}
-                    </div>
+                    <div class="invalid-feedback">{{ form.nomor_anggota.errors.0 }}</div>
                 {% else %}
-                    <!-- kondisi normal tanpa error -->
                     {{ form.nomor_anggota|add_class:"form-control" }}
                 {% endif %}
             </div>
-
             <div class="col-md-6">
-
-                <!-- field jenis pinjaman -->
-                <label>Jenis Pinjaman</label>
-
-                {% if form.id_jenis_pinjaman.errors %}
-                    {{ form.id_jenis_pinjaman|add_class:"form-control is-invalid" }}
-                    <div class="invalid-feedback">
-                        {{ form.id_jenis_pinjaman.errors.0 }}
-                    </div>
-                {% else %}
-                    {{ form.id_jenis_pinjaman|add_class:"form-control" }}
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- row 2: tanggal dan lama pinjaman -->
-        <div class="row mb-3">
-            <div class="col-md-6">
-
-                <!-- field tanggal meminjam -->
                 <label>Tanggal Pinjam</label>
-
                 {% if form.tanggal_meminjam.errors %}
                     {{ form.tanggal_meminjam|add_class:"form-control is-invalid" }}
-                    <div class="invalid-feedback">
-                        {{ form.tanggal_meminjam.errors.0 }}
-                    </div>
+                    <div class="invalid-feedback">{{ form.tanggal_meminjam.errors.0 }}</div>
                 {% else %}
-                    <!-- autocomplete dimatikan untuk mencegah autofill browser -->
                     {{ form.tanggal_meminjam|add_class:"form-control"|attr:"autocomplete:off" }}
                 {% endif %}
             </div>
+        </div>
 
-            <div class="col-md-6">
+        <!-- ── Admin (hidden) ─────────────────────────────────────────── -->
+        {{ form.id_admin }}
 
-                <!-- field lama pinjaman (bulan) -->
-                <label>Lama Pinjaman (bulan)</label>
+        <!-- ── Detail pinjaman (multi-baris) ─────────────────────────── -->
+        <div class="row mb-2">
+            <div class="col-12">
+                <label>Detail Pinjaman</label>
 
-                {% if form.jatuh_tempo.errors %}
-                    {{ form.jatuh_tempo|add_class:"form-control is-invalid" }}
-                    <div class="invalid-feedback">
-                        {{ form.jatuh_tempo.errors.0 }}
+                <!-- header kolom -->
+                <div style="
+                    display: grid;
+                    grid-template-columns: 1.2fr 1fr 1.2fr 1fr 1.2fr 0.8fr 1fr 40px;
+                    gap: 8px;
+                    padding: 0 0 8px;
+                    border-bottom: 1px solid #dee2e6;
+                    margin-bottom: 4px;
+                ">
+                    <span style="font-size:13px;font-weight:600;color:#6c757d;">Jenis Pinjaman</span>
+                    <span style="font-size:13px;font-weight:600;color:#6c757d;">Tenor (bln)</span>
+                    <span style="font-size:13px;font-weight:600;color:#6c757d;">Jumlah Pinjaman</span>
+                    <span style="font-size:13px;font-weight:600;color:#6c757d;">Angsuran/bln</span>
+                    <span style="font-size:13px;font-weight:600;color:#6c757d;">Kategori Jasa</span>
+                    <span style="font-size:13px;font-weight:600;color:#6c757d;">Jasa (%)</span>
+                    <span style="font-size:13px;font-weight:600;color:#6c757d;">Jasa (Rp)</span>
+                    <span></span>
+                </div>
+
+                <!-- container baris -->
+                <div id="tbody-pinjaman">
+                    <!-- baris pertama (tidak bisa dihapus) -->
+                    <div class="baris-pinjaman" data-index="0" style="
+                        display: grid;
+                        grid-template-columns: 1.2fr 1fr 1.2fr 1fr 1.2fr 0.8fr 1fr 40px;
+                        gap: 8px;
+                        align-items: start;
+                        padding: 8px 0;
+                        border-bottom: 1px solid #f0f0f0;
+                    ">
+                        <div>
+                            <select name="jenis_0" class="form-control select-jenis">
+                                <option value="">Pilih jenis</option>
+                                {% for val, label in form.id_jenis_pinjaman.field.choices %}
+                                    {% if val %}<option value="{{ val }}">{{ label }}</option>{% endif %}
+                                {% endfor %}
+                            </select>
+                            <div class="invalid-feedback d-block error-jenis-0"></div>
+                        </div>
+                        <div>
+                            <input type="number" name="tenor_0" class="form-control" min="1" max="36" placeholder="1-36">
+                            <div class="invalid-feedback d-block error-tenor-0"></div>
+                        </div>
+                        <div>
+                            <input type="text" name="jumlah_0" class="form-control rupiah-input" placeholder="Jumlah pinjaman">
+                            <div class="invalid-feedback d-block error-jumlah-0"></div>
+                        </div>
+                        <div>
+                            <input type="text" name="angsuran_0" class="form-control rupiah-input" placeholder="Angsuran/bln">
+                            <div class="invalid-feedback d-block error-angsuran-0"></div>
+                        </div>
+                        <div>
+                            <select name="kategori_0" class="form-control select-kategori">
+                                <option value="">Pilih kategori</option>
+                                {% for val, label in form.id_kategori_jasa.field.choices %}
+                                    {% if val %}<option value="{{ val }}">{{ label }}</option>{% endif %}
+                                {% endfor %}
+                            </select>
+                            <div class="invalid-feedback d-block error-kategori-0"></div>
+                        </div>
+                        <div>
+                            <input type="number" name="jasa_persen_0" class="form-control input-jasa-persen" step="0.01" placeholder="0.00">
+                            <div class="invalid-feedback d-block error-jasapersen-0"></div>
+                        </div>
+                        <div>
+                            <input type="text" name="jasa_rupiah_0" class="form-control input-jasa-rupiah" placeholder="Otomatis" readonly style="background:#f5f5f5;">
+                        </div>
+                        <div></div>
                     </div>
-                {% else %}
-                    {{ form.jatuh_tempo|add_class:"form-control" }}
-                {% endif %}
+                </div>
+
             </div>
         </div>
 
-        <!-- row 3: jumlah pinjaman dan angsuran -->
+        <!-- tombol tambah baris -->
         <div class="row mb-3">
-            <div class="col-md-6">
-
-                <!-- field jumlah pinjaman -->
-                <label>Jumlah Pinjaman</label>
-
-                {% if form.jumlah_pinjaman.errors %}
-                    <!-- class rupiah-input biasanya dipakai untuk format angka rupiah (js) -->
-                    {{ form.jumlah_pinjaman|add_class:"form-control rupiah-input is-invalid" }}
-                    <div class="invalid-feedback">
-                        {{ form.jumlah_pinjaman.errors.0 }}
-                    </div>
-                {% else %}
-                    {{ form.jumlah_pinjaman|add_class:"form-control rupiah-input" }}
-                {% endif %}
-            </div>
-
-            <div class="col-md-6">
-
-                <!-- field angsuran per bulan -->
-                <label>Angsuran per Bulan</label>
-
-                {% if form.angsuran_per_bulan.errors %}
-                    {{ form.angsuran_per_bulan|add_class:"form-control rupiah-input is-invalid" }}
-                    <div class="invalid-feedback">
-                        {{ form.angsuran_per_bulan.errors.0 }}
-                    </div>
-                {% else %}
-                    {{ form.angsuran_per_bulan|add_class:"form-control rupiah-input" }}
-                {% endif %}
+            <div class="col-12">
+                <button type="button" id="btn-tambah-pinjaman" class="btn btn-outline-secondary btn-sm">
+                    + Tambah Pinjaman
+                </button>
             </div>
         </div>
 
-        <!-- row 4: kategori jasa dan persen -->
-        <div class="row mb-3">
-            <div class="col-md-6">
-
-                <!-- field kategori jasa -->
-                <label>Kategori Jasa</label>
-
-                {% if form.id_kategori_jasa.errors %}
-                    {{ form.id_kategori_jasa|add_class:"form-control is-invalid" }}
-                    <div class="invalid-feedback">
-                        {{ form.id_kategori_jasa.errors.0 }}
-                    </div>
-                {% else %}
-                    {{ form.id_kategori_jasa|add_class:"form-control" }}
-                {% endif %}
-            </div>
-
-            <div class="col-md-6">
-
-                <!-- field persentase jasa -->
-                <label>Persentase Jasa (%)</label>
-
-                {% if form.jasa_persen.errors %}
-                    {{ form.jasa_persen|add_class:"form-control is-invalid" }}
-                    <div class="invalid-feedback">
-                        {{ form.jasa_persen.errors.0 }}
-                    </div>
-                {% else %}
-                    {{ form.jasa_persen|add_class:"form-control" }}
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- row 5: hasil perhitungan jasa dan admin -->
+        <!-- info admin -->
         <div class="row mb-4">
             <div class="col-md-6">
-
-                <!-- field jumlah jasa dalam rupiah -->
-                <label>Jumlah Jasa (Rp)</label>
-
-                {% if form.jasa_rupiah.errors %}
-                    {{ form.jasa_rupiah|add_class:"form-control is-invalid" }}
-                    <div class="invalid-feedback">
-                        {{ form.jasa_rupiah.errors.0 }}
-                    </div>
-                {% else %}
-                    {{ form.jasa_rupiah|add_class:"form-control" }}
-                {% endif %}
-            </div>
-
-            <div class="col-md-6">
-
-                <!-- info admin yang sedang login (readonly) -->
                 <label>Admin yang Bertugas</label>
-
-                <!-- hanya untuk ditampilkan ke user -->
                 <input type="text" class="form-control" value="{{ username }} ({{ role|title }})" disabled>
-
-                <!-- field hidden untuk menyimpan id admin ke backend -->
-                {{ form.id_admin }}
             </div>
         </div>
 
         <!-- tombol aksi -->
         <div class="form-actions" style="text-align:right;">
-
-            <!-- kembali ke halaman list -->
             <a href="{% url 'pinjaman:pinjaman_list' %}" class="btn-outline">Batal</a>
-
-            <!-- tombol simpan -->
-            <!-- type button biasanya dipakai kalau ada konfirmasi js sebelum submit -->
-            <button type="button" class="btn-simpan" id="btnSimpanPinjaman">
-                Simpan
-            </button>
+            <button type="button" class="btn-simpan" id="btnSimpanPinjaman">Simpan</button>
         </div>
 
     </form>
@@ -210,7 +154,21 @@
 <script>
 $(function () {
 
-    // ── Select2 anggota ──────────────────────────────────────────
+    // ── Semua opsi jenis & kategori dari Django ──────────────────────────
+    const opsiJenis = [
+        {% for val, label in form.id_jenis_pinjaman.field.choices %}
+            {% if val %}{ value: "{{ val }}", label: "{{ label }}" },{% endif %}
+        {% endfor %}
+    ];
+    const opsiKategori = [
+        {% for val, label in form.id_kategori_jasa.field.choices %}
+            {% if val %}{ value: "{{ val }}", label: "{{ label }}" },{% endif %}
+        {% endfor %}
+    ];
+
+    const MAKS_BARIS = opsiJenis.length; // maks = jumlah jenis yang ada
+
+    // ── Select2 anggota ──────────────────────────────────────────────────
     $('#id_nomor_anggota').select2({
         placeholder: 'Cari nama anggota...',
         minimumInputLength: 1,
@@ -224,134 +182,331 @@ $(function () {
         width: '100%'
     });
 
-    // ── Hitung jasa otomatis ──────────────────────────────────────
-    function hitungJasa() {
-        const jumlah = getRawNumber($('#id_jumlah_pinjaman').val());
-        const persen = parseFloat($('#id_jasa_persen').val()) || 0;
+    // ── Counter index baris ──────────────────────────────────────────────
+    let indexCounter = 1;
 
+    // ── Grid style ───────────────────────────────────────────────────────
+    const gridStyle = `display:grid;grid-template-columns:1.2fr 1fr 1.2fr 1fr 1.2fr 0.8fr 1fr 40px;gap:8px;align-items:start;padding:8px 0;border-bottom:1px solid #f0f0f0;`;
+
+    // ── Ambil semua jenis yang sudah dipilih (kecuali 1 baris tertentu) ──
+    function getSelectedJenis(kecualiIndex) {
+        const result = [];
+        $('#tbody-pinjaman .baris-pinjaman').each(function () {
+            if ($(this).data('index') === kecualiIndex) return;
+            const val = $(this).find('.select-jenis').val();
+            if (val) result.push(val);
+        });
+        return result;
+    }
+
+    // ── Refresh semua dropdown jenis (hapus yg sudah dipilih baris lain) ─
+    function refreshSemuaDropdownJenis() {
+        $('#tbody-pinjaman .baris-pinjaman').each(function () {
+            const $baris      = $(this);
+            const idx         = $baris.data('index');
+            const $select     = $baris.find('.select-jenis');
+            const currentVal  = $select.val();
+            const selectedLain = getSelectedJenis(idx);
+
+            $select.empty().append('<option value="">Pilih jenis</option>');
+            opsiJenis.forEach(function (o) {
+                if (!selectedLain.includes(o.value) || o.value === currentVal) {
+                    $select.append(`<option value="${o.value}"${o.value === currentVal ? ' selected' : ''}>${o.label}</option>`);
+                }
+            });
+        });
+
+        // Sembunyikan tombol tambah jika sudah maks
+        const jumlahBaris = $('#tbody-pinjaman .baris-pinjaman').length;
+        $('#btn-tambah-pinjaman').toggle(jumlahBaris < MAKS_BARIS);
+    }
+
+    // ── Event: perubahan dropdown jenis → refresh semua ─────────────────
+    $('#tbody-pinjaman').on('change', '.select-jenis', function () {
+        refreshSemuaDropdownJenis();
+    });
+
+    // ── Hitung jasa rupiah otomatis per baris ────────────────────────────
+    function hitungJasaBaris($baris) {
+        const jumlah = parseInt(($baris.find('[name^="jumlah_"]').val() || '').replace(/\D/g, '')) || 0;
+        const persen = parseFloat($baris.find('[name^="jasa_persen_"]').val()) || 0;
+        const $jasaRp = $baris.find('[name^="jasa_rupiah_"]');
         if (jumlah > 0 && persen > 0) {
             const jasa = Math.round(jumlah * persen / 100);
-            $('#id_jasa_rupiah').val('Rp ' + jasa.toLocaleString('id-ID'));
+            $jasaRp.val('Rp ' + jasa.toLocaleString('id-ID'));
         } else {
-            $('#id_jasa_rupiah').val('');
+            $jasaRp.val('');
         }
     }
 
-    $('#id_jumlah_pinjaman, #id_jasa_persen').on('input', hitungJasa);
+    // ── Init format rupiah untuk baris ──────────────────────────────────
+    function initRupiahBaris($baris) {
+        $baris.find('.rupiah-input').not('[readonly]').each(function () {
+            $(this).on('input', function () {
+                const raw = parseInt(this.value.replace(/\D/g, '')) || 0;
+                this.value = raw > 0 ? 'Rp ' + raw.toLocaleString('id-ID') : '';
+            }).on('blur', function () {
+                if (this.value === 'Rp ') this.value = '';
+            });
+        });
+    }
 
-    // ── Inject style KOPASMEN SweetAlert ─────────────────────────
+    // ── Init hitung jasa otomatis untuk baris ────────────────────────────
+    function initHitungJasaBaris($baris) {
+        $baris.find('[name^="jumlah_"], [name^="jasa_persen_"]').on('input', function () {
+            hitungJasaBaris($baris);
+        });
+    }
+
+    // Init baris pertama
+    initRupiahBaris($('.baris-pinjaman[data-index="0"]'));
+    initHitungJasaBaris($('.baris-pinjaman[data-index="0"]'));
+
+    // ── Tombol tambah baris ──────────────────────────────────────────────
+    $('#btn-tambah-pinjaman').on('click', function () {
+        const jumlahBaris = $('#tbody-pinjaman .baris-pinjaman').length;
+        if (jumlahBaris >= MAKS_BARIS) return;
+
+        const idx = indexCounter++;
+
+        // Hanya tampilkan opsi yang belum dipilih
+        const selectedNow = getSelectedJenis(-1);
+        const opsiTersisa = opsiJenis.filter(o => !selectedNow.includes(o.value));
+        const opsiJenisHtml = opsiTersisa.map(o =>
+            `<option value="${o.value}">${o.label}</option>`
+        ).join('');
+        const opsiKategoriHtml = opsiKategori.map(o =>
+            `<option value="${o.value}">${o.label}</option>`
+        ).join('');
+
+        const $baris = $(`
+            <div class="baris-pinjaman" data-index="${idx}" style="${gridStyle}">
+                <div>
+                    <select name="jenis_${idx}" class="form-control select-jenis">
+                        <option value="">Pilih jenis</option>
+                        ${opsiJenisHtml}
+                    </select>
+                    <div class="invalid-feedback d-block error-jenis-${idx}"></div>
+                </div>
+                <div>
+                    <input type="number" name="tenor_${idx}" class="form-control" min="1" max="36" placeholder="1-36">
+                    <div class="invalid-feedback d-block error-tenor-${idx}"></div>
+                </div>
+                <div>
+                    <input type="text" name="jumlah_${idx}" class="form-control rupiah-input" placeholder="Jumlah pinjaman">
+                    <div class="invalid-feedback d-block error-jumlah-${idx}"></div>
+                </div>
+                <div>
+                    <input type="text" name="angsuran_${idx}" class="form-control rupiah-input" placeholder="Angsuran/bln">
+                    <div class="invalid-feedback d-block error-angsuran-${idx}"></div>
+                </div>
+                <div>
+                    <select name="kategori_${idx}" class="form-control select-kategori">
+                        <option value="">Pilih kategori</option>
+                        ${opsiKategoriHtml}
+                    </select>
+                    <div class="invalid-feedback d-block error-kategori-${idx}"></div>
+                </div>
+                <div>
+                    <input type="number" name="jasa_persen_${idx}" class="form-control input-jasa-persen" step="0.01" placeholder="0.00">
+                    <div class="invalid-feedback d-block error-jasapersen-${idx}"></div>
+                </div>
+                <div>
+                    <input type="text" name="jasa_rupiah_${idx}" class="form-control input-jasa-rupiah" placeholder="Otomatis" readonly style="background:#f5f5f5;">
+                </div>
+                <div style="display:flex;align-items:flex-start;padding-top:2px;">
+                    <button type="button" class="btn btn-sm btn-danger btn-hapus-baris"
+                            style="width:34px;height:34px;padding:0;display:flex;align-items:center;justify-content:center;">✕</button>
+                </div>
+            </div>
+        `);
+
+        $('#tbody-pinjaman').append($baris);
+        initRupiahBaris($baris);
+        initHitungJasaBaris($baris);
+        refreshSemuaDropdownJenis();
+    });
+
+    // ── Tombol hapus baris ───────────────────────────────────────────────
+    $('#tbody-pinjaman').on('click', '.btn-hapus-baris', function () {
+        $(this).closest('.baris-pinjaman').remove();
+        refreshSemuaDropdownJenis();
+    });
+
+    // ── Inject style SweetAlert ──────────────────────────────────────────
     if (!document.getElementById('kopasmen-swal-style')) {
         const style = document.createElement('style');
         style.id = 'kopasmen-swal-style';
         style.textContent = `
-            .kopasmen-swal-popup {
-                border-radius: 20px !important;
-                padding: 24px !important;
-                font-family: 'poppins', sans-serif !important;
-                box-shadow: 0 8px 32px rgba(0,0,0,0.15) !important;
-            }
-            .kopasmen-swal-title {
-                font-size: 1.25rem !important;
-                font-weight: 700 !important;
-                color: #291B18 !important;
-                margin-bottom: 6px !important;
-            }
-            .kopasmen-confirm-btn {
-                background: #FFD700 !important;
-                color: #291B18 !important;
-                border: none !important;
-                border-radius: 6px !important;
-                padding: 9px 22px !important;
-                font-weight: 700 !important;
-                font-size: 0.9rem !important;
-                cursor: pointer !important;
-                transition: all 0.2s ease !important;
-            }
-            .kopasmen-cancel-btn {
-                background: #ffffff !important;
-                color: #291B18 !important;
-                border: 2px solid #FFD700 !important;
-                border-radius: 6px !important;
-                padding: 9px 22px !important;
-                font-weight: 600 !important;
-                font-size: 0.9rem !important;
-                cursor: pointer !important;
-                transition: all 0.2s ease !important;
-            }
-            .kopasmen-confirm-btn:hover {
-                background-color: #e6c200 !important;
-            }
-            .kopasmen-cancel-btn:hover {
-                background: #fff8e1 !important;
-            }
+            .kopasmen-swal-popup { border-radius:20px!important;padding:24px!important;font-family:'poppins',sans-serif!important;box-shadow:0 8px 32px rgba(0,0,0,.15)!important; }
+            .kopasmen-swal-title { font-size:1.25rem!important;font-weight:700!important;color:#291B18!important;margin-bottom:6px!important; }
+            .kopasmen-confirm-btn { background:#FFD700!important;color:#291B18!important;border:none!important;border-radius:6px!important;padding:9px 22px!important;font-weight:700!important;font-size:.9rem!important;cursor:pointer!important; }
+            .kopasmen-cancel-btn  { background:#fff!important;color:#291B18!important;border:2px solid #FFD700!important;border-radius:6px!important;padding:9px 22px!important;font-weight:600!important;font-size:.9rem!important;cursor:pointer!important; }
+            .kopasmen-confirm-btn:hover { background:#e6c200!important; }
+            .kopasmen-cancel-btn:hover  { background:#fff8e1!important; }
+            /* Tabel konfirmasi */
+            .konfirmasi-table { width:100%;border-collapse:collapse;font-size:13px; }
+            .konfirmasi-table th { background:#FFF8DC;color:#291B18;font-weight:700;padding:7px 10px;text-align:left;border-bottom:2px solid #FFD700; }
+            .konfirmasi-table td { padding:6px 10px;border-bottom:1px solid #f0f0f0;color:#333;vertical-align:top; }
+            .konfirmasi-table tr:last-child td { border-bottom:none; }
+            .konfirmasi-table tr:hover td { background:#fffdf0; }
+            .konfirmasi-header { font-size:13px;margin-bottom:8px;color:#555;line-height:1.7; }
         `;
         document.head.appendChild(style);
     }
 
-    // ── Konfirmasi sebelum submit ─────────────────────────────────
+    // ── Validasi & konfirmasi submit ─────────────────────────────────────
     document.getElementById('btnSimpanPinjaman').addEventListener('click', function () {
 
-        // Kumpulkan nilai field
-        const namaAnggota   = $('#id_nomor_anggota option:selected').text() || "-";
-        const jenisPinjaman = $('#id_id_jenis_pinjaman option:selected').text() || "-";
-        const tanggal       = $('#id_tanggal_meminjam').val() || "-";
-        const lamaBulan     = $('#id_jatuh_tempo').val() || "-";
-        const jumlahRaw     = $('#id_jumlah_pinjaman').val().replace(/\D/g, '');
-        const jumlah        = parseInt(jumlahRaw) || 0;
-        const angsuranRaw   = $('#id_angsuran_per_bulan').val().replace(/\D/g, '');
-        const angsuran      = parseInt(angsuranRaw) || 0;
-        const jasaPersen    = $('#id_jasa_persen').val() || "-";
-        const jasaRupiah    = $('#id_jasa_rupiah').val() || "-";
+        // Reset semua error
+        $('.invalid-feedback').text('');
+        $('.form-control').removeClass('is-invalid');
+
+        let valid = true;
+
+        // Validasi anggota
+        if (!$('#id_nomor_anggota').val()) {
+            $('#id_nomor_anggota').addClass('is-invalid');
+            valid = false;
+        }
+
+        // Validasi tanggal
+        const tanggal = $('#id_tanggal_meminjam').val();
+        if (!tanggal) {
+            $('#id_tanggal_meminjam').addClass('is-invalid');
+            valid = false;
+        }
+
+        // Validasi tiap baris
+        $('#tbody-pinjaman .baris-pinjaman').each(function () {
+            const $b       = $(this);
+            const idx      = $b.data('index');
+            const jenis    = $b.find('[name^="jenis_"]').val();
+            const tenor    = parseInt($b.find('[name^="tenor_"]').val()) || 0;
+            const jumlah   = parseInt(($b.find('[name^="jumlah_"]').val()||'').replace(/\D/g,''))||0;
+            const angsuran = parseInt(($b.find('[name^="angsuran_"]').val()||'').replace(/\D/g,''))||0;
+            const kategori = $b.find('[name^="kategori_"]').val();
+            const persen   = $b.find('[name^="jasa_persen_"]').val();
+            const persenNum = parseFloat(persen);
+
+            if (!jenis) {
+                $b.find('[name^="jenis_"]').addClass('is-invalid');
+                $b.find(`.error-jenis-${idx}`).text('Jenis pinjaman wajib dipilih.');
+                valid = false;
+            }
+            if (tenor < 1 || tenor > 36) {
+                $b.find('[name^="tenor_"]').addClass('is-invalid');
+                $b.find(`.error-tenor-${idx}`).text('Tenor harus 1–36 bulan.');
+                valid = false;
+            }
+            if (jumlah <= 0) {
+                $b.find('[name^="jumlah_"]').addClass('is-invalid');
+                $b.find(`.error-jumlah-${idx}`).text('Jumlah pinjaman wajib diisi.');
+                valid = false;
+            }
+            if (angsuran <= 0) {
+                $b.find('[name^="angsuran_"]').addClass('is-invalid');
+                $b.find(`.error-angsuran-${idx}`).text('Angsuran per bulan wajib diisi.');
+                valid = false;
+            }
+            // ── Validasi angsuran tidak boleh >= jumlah pinjaman ──────────
+            if (jumlah > 0 && angsuran > 0 && angsuran >= jumlah) {
+                $b.find('[name^="angsuran_"]').addClass('is-invalid');
+                $b.find(`.error-angsuran-${idx}`).text('Angsuran tidak boleh lebih besar dari jumlah pinjaman.');
+                valid = false;
+            }
+            if (!kategori) {
+                $b.find('[name^="kategori_"]').addClass('is-invalid');
+                $b.find(`.error-kategori-${idx}`).text('Kategori jasa wajib dipilih.');
+                valid = false;
+            }
+            if (persen === '' || isNaN(persenNum) || persenNum < 0 || persenNum > 100) {
+                $b.find('[name^="jasa_persen_"]').addClass('is-invalid');
+                $b.find(`.error-jasapersen-${idx}`).text('Persentase jasa 0–100%.');
+                valid = false;
+            }
+        });
+
+        if (!valid) return;
+
+        // ── Bangun tabel konfirmasi ──────────────────────────────────────
+        const namaAnggota = $('#id_nomor_anggota option:selected').text() || '-';
+        const tglPinjam   = tanggal || '-';
+
+        let rowsHtml = '';
+        $('#tbody-pinjaman .baris-pinjaman').each(function (i) {
+            const $b       = $(this);
+            const jenis    = $b.find('[name^="jenis_"] option:selected').text();
+            const tenor    = $b.find('[name^="tenor_"]').val() || '-';
+            const jumlah   = parseInt(($b.find('[name^="jumlah_"]').val()||'').replace(/\D/g,''))||0;
+            const angsuran = parseInt(($b.find('[name^="angsuran_"]').val()||'').replace(/\D/g,''))||0;
+            const kategori = $b.find('[name^="kategori_"] option:selected').text();
+            const persen   = $b.find('[name^="jasa_persen_"]').val() || '0';
+            const jasaRp   = $b.find('[name^="jasa_rupiah_"]').val() || '-';
+
+            rowsHtml += `
+                <tr>
+                    <td style="font-weight:600;">${i + 1}</td>
+                    <td>${jenis}</td>
+                    <td style="text-align:center;">${tenor} bln</td>
+                    <td style="text-align:right;">Rp ${jumlah.toLocaleString('id-ID')}</td>
+                    <td style="text-align:right;">Rp ${angsuran.toLocaleString('id-ID')}</td>
+                    <td>${kategori}</td>
+                    <td style="text-align:center;">${persen}%</td>
+                    <td style="text-align:right;">${jasaRp}</td>
+                </tr>`;
+        });
 
         Swal.fire({
             title: 'Konfirmasi Pinjaman',
             html: `
-                <div style="
-                    text-align: left;
-                    font-size: 14px;
-                    line-height: 2;
-                    background: #f9f9f9;
-                    border-radius: 12px;
-                    padding: 12px 16px;
-                    border-left: 4px solid #ffd700;
-                ">
-                    <b>Anggota &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</b> ${namaAnggota}<br>
-                    <b>Jenis &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; :</b> ${jenisPinjaman}<br>
-                    <b>Tanggal &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</b> ${tanggal}<br>
-                    <b>Lama &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</b> ${lamaBulan} bulan<br>
-                    <b>Jumlah &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</b> Rp ${jumlah.toLocaleString('id-ID')}<br>
-                    <b>Angsuran &nbsp;:</b> Rp ${angsuran.toLocaleString('id-ID')} / bulan<br>
-                    <b>Jasa &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</b> ${jasaPersen}% &nbsp;(${jasaRupiah})
+                <div class="konfirmasi-header">
+                    <b>Anggota &nbsp;:</b> ${namaAnggota}<br>
+                    <b>Tanggal &nbsp;:</b> ${tglPinjam}
                 </div>
-            `,
+                <div style="overflow-x:auto;">
+                    <table class="konfirmasi-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Jenis</th>
+                                <th style="text-align:center;">Tenor</th>
+                                <th style="text-align:right;">Jumlah</th>
+                                <th style="text-align:right;">Angsuran</th>
+                                <th>Kategori</th>
+                                <th style="text-align:center;">Jasa%</th>
+                                <th style="text-align:right;">Jasa Rp</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rowsHtml}</tbody>
+                    </table>
+                </div>`,
             icon: 'question',
-            iconColor: '#ffd700',
+            iconColor: '#FFD700',
             showCancelButton: true,
-            confirmButtonColor: '#291B18',
-            cancelButtonColor: '#ffffff',
-            confirmButtonText: '<span style="color:#291B18; font-weight:600;">Ya, Simpan</span>',
-            cancelButtonText: '<span style="color:#291B18; font-weight:600;">Batal</span>',
+            confirmButtonText: '<span style="color:#291B18;font-weight:600;">Ya, Simpan</span>',
+            cancelButtonText:  '<span style="color:#291B18;font-weight:600;">Batal</span>',
+            width: '700px',
             customClass: {
-                popup:         'kopasmen-swal-popup',
-                title:         'kopasmen-swal-title',
-                confirmButton: 'kopasmen-confirm-btn',
-                cancelButton:  'kopasmen-cancel-btn',
+                popup: 'kopasmen-swal-popup', title: 'kopasmen-swal-title',
+                confirmButton: 'kopasmen-confirm-btn', cancelButton: 'kopasmen-cancel-btn',
             },
         }).then((result) => {
             if (result.isConfirmed) {
+                $('<input>').attr({
+                    type: 'hidden', name: 'jumlah_baris',
+                    value: $('#tbody-pinjaman .baris-pinjaman').length
+                }).appendTo('#formTambahPinjaman');
+
                 Swal.fire({
                     title: 'Menyimpan...',
                     text: 'Mohon tunggu sebentar',
-                    iconColor: '#ffd700',
                     allowOutsideClick: false,
-                    customClass: {
-                        popup: 'kopasmen-swal-popup',
-                        title: 'kopasmen-swal-title',
-                    },
+                    customClass: { popup: 'kopasmen-swal-popup', title: 'kopasmen-swal-title' },
                     didOpen: () => {
                         Swal.showLoading();
                         const loader = Swal.getLoader();
-                        if (loader) loader.style.borderTopColor = '#ffd700';
+                        if (loader) loader.style.borderTopColor = '#FFD700';
                     }
                 });
                 document.getElementById('formTambahPinjaman').submit();
