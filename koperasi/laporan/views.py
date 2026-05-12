@@ -106,7 +106,11 @@ def generate_laporan(anggota_qs, akhir=None):
             jenis_simpanan__nama_jenis="SUKARELA"
         ).aggregate(total=Sum("jumlah"))["total"] or 0
 
-        total_simpanan = pokok + wajib + sukarela
+        dana_sosial = Simpanan.objects.filter(
+            **simpanan_filter,
+        ).aggregate(total=Sum("dana_sosial"))["total"] or 0
+
+        total_simpanan = pokok + wajib + sukarela + dana_sosial
 
         total_reguler = total_khusus = total_barang = 0
 
@@ -155,6 +159,7 @@ def generate_laporan(anggota_qs, akhir=None):
                 "pokok": pokok,
                 "wajib": wajib,
                 "sukarela": sukarela,
+                "dana_sosial": dana_sosial,
                 "total": total_simpanan
             },
             "pinjaman": {
