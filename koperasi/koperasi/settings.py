@@ -119,6 +119,11 @@ DATABASES = {
 #         'PASSWORD': os.environ.get('MYSQLPASSWORD', ''),
 #         'HOST': os.environ.get('MYSQLHOST', 'localhost'),
 #         'PORT': os.environ.get('MYSQLPORT', '3306'),
+#         'NAME': config('MYSQL_DATABASE'),
+#         'USER': config('MYSQL_USER'),
+#         'PASSWORD': config('MYSQL_PASSWORD'),
+#         'HOST': config('MYSQL_HOST'),
+#         'PORT': config('MYSQL_PORT', default='3306'),
 #         'OPTIONS': {
 #             'charset': 'utf8mb4',
 #             'connect_timeout': 10,

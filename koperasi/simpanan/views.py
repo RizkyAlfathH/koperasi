@@ -143,65 +143,108 @@ def daftar_simpanan(request):
 
 # function (view): menambahkan data simpanan baru
 @login_required
-@transaction.atomic  # decorator: memastikan transaksi database aman (rollback jika error)
+@transaction.atomic
 def tambah_simpanan(request):
 
-    # validasi role user
     if request.user.role not in ["bendahara", "ketua"]:
         messages.error(request, "Tidak punya akses")
         return redirect("dashboard")
 
-    # variabel (objek): untuk menampilkan label anggota jika form error
     anggota_label = None
 
-    # blok: jika request POST (submit form)
     if request.method == "POST":
+        anggota_id = request.POST.get("anggota")
+        tanggal_str = request.POST.get("tanggal")
+        jumlah_baris = int(request.POST.get("jumlah_baris", 1))
 
-        # objek form: inisialisasi dengan data request
-        form = SimpananForm(request.POST)
+        base_form = SimpananForm(request.POST)
 
-        # validasi form
-        if form.is_valid():
+        if anggota_id:
+            from anggota.models import Anggota
             try:
-                # commit=False: belum disimpan ke database
-                simpanan = form.save(commit=False)
+                anggota_obj = Anggota.objects.get(pk=anggota_id)
+                anggota_label = f"{anggota_obj.nomor_anggota} - {anggota_obj.nama}"
+            except:
+                anggota_obj = None
+        else:
+            anggota_obj = None
 
-                # set admin yang login
-                simpanan.admin = request.user
+        baris_data = []
+        has_error = False
 
-                # simpan ke database
-                simpanan.save()
+        for i in range(jumlah_baris):
+            jenis_id = request.POST.get(f"jenis_simpanan_{i}")
+            jumlah_raw = request.POST.get(f"jumlah_{i}", "0")
+            dana_raw = request.POST.get(f"dana_sosial_{i}", "0")
 
-                messages.success(request, "Simpanan berhasil ditambahkan")
-                return redirect("simpanan:daftar_simpanan")
+            import re
+            jumlah = int(re.sub(r'\D', '', jumlah_raw) or 0)
+            dana = int(re.sub(r'\D', '', dana_raw) or 0)
+
+            baris_data.append({
+                "index": i,
+                "jenis_id": jenis_id,
+                "jumlah": jumlah,
+                "dana_sosial": dana,
+            })
+
+        from anggota.models import Anggota
+        import datetime
+        from .models import JenisSimpanan
+
+        try:
+            tanggal = datetime.date.fromisoformat(tanggal_str)
+        except (TypeError, ValueError):
+            tanggal = None
+
+        if not anggota_obj or not tanggal:
+            messages.error(request, "Anggota dan tanggal wajib diisi.")
+            has_error = True
+
+        if not has_error:
+            try:
+                # cek duplikat dulu sebelum simpan apapun
+                duplikat = []
+                for baris in baris_data:
+                    jenis = JenisSimpanan.objects.get(pk=baris["jenis_id"])
+                    sudah_ada = Simpanan.objects.filter(
+                        anggota=anggota_obj,
+                        jenis_simpanan=jenis,
+                        tanggal__month=tanggal.month,
+                        tanggal__year=tanggal.year
+                    ).exists()
+                    if sudah_ada:
+                        duplikat.append(jenis.nama)
+
+                if duplikat:
+                    messages.error(request, f"Simpanan bulan ini sudah ada: {', '.join(duplikat)}.")
+                else:
+                    for baris in baris_data:
+                        jenis = JenisSimpanan.objects.get(pk=baris["jenis_id"])
+                        simpanan = Simpanan(
+                            anggota=anggota_obj,
+                            admin=request.user,
+                            jenis_simpanan=jenis,
+                            tanggal=tanggal,
+                            jumlah=baris["jumlah"],
+                            dana_sosial=baris["dana_sosial"],
+                        )
+                        simpanan.save()
+
+                    messages.success(request, f"{len(baris_data)} simpanan berhasil ditambahkan.")
+                    return redirect("simpanan:daftar_simpanan")
 
             except Exception as e:
-                messages.error(request, f"Gagal menyimpan simpanan: {str(e)}")
+                messages.error(request, f"Gagal menyimpan: {str(e)}")
 
-        else:
-            # ambil ulang label anggota jika form tidak valid
-            anggota_id = request.POST.get("anggota")
-
-            if anggota_id:
-                from anggota.models import Anggota  # import lokal
-
-                try:
-                    anggota = Anggota.objects.get(pk=anggota_id)
-                    anggota_label = f"{anggota.nomor_anggota} - {anggota.nama}"
-                except:
-                    pass
-
-            messages.error(request, "Form tidak valid, periksa kembali isian Anda")
+        form = SimpananForm(request.POST)
 
     else:
-        # jika GET, buat form kosong
         form = SimpananForm()
 
-
-    # render template form
     return render(request, "form/simpanan_form.html", {
         "form": form,
-        "anggota_label": anggota_label
+        "anggota_label": anggota_label,
     })
 
 
@@ -249,159 +292,6 @@ def cek_dana_sosial(request):
     return JsonResponse({
         'wajib': not sudah_bayar
     })
-
-# function (view): menghapus transaksi setor terakhir berdasarkan anggota dan jenis simpanan
-@login_required
-@require_POST
-@transaction.atomic  # decorator: memastikan operasi database aman (rollback jika gagal)
-def hapus_transaksi_terakhir(request, nomor_anggota, jenis_id):
-
-    try:
-        # ambil objek anggota dan jenis simpanan dari database
-        anggota = get_object_or_404(Anggota, nomor_anggota=nomor_anggota)
-        jenis = get_object_or_404(JenisSimpanan, id=jenis_id)
-
-        # queryset (objek): ambil transaksi SETOR terakhir berdasarkan id terbesar
-        transaksi_terakhir = HistoryTabungan.objects.filter(
-            anggota=anggota,
-            jenis_simpanan=jenis,
-            jenis_transaksi='SETOR'
-        ).order_by('-id').first()
-
-        # validasi jika tidak ada transaksi setor
-        if not transaksi_terakhir:
-            return JsonResponse({
-                "success": False,
-                "message": f"Tidak ada transaksi SETOR untuk simpanan {jenis.get_nama_jenis_display()}."
-            }, status=404)
-
-        # ambil nilai jumlah dari transaksi terakhir
-        jumlah_koreksi = transaksi_terakhir.jumlah
-
-        # cari data simpanan yang sesuai dengan transaksi tersebut
-        simpanan_terkait = Simpanan.objects.filter(
-            anggota=anggota,
-            jenis_simpanan=jenis,
-            jumlah=jumlah_koreksi,
-            tanggal=transaksi_terakhir.tanggal
-        ).order_by('-id').first()
-
-        # jika simpanan ditemukan
-        if simpanan_terkait:
-            # hapus data simpanan dan history setor
-            simpanan_terkait.delete()     # method model instance
-            transaksi_terakhir.delete()   # method model instance
-
-        else:
-            # jika simpanan tidak ada tapi history masih ada
-            # buat transaksi koreksi untuk menyeimbangkan saldo
-            HistoryTabungan.objects.create(
-                anggota=anggota,
-                jenis_simpanan=jenis,
-                tanggal=datetime.date.today(),
-                jenis_transaksi='KOREKSI',
-                jumlah=-jumlah_koreksi
-            )
-
-        # response berhasil
-        return JsonResponse({
-            "success": True,
-            "message": f"Transaksi terakhir simpanan {jenis.get_nama_jenis_display()} berhasil dihapus.",
-            "jumlah": str(jumlah_koreksi)
-        })
-
-    except Exception as e:
-        # handling error global
-        return JsonResponse({
-            "success": False,
-            "message": str(e)
-        }, status=400)
-
-
-# function (view): menghapus semua simpanan milik anggota
-@login_required
-@require_POST
-@transaction.atomic
-def hapus_simpanan(request, nomor_anggota):
-
-    try:
-        # ambil objek anggota
-        anggota = get_object_or_404(Anggota, nomor_anggota=nomor_anggota)
-
-        # queryset (objek): ambil semua simpanan anggota
-        semua_simpanan = Simpanan.objects.filter(anggota=anggota)
-
-        # validasi jika tidak ada simpanan
-        if not semua_simpanan.exists():
-            return JsonResponse({
-                "success": False,
-                "message": "Tidak ada data simpanan untuk anggota ini."
-            }, status=404)
-
-        # ambil semua jenis simpanan
-        jenis_list = JenisSimpanan.objects.all()
-
-        # list (objek): menampung data history koreksi untuk bulk insert
-        history_bulk = []
-
-        # loop: iterasi setiap jenis simpanan
-        for jenis in jenis_list:
-
-            # queryset: ambil history tabungan per jenis
-            qs = HistoryTabungan.objects.filter(
-                anggota=anggota,
-                jenis_simpanan=jenis
-            )
-
-            # aggregate: total setor
-            setor = qs.filter(
-                jenis_transaksi='SETOR'
-            ).aggregate(total=Sum('jumlah'))['total'] or 0
-
-            # aggregate: total tarik
-            tarik = qs.filter(
-                jenis_transaksi='TARIK'
-            ).aggregate(total=Sum('jumlah'))['total'] or 0
-
-            # aggregate: total koreksi
-            koreksi = qs.filter(
-                jenis_transaksi='KOREKSI'
-            ).aggregate(total=Sum('jumlah'))['total'] or 0
-
-            # hitung saldo bersih
-            saldo_bersih = setor - tarik + koreksi
-
-            # jika saldo tidak nol, buat koreksi untuk menetralkan
-            if saldo_bersih != 0:
-                history_bulk.append(
-                    HistoryTabungan(
-                        anggota=anggota,
-                        jenis_simpanan=jenis,
-                        tanggal=datetime.date.today(),
-                        jenis_transaksi="KOREKSI",
-                        jumlah=-saldo_bersih
-                    )
-                )
-
-        # jika ada data koreksi, lakukan bulk insert
-        if history_bulk:
-            HistoryTabungan.objects.bulk_create(history_bulk)  # method queryset
-
-        # hapus semua data simpanan anggota
-        semua_simpanan.delete()  # method queryset
-
-        # response sukses
-        return JsonResponse({
-            "success": True,
-            "message": f"Semua simpanan {anggota.nama} berhasil dihapus."
-        })
-
-    except Exception as e:
-        # handling error global
-        return JsonResponse({
-            "success": False,
-            "message": str(e)
-        }, status=400)
 
 # function (view): menampilkan ringkasan saldo simpanan per anggota
 @login_required
@@ -861,3 +751,196 @@ def download_kwitansi(request, history_id):
     except Exception as e:  # ✅ tangkap error generate PDF
         messages.error(request, f"Gagal membuat kwitansi PDF: {str(e)}")
         return redirect("simpanan:detail_transaksi", history_id)
+
+from .utils_import import proses_file_import
+
+# ================================================================
+# VIEW 1: halaman upload file
+# ================================================================
+@login_required
+def import_simpanan(request):
+
+    if request.user.role not in ["bendahara", "ketua"]:
+        messages.error(request, "Tidak punya akses")
+        return redirect("dashboard")
+
+    if request.method == "POST":
+        file    = request.FILES.get("file_import")
+        tanggal_str = request.POST.get("tanggal", "")
+
+        # --- validasi file ---
+        if not file:
+            messages.error(request, "File wajib diupload.")
+            return render(request, "form/import_simpanan.html")
+
+        if not file.name.endswith('.xlsx'):
+            messages.error(request, "File harus berformat .xlsx")
+            return render(request, "form/import_simpanan.html")
+
+        # --- validasi tanggal ---
+        try:
+            tanggal = datetime.date.fromisoformat(tanggal_str)
+        except (TypeError, ValueError):
+            messages.error(request, "Tanggal tidak valid.")
+            return render(request, "form/import_simpanan.html")
+
+        # --- proses file ---
+        rows, error = proses_file_import(file)
+        if error:
+            messages.error(request, error)
+            return render(request, "form/import_simpanan.html")
+
+        # hitung ringkasan untuk ditampilkan di preview
+        jumlah_cocok      = sum(1 for r in rows if r['cocok'])
+        jumlah_tidak_cocok = sum(1 for r in rows if not r['cocok'])
+
+        return render(request, "form/preview_import.html", {
+            "rows"              : rows,
+            "tanggal"           : tanggal,
+            "tanggal_str"       : tanggal_str,
+            "jumlah_cocok"      : jumlah_cocok,
+            "jumlah_tidak_cocok": jumlah_tidak_cocok,
+            "semua_anggota"     : Anggota.objects.filter(status='aktif').order_by('nama'),
+        })
+
+    return render(request, "form/import_simpanan.html")
+
+
+# ================================================================
+# VIEW 2: simpan data setelah user konfirmasi preview
+# ================================================================
+@login_required
+@transaction.atomic
+@login_required
+@transaction.atomic
+def proses_import_simpanan(request):
+
+    if request.user.role not in ["bendahara", "ketua"]:
+        messages.error(request, "Tidak punya akses")
+        return redirect("dashboard")
+
+    if request.method != "POST":
+        return redirect("simpanan:import_simpanan")
+
+    # DEBUG: print semua POST data
+    print("=== DEBUG POST DATA ===")
+    for key, val in request.POST.items():
+        print(f"  {key} = {val}")
+    print("======================")
+
+    try:
+        tanggal = datetime.date.fromisoformat(request.POST.get("tanggal", ""))
+    except (TypeError, ValueError):
+        messages.error(request, "Tanggal tidak valid.")
+        return redirect("simpanan:import_simpanan")
+
+    jumlah_baris = int(request.POST.get("jumlah_baris", 0))
+    print(f"jumlah_baris = {jumlah_baris}")
+
+    berhasil = 0
+    dilewati = 0
+    duplikat = 0
+    gagal    = []
+
+    for i in range(jumlah_baris):
+        skip       = request.POST.get(f"skip_{i}")
+        anggota_id = request.POST.get(f"anggota_id_{i}", "").strip()
+
+        print(f"\n--- baris {i} ---")
+        print(f"  skip={skip}")
+        print(f"  anggota_id={anggota_id}")
+        print(f"  pokok={request.POST.get(f'pokok_{i}')}")
+        print(f"  wajib={request.POST.get(f'wajib_{i}')}")
+        print(f"  sukarela={request.POST.get(f'sukarela_{i}')}")
+        print(f"  id_pokok={request.POST.get(f'id_pokok_{i}')}")
+        print(f"  id_wajib={request.POST.get(f'id_wajib_{i}')}")
+        print(f"  id_sukarela={request.POST.get(f'id_sukarela_{i}')}")
+
+        if skip == "1":
+            dilewati += 1
+            continue
+
+        if not anggota_id:
+            dilewati += 1
+            continue
+
+        try:
+            anggota = Anggota.objects.get(nomor_anggota=anggota_id)
+        except Anggota.DoesNotExist:
+            gagal.append(f"Baris {i+1}: anggota '{anggota_id}' tidak ditemukan")
+            continue
+
+        def nilai(key):
+            try:
+                return float(request.POST.get(key, 0) or 0)
+            except ValueError:
+                return 0
+
+        data_simpanan = [
+            {
+                'jenis_id': request.POST.get(f"id_pokok_{i}"),
+                'jumlah'  : nilai(f"pokok_{i}"),
+                'dansos'  : 0,
+            },
+            {
+                'jenis_id': request.POST.get(f"id_wajib_{i}"),
+                'jumlah'  : nilai(f"wajib_{i}"),
+                'dansos'  : nilai(f"dansos_{i}"),
+            },
+            {
+                'jenis_id': request.POST.get(f"id_sukarela_{i}"),
+                'jumlah'  : nilai(f"sukarela_{i}"),
+                'dansos'  : 0,
+            },
+        ]
+
+        for s in data_simpanan:
+            if s['jumlah'] <= 0 or not s['jenis_id']:
+                print(f"  SKIP jenis_id={s['jenis_id']} jumlah={s['jumlah']}")
+                continue
+
+            try:
+                jenis = JenisSimpanan.objects.get(pk=s['jenis_id'])
+            except JenisSimpanan.DoesNotExist:
+                print(f"  jenis {s['jenis_id']} tidak ditemukan di DB")
+                continue
+
+            sudah_ada = Simpanan.objects.filter(
+                anggota=anggota,
+                jenis_simpanan=jenis,
+                tanggal__month=tanggal.month,
+                tanggal__year=tanggal.year,
+            ).exists()
+
+            if sudah_ada:
+                print(f"  DUPLIKAT: {anggota.nama} {jenis.nama_jenis}")
+                duplikat += 1
+                continue
+
+            try:
+                Simpanan.objects.create(
+                    anggota        = anggota,
+                    admin          = request.user,
+                    jenis_simpanan = jenis,
+                    tanggal        = tanggal,
+                    jumlah         = s['jumlah'],
+                    dana_sosial    = s['dansos'],
+                )
+                print(f"  ✅ SIMPAN: {anggota.nama} {jenis.nama_jenis} {s['jumlah']}")
+                berhasil += 1
+            except Exception as e:
+                print(f"  ❌ ERROR SIMPAN: {e}")
+                gagal.append(f"{anggota.nama} ({jenis.nama_jenis}): {e}")
+
+    print(f"\n=== HASIL: berhasil={berhasil} dilewati={dilewati} duplikat={duplikat} gagal={len(gagal)} ===")
+
+    if berhasil:
+        messages.success(request, f"✅ {berhasil} simpanan berhasil diimport.")
+    if duplikat:
+        messages.warning(request, f"⚠️ {duplikat} simpanan dilewati karena sudah ada di bulan yang sama.")
+    if dilewati:
+        messages.info(request, f"ℹ️ {dilewati} baris dilewati.")
+    for f in gagal:
+        messages.error(request, f"❌ {f}")
+
+    return redirect("simpanan:daftar_simpanan")
