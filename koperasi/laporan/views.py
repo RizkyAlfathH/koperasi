@@ -207,11 +207,12 @@ def export_laporan(request):
     money_fmt = workbook.add_format({'border': 1, 'num_format': '#,##0'})
 
     ws1 = workbook.add_worksheet("Simpanan")
-    ws1.merge_range("A1:F1", "KOPASMEN", bold_center)
-    ws1.merge_range("A2:F2", "DAFTAR SIMPANAN POKOK, WAJIB DAN SUKARELA", bold_center)
-    ws1.merge_range("A3:F3", f"PER {judul_periode}", bold_center)
+    # Header — dari 6 kolom jadi 7
+    ws1.merge_range("A1:G1", "KOPASMEN", bold_center)
+    ws1.merge_range("A2:G2", "DAFTAR SIMPANAN POKOK, WAJIB DAN SUKARELA", bold_center)
+    ws1.merge_range("A3:G3", f"PER {judul_periode}", bold_center)
 
-    for col, h in enumerate(["NO", "NAMA ANGGOTA", "POKOK", "WAJIB", "SUKARELA", "TOTAL"]):
+    for col, h in enumerate(["NO", "NAMA ANGGOTA", "POKOK", "WAJIB", "SUKARELA", "DANA SOSIAL", "TOTAL"]):
         ws1.write(4, col, h, header_fmt)
 
     for r, row in enumerate(laporan, start=5):
@@ -221,11 +222,12 @@ def export_laporan(request):
         ws1.write(r, 2, s["pokok"], money_fmt)
         ws1.write(r, 3, s["wajib"], money_fmt)
         ws1.write(r, 4, s["sukarela"], money_fmt)
-        ws1.write(r, 5, s["total"], money_fmt)
+        ws1.write(r, 5, s["dana_sosial"], money_fmt)  # ← tambah
+        ws1.write(r, 6, s["total"], money_fmt)         # ← geser dari 5 → 6
 
     ws1.set_column("A:A", 5)
     ws1.set_column("B:B", 30)
-    ws1.set_column("C:F", 15)
+    ws1.set_column("C:G", 15)  # ← diperluas sampai G
 
     ws2 = workbook.add_worksheet("Pinjaman")
     ws2.merge_range("A1:F1", "KOPASMEN", bold_center)
