@@ -154,17 +154,14 @@ class Pinjaman(models.Model):
 
 # class: model untuk menyimpan data pembayaran / angsuran
 class Angsuran(models.Model):
-    # field: primary key
     id_pembayaran = models.BigAutoField(primary_key=True)
 
-    # relasi: ke pinjaman
     id_pinjaman = models.ForeignKey(
         Pinjaman,
         on_delete=models.CASCADE,
         db_column='id_pinjaman'
     )
 
-    # relasi: ke admin (user)
     id_admin = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -180,29 +177,34 @@ class Angsuran(models.Model):
         default=0
     )
 
-    # field: jumlah pembayaran
     jumlah_bayar = models.DecimalField(max_digits=18, decimal_places=2)
 
-    # field: tanggal pembayaran
     tanggal_bayar = models.DateField()
 
-    # konstanta: pilihan tipe pembayaran
+    # ── Field baru: bulan kewajiban cicilan ───────────────────────────────
+    # Menyimpan tanggal pertama bulan kewajiban (misal 2025-02-01 untuk Feb 2025)
+    # agar riwayat bisa menampilkan "Cicilan + Jasa bulan Februari 2025"
+    # terlepas dari kapan pembayaran diinput.
+    # null=True, blank=True untuk backward compatibility dengan data lama.
+    bulan_kewajiban = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Tanggal pertama bulan kewajiban cicilan ini (YYYY-MM-01)"
+    )
+
     TIPE_BAYAR_CHOICES = (
         ('cicilan', 'Cicilan + Jasa'),
         ('jasa', 'Jasa Saja'),
     )
 
-    # field: tipe pembayaran
     tipe_bayar = models.CharField(
         max_length=10,
         choices=TIPE_BAYAR_CHOICES,
         default='cicilan'
     )
 
-    # class meta: nama tabel
     class Meta:
         db_table = 'Angsuran'
 
-    # method: representasi string object
     def __str__(self):
         return f"Angsuran {self.id_pembayaran} - Pinjaman {self.id_pinjaman.id_pinjaman}"

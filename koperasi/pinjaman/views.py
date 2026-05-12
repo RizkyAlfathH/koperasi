@@ -675,7 +675,6 @@ def bayar_pinjaman(request, id_pinjaman):
             except Exception:
                 pokok_dibayar = angsuran_pokok
 
-            # Minimal pokok = angsuran_pokok, kecuali sisa < angsuran_pokok (akhir cicilan)
             pokok_minimal = min(angsuran_pokok, sisa_pinjaman)
             if pokok_dibayar < pokok_minimal:
                 messages.error(request, f"Pokok minimal Rp {pokok_minimal:,.0f}.")
@@ -695,13 +694,18 @@ def bayar_pinjaman(request, id_pinjaman):
                 )
                 return redirect("pinjaman:bayar_pinjaman", id_pinjaman=id_pinjaman)
 
+            # tgl_kewajiban sudah dihitung sebelumnya: tanggal_cicilan_ke(bulan_kewajiban_idx)
+            # ambil tanggal pertama bulan itu sebagai bulan_kewajiban
+            bulan_kewajiban_date = tgl_kewajiban.replace(day=1)
+
             Angsuran.objects.create(
-                id_pinjaman   = pinjaman,
-                id_admin      = admin_login,
-                tanggal_bayar = tanggal_input,
-                jumlah_bayar  = pokok_dibayar + jasa_cicilan,
-                jumlah_pokok  = pokok_dibayar,
-                tipe_bayar    = "cicilan",
+                id_pinjaman    = pinjaman,
+                id_admin       = admin_login,
+                tanggal_bayar  = tanggal_input,
+                jumlah_bayar   = pokok_dibayar + jasa_cicilan,
+                jumlah_pokok   = pokok_dibayar,
+                tipe_bayar     = "cicilan",
+                bulan_kewajiban= bulan_kewajiban_date,   # ← field baru
             )
 
             pinjaman.sisa_pinjaman = max(sisa_pinjaman - pokok_dibayar, Decimal("0"))
@@ -736,12 +740,13 @@ def bayar_pinjaman(request, id_pinjaman):
 
             for i in range(jumlah_bln_jasa):
                 Angsuran.objects.create(
-                    id_pinjaman   = pinjaman,
-                    id_admin      = admin_login,
-                    tanggal_bayar = tanggal_input,
-                    jumlah_bayar  = jasa_per_bulan,
-                    jumlah_pokok  = Decimal("0"),
-                    tipe_bayar    = "jasa",
+                    id_pinjaman    = pinjaman,
+                    id_admin       = admin_login,
+                    tanggal_bayar  = tanggal_input,
+                    jumlah_bayar   = jasa_per_bulan,
+                    jumlah_pokok   = Decimal("0"),
+                    tipe_bayar     = "jasa",
+                    # jasa tidak punya bulan kewajiban spesifik → biarkan None
                 )
 
         # ── Update status ─────────────────────────────────────────────────
