@@ -1,9 +1,138 @@
 {% extends "base.html" %}
 {% load static %}
 {% load widget_tweaks %}
+{% load humanize %}
     
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/pages/pinjaman/form/bayar_pinjaman.css' %}">
+    <style>
+        /* ── Custom Dropdown Bulan Kewajiban ─────────────────────────── */
+        .custom-select-wrapper {
+            position: relative;
+            user-select: none;
+        }
+        .custom-select-trigger {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 8px 12px;
+            background: #fff;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            min-height: 45px;
+            margin-bottom: 10px;
+            transition: border-color .15s ease;
+        }
+        .custom-select-trigger:hover { border-color: #adb5bd; }
+        .custom-select-trigger.open  { border-color: #FFD700; box-shadow: 0 0 0 0.15rem rgba(255, 215, 0, 0.4); }
+        .custom-select-trigger.locked {
+            background: #f5f5f5;
+            cursor: not-allowed;
+            opacity: .85;
+        }
+        .custom-select-trigger .trigger-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 0;
+        }
+        .custom-select-trigger .trigger-label {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .custom-select-chevron {
+            flex-shrink: 0;
+            transition: transform .2s ease;
+            color: #6c757d;
+        }
+        .custom-select-trigger.open .custom-select-chevron { transform: rotate(180deg); }
+
+        .custom-select-options {
+            display: none;
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0; right: 0;
+            background: #fff;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,.12);
+            z-index: 999;
+            max-height: 260px;
+            overflow-y: auto;
+            padding: 4px 0;
+        }
+        .custom-select-options.open { display: block; }
+
+        .custom-option {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 9px 14px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background .12s ease;
+        }
+        .custom-option:hover { background: #f8f9fa; }
+        .custom-option.selected { background: #e8f5e9; font-weight: 600; }
+        .custom-option .opt-label { flex: 1; }
+
+        /* ── Badge jasa lunas ──────────────────────────────────────────── */
+        .badge-jasa-lunas {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #a5d6a7;
+            border-radius: 20px;
+            padding: 2px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .badge-jasa-lunas svg { width: 11px; height: 11px; }
+
+        /* Badge di trigger (bulan terpilih yang jasanya sudah lunas) */
+        .trigger-badge-lunas {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #a5d6a7;
+            border-radius: 20px;
+            padding: 1px 7px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .trigger-badge-lunas svg { width: 10px; height: 10px; }
+
+        /* Badge di label field */
+        .label-badge-lunas {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #a5d6a7;
+            border-radius: 20px;
+            padding: 2px 9px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+        .label-badge-lunas svg { width: 11px; height: 11px; }
+    </style>
 {% endblock %}
 
 {% block title %}Bayar Pinjaman{% endblock %}
@@ -15,28 +144,76 @@
 
     <!-- ── BANNER TUNGGAKAN ─────────────────────────────────────────────── -->
     {% if ada_tunggakan %}
-    <div class="alert alert-warning d-flex align-items-center mb-3" role="alert"
+    <div class="alert alert-warning mb-3" role="alert"
          style="border-left: 4px solid #FFD700; background: #fff8e1;
                 border-radius: 8px; padding: 12px 16px;">
-        <span style="font-size: 1.3rem; margin-right: 10px;"><i class="ph ph-warning"></i></span>
-        <div>
-            <strong>Terdapat Tunggakan!</strong><br>
-            Anggota memiliki <strong>{{ bulan_nunggak }} bulan</strong> cicilan yang belum dibayar.
-            Seluruh tunggakan wajib dilunasi sekaligus. Tanggal dan jumlah bulan
-            ditetapkan otomatis oleh sistem.
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+            <span style="font-size: 1.3rem;"><i class="ph ph-warning"></i></span>
+            <strong>Terdapat Tunggakan {{ bulan_nunggak }} Bulan!</strong>
+        </div>
+        <div style="font-size:13px; margin-left:32px;">
+            Bulan yang belum dibayar:
+            <ul style="margin:4px 0 0 0; padding-left:16px;">
+                {% for bln in daftar_bulan_nunggak %}
+                <li>{{ bln }}</li>
+                {% endfor %}
+            </ul>
+            <small class="text-muted">Harus dilunasi urut dari bulan pertama.</small>
         </div>
     </div>
     {% endif %}
+
+    <!-- ── BANNER JASA SUDAH DIBAYAR BULAN INI ────────────────────────── -->
+    {% if jasa_sudah_dibayar %}
+    <div class="alert d-flex align-items-center mb-3" role="alert"
+         style="border-left: 4px solid #2196F3; background: #e3f2fd;
+                border-radius: 8px; padding: 12px 16px;">
+        <span style="font-size: 1.3rem; margin-right: 10px;"><i class="ph ph-check-circle"></i></span>
+        <div>
+            <strong>Jasa Bulan Ini Sudah Dibayar</strong><br>
+            Sudah ada pembayaran di bulan ini — jasa tidak perlu dibayar lagi untuk transaksi berikutnya bulan ini.
+            Jika melakukan pelunasan, <strong>cukup bayar sisa pokok saja</strong>.
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ── ACUAN CICILAN ───────────────────────────────────────────────── -->
+    <div class="alert d-flex align-items-center mb-3" role="alert"
+         style="border-left: 4px solid #4CAF50; background: #f1f8f1;
+                border-radius: 8px; padding: 12px 16px; gap: 10px;">
+        <span style="font-size: 1.2rem;"><i class="ph ph-info"></i></span>
+        <div style="font-size: 13.5px;">
+            <strong>Acuan Cicilan Normal</strong> &nbsp;|&nbsp;
+            Pokok: <strong>Rp {{ angsuran_pokok|floatformat:0|intcomma }}</strong>
+            &nbsp;+&nbsp;
+            Jasa ({{ pinjaman.jasa_persen|floatformat:-2 }}%):
+            <strong>
+                {% if jasa_sudah_dibayar %}Rp 0{% else %}Rp {{ jasa_penuh|floatformat:0|intcomma }}{% endif %}
+            </strong>
+            &nbsp;=&nbsp;
+            <strong style="color:#2e7d32;">
+                Rp {% if jasa_sudah_dibayar %}{{ angsuran_pokok|floatformat:0|intcomma }}{% else %}{{ acuan_per_bulan|floatformat:0|intcomma }}{% endif %}
+            </strong>
+            &nbsp;<small class="text-muted">(hanya referensi, tidak disimpan)</small>
+        </div>
+    </div>
 
     <form method="POST" id="formBayarPinjaman">
         {% csrf_token %}
 
         <!-- ── hidden inputs untuk JS ─────────────────────────────────── -->
-        <input type="hidden" id="angsuran_pokok"    value="{{ angsuran_pokok }}">
-        <input type="hidden" id="sisa_pinjaman_awal" value="{{ pinjaman.sisa_pinjaman }}">
-        <input type="hidden" id="jumlah_pinjaman"   value="{{ pinjaman.jumlah_pinjaman }}">
-        <input type="hidden" id="ada_tunggakan"     value="{{ ada_tunggakan|yesno:'true,false' }}">
-        <input type="hidden" id="jumlah_bulan_wajib" value="{{ jumlah_bulan_bayar }}">
+        <input type="hidden" id="angsuran_pokok_std"   value="{{ angsuran_pokok }}">
+        <input type="hidden" id="sisa_pinjaman_awal"   value="{{ sisa_pokok_nominal }}">
+        <input type="hidden" id="jumlah_pinjaman"      value="{{ pinjaman.jumlah_pinjaman }}">
+        <input type="hidden" id="ada_tunggakan"        value="{{ ada_tunggakan|yesno:'true,false' }}">
+        <input type="hidden" id="jasa_persen_val"      value="{{ jasa_persen }}">
+        <input type="hidden" id="kategori_jasa_val"    value="{{ pinjaman.id_kategori_jasa.kategori_jasa|lower }}">
+        <input type="hidden" id="jasa_sudah_dibayar"   value="{{ jasa_sudah_dibayar|yesno:'true,false' }}">
+        <input type="hidden" id="jasa_bulan_ini_penuh" value="{{ jasa_bulan_ini_penuh }}">
+        <input type="hidden" id="jasa_penuh_val"       value="{{ jasa_penuh }}">
+
+        <!-- hidden input real untuk POST — dikontrol JS custom dropdown -->
+        <input type="hidden" name="bulan_kewajiban" id="bulan_kewajiban_val" value="{{ bulan_kewajiban_default }}">
 
         <!-- row 1: anggota & pinjaman -->
         <div class="row mb-3">
@@ -47,67 +224,28 @@
                        readonly>
             </div>
             <div class="col-md-6">
-                <label>Pinjaman</label>
+                <label>Jumlah Pinjaman Awal</label>
                 <input type="text" class="form-control rupiah-text"
                        value="{{ pinjaman.jumlah_pinjaman|floatformat:0 }}" readonly>
             </div>
         </div>
 
-        <!-- row 2: sisa pinjaman & tanggal -->
+        <!-- row 2: sisa pokok & tanggal transaksi -->
         <div class="row mb-3">
             <div class="col-md-6">
-                <label>Sisa Pinjaman</label>
+                <label>Sisa Pokok</label>
                 <input type="text" class="form-control rupiah-text"
-                       value="{{ pinjaman.sisa_pinjaman|floatformat:0 }}" readonly>
+                       value="{{ sisa_pokok_nominal|floatformat:0 }}" readonly
+                       style="font-weight:600; color:#c62828;">
+                <small class="text-muted">Sisa cicilan: {{ sisa_cicilan_total }} bulan lagi</small>
             </div>
-
             <div class="col-md-6">
-                <!--
-                    LOGIKA TANGGAL:
-                    ● Ada tunggakan → field readonly, value = tanggal_cicilan_pertama
-                      (cicilan pertama yang tertunggak, dihitung server)
-                      Cicilan berikutnya otomatis urut di server.
-                    ● Tidak ada tunggakan → field bisa diisi bebas oleh user
-                    ● Tipe jasa → field selalu bisa diisi (tanggal pembayaran jasa)
-                -->
-                {% if ada_tunggakan %}
-                <label>
-                    Tanggal Bayar
-                    <small class="text-muted">(otomatis, tidak dapat diubah)</small>
-                </label>
-                <!-- Tampilkan tanggal otomatis, tidak bisa diubah -->
-                <!-- Value dikirim via hidden input agar tetap masuk POST -->
-                <input type="text"
-                       class="form-control"
-                       value="{{ tanggal_cicilan_pertama|date:'d F Y' }}"
-                       readonly
-                       style="background:#f5f5f5; cursor:not-allowed;">
-                <!-- hidden field agar tanggal tetap ikut POST (dipakai mode jasa) -->
-                <input type="hidden" name="tanggal" value="{{ tanggal_cicilan_pertama|date:'Y-m-d' }}">
-                {% else %}
-                <label>Tanggal</label>
-                <input type="date" name="tanggal" id="id_tanggal"
-                       class="form-control" required>
-                {% endif %}
+                <label>Tanggal Transaksi</label>
+                <input type="date" name="tanggal" id="id_tanggal" class="form-control" required>
             </div>
         </div>
 
-        <!-- row 3: angsuran pokok & persen jasa -->
-        <div class="row mb-3">
-            <div class="col-md-6">
-                <label>Jumlah Cicilan Pokok</label>
-                <input type="text" class="form-control rupiah-text"
-                       value="{{ angsuran_pokok|floatformat:0 }}" readonly>
-            </div>
-            <div class="col-md-6">
-                <label>Persentase Jasa (%)</label>
-                <input type="text" class="form-control"
-                       value="{{ pinjaman.jasa_persen|floatformat:-2|cut:",0" }}%"
-                       readonly>
-            </div>
-        </div>
-
-        <!-- row 4: jenis & kategori jasa -->
+        <!-- row 3: jenis pinjaman & kategori jasa -->
         <div class="row mb-3">
             <div class="col-md-6">
                 <label>Jenis Pinjaman</label>
@@ -121,55 +259,119 @@
             </div>
         </div>
 
-        <!-- row 5: tipe bayar & jumlah bulan -->
+        <!-- row 4: tipe bayar & bulan kewajiban -->
         <div class="row mb-3">
             <div class="col-md-6">
                 <label>Pilihan Pembayaran</label>
                 <select id="tipe_bayar" name="tipe_bayar" class="form-control">
-                    <option value="cicilan">Cicilan + Jasa</option>
+                    <option value="cicilan">Cicilan (Pokok + Jasa)</option>
                     <option value="jasa">Jasa Saja</option>
                 </select>
             </div>
             <div class="col-md-6">
-                <label>Jumlah Bulan Dibayar</label>
-                <!--
-                    Ada tunggakan → readonly, dikunci = jumlah tunggakan
-                    Tidak ada tunggakan → bisa diubah user
-                -->
-                <input type="number"
-                       id="jumlah_bulan"
-                       name="bulan"
-                       class="form-control"
-                       min="1"
-                       value="{{ jumlah_bulan_bayar }}"
-                       {% if ada_tunggakan %}readonly style="background:#f5f5f5; cursor:not-allowed;"{% endif %}>
 
-                <small id="keterangan_bulan" class="text-muted">
-                    {% if ada_tunggakan %}
-                        ⚠️ Tunggakan {{ bulan_nunggak }} bulan — wajib dilunasi sekaligus
-                    {% else %}
-                        Cicilan tersisa: {{ sisa_bulan }} bulan
-                    {% endif %}
+                <!-- Label dengan badge indikator dinamis -->
+                <label id="label_bulan_kewajiban">
+                    Bulan Kewajiban
+                    <span id="label_badge_lunas" style="display:none;">
+                    </span>
+                </label>
+
+                <!-- Custom dropdown -->
+                <div class="custom-select-wrapper" id="customBulanWrapper">
+
+                    <!-- Trigger (tampilan yang terlihat user) -->
+                    <div class="custom-select-trigger {% if ada_tunggakan %}locked{% endif %}"
+                         id="customBulanTrigger">
+                        <div class="trigger-left">
+                            <span class="trigger-label" id="triggerLabel">—</span>
+                            <span id="triggerBadgeLunas" class="trigger-badge-lunas" style="display:none;">
+                                <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>
+                                Jasa Lunas
+                            </span>
+                        </div>
+                        <svg class="custom-select-chevron" viewBox="0 0 16 16" fill="currentColor" width="14" height="14">
+                            <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+                        </svg>
+                    </div>
+
+                    <!-- Options list -->
+                    <div class="custom-select-options" id="customBulanOptions">
+                        {% for b in pilihan_bulan %}
+                        <div class="custom-option {% if b.value == bulan_kewajiban_default %}selected{% endif %}"
+                             data-value="{{ b.value }}"
+                             data-sudah-cicilan="{{ b.sudah_ada_cicilan|yesno:'true,false' }}">
+                            <span class="opt-label">{{ b.label }}</span>
+                            {% if b.sudah_ada_cicilan %}
+                            <span class="badge-jasa-lunas">
+                                <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>
+                                Jasa Lunas
+                            </span>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {% if ada_tunggakan %}
+                <small class="text-muted">⚠️ Dikunci — lunasi tunggakan urut dari bulan pertama</small>
+                {% else %}
+                <small class="text-muted">
+                    <span class="badge-jasa-lunas" style="font-size:10px; padding:1px 6px;">
+                        <svg viewBox="0 0 16 16" fill="currentColor" width="10" height="10"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>
+                        Jasa Lunas
+                    </span>
+                    = jasa bulan itu sudah dibayar, pelunasan cukup bayar pokok
                 </small>
+                {% endif %}
             </div>
         </div>
 
-        <!-- row 6: nominal & admin -->
+        <!-- row 5: nominal pokok & jumlah bulan jasa -->
+        <div class="row mb-3">
+            <div class="col-md-6" id="row_pokok">
+                <label>Jumlah Pokok Dibayar</label>
+                <input type="text" name="nominal_pokok" id="id_nominal_pokok"
+                       class="form-control rupiah-input rupiah-text"
+                       value="{{ angsuran_pokok|floatformat:0 }}"
+                       placeholder="Min: Rp {{ angsuran_pokok|floatformat:0|intcomma }}">
+                <small class="text-muted">
+                    Min: Rp {{ angsuran_pokok|floatformat:0|intcomma }} &nbsp;|&nbsp;
+                    Lunas sekaligus: Rp {{ sisa_pokok_nominal|floatformat:0|intcomma }}
+                </small>
+            </div>
+
+            <div class="col-md-6" id="row_bulan_jasa" style="display:none;">
+                <label>Jumlah Bulan Jasa</label>
+                <div class="input-group">
+                    <button type="button" class="btn btn-outline-secondary" id="btnJasaMinus">−</button>
+                    <input type="number" id="jumlah_bulan_jasa" name="jumlah_bulan_jasa"
+                           class="form-control text-center" value="1" min="1" style="max-width:80px;">
+                    <button type="button" class="btn btn-outline-secondary" id="btnJasaPlus">+</button>
+                </div>
+                <small class="text-muted">Jasa/bulan: <strong id="jasa_per_bulan_label">Rp 0</strong></small>
+            </div>
+
+            <div class="col-md-6" id="row_jasa_info">
+                <label>Jasa Bulan Ini <small class="text-muted">(otomatis)</small></label>
+                <input type="text" id="id_jasa_display" class="form-control"
+                       readonly style="background:#f5f5f5;">
+            </div>
+        </div>
+
+        <!-- row 6: nominal total & admin -->
         <div class="row mb-4">
             <div class="col-md-6">
-                <label>Jumlah Dibayar</label>
-                <input type="text"
-                       name="nominal"
-                       id="id_nominal"
+                <label>Jumlah Dibayar (Total)</label>
+                <input type="text" name="nominal" id="id_nominal"
                        class="form-control rupiah-text rupiah-input"
-                       value="{{ total_bayar|floatformat:0 }}"
-                       required>
+                       value="{{ total_bayar_default|floatformat:0 }}" required>
+                <small id="keterangan_nominal" class="text-muted"></small>
             </div>
             <div class="col-md-6">
                 <label>Admin yang Bertugas</label>
                 <input type="text" class="form-control"
-                       value="{{ request.user.username }} ({{ request.user.role|title }})"
-                       readonly>
+                       value="{{ request.user.username }} ({{ request.user.role|title }})" readonly>
             </div>
         </div>
 
@@ -191,87 +393,188 @@
 document.addEventListener("DOMContentLoaded", function () {
 
     // ── Konstanta dari server ─────────────────────────────────────────────
-    const angsuranPokok    = parseFloat(document.getElementById("angsuran_pokok").value    || 0);
-    const jasaPersen       = parseFloat("{{ pinjaman.jasa_persen }}".replace(",", "."))    / 100;
-    const kategoriJasa     = "{{ pinjaman.id_kategori_jasa.kategori_jasa|lower }}";
-    const jumlahPinjaman   = parseFloat(document.getElementById("jumlah_pinjaman").value   || 0);
-    const sisaPinjamanAwal = parseFloat(document.getElementById("sisa_pinjaman_awal").value|| 0);
-    const adaTunggakan     = document.getElementById("ada_tunggakan").value === "true";
-    const bulanWajib       = parseInt(document.getElementById("jumlah_bulan_wajib").value  || 1);
+    const angsuranPokokStd  = parseFloat(document.getElementById("angsuran_pokok_std").value  || 0);
+    const sisaPinjamanAwal  = parseFloat(document.getElementById("sisa_pinjaman_awal").value  || 0);
+    const jumlahPinjaman    = parseFloat(document.getElementById("jumlah_pinjaman").value     || 0);
+    const adaTunggakan      = document.getElementById("ada_tunggakan").value === "true";
+    const jasaPersenVal     = parseFloat(document.getElementById("jasa_persen_val").value     || 0) / 100;
+    const kategoriJasa      = document.getElementById("kategori_jasa_val").value;
+    const jasaSudahDibayar  = document.getElementById("jasa_sudah_dibayar").value === "true";
+    const jasaBulanIniPenuh = parseFloat(document.getElementById("jasa_bulan_ini_penuh").value || 0);
+    const jasaPenuhVal      = parseFloat(document.getElementById("jasa_penuh_val").value      || 0);
 
-    const tipeBayar        = document.getElementById("tipe_bayar");
-    const jumlahBulanInput = document.getElementById("jumlah_bulan");
-    const nominalInput     = document.getElementById("id_nominal");
-    const keteranganBulan  = document.getElementById("keterangan_bulan");
+    // ── Elemen DOM ────────────────────────────────────────────────────────
+    const tipeBayar         = document.getElementById("tipe_bayar");
+    const nominalInput      = document.getElementById("id_nominal");
+    const nominalPokokInput = document.getElementById("id_nominal_pokok");
+    const jasaDisplay       = document.getElementById("id_jasa_display");
+    const keteranganNominal = document.getElementById("keterangan_nominal");
+    const rowPokok          = document.getElementById("row_pokok");
+    const rowBulanJasa      = document.getElementById("row_bulan_jasa");
+    const rowJasaInfo       = document.getElementById("row_jasa_info");
+    const jumlahBulanJasa   = document.getElementById("jumlah_bulan_jasa");
+    const jasaPerBulanLabel = document.getElementById("jasa_per_bulan_label");
+    const btnJasaMinus      = document.getElementById("btnJasaMinus");
+    const btnJasaPlus       = document.getElementById("btnJasaPlus");
 
-    // ── Hitung total bayar ────────────────────────────────────────────────
-    function hitungBayar() {
-        let totalBayar = 0;
-        let tempSisa   = sisaPinjamanAwal;
+    // ── Custom Dropdown ───────────────────────────────────────────────────
+    const trigger       = document.getElementById("customBulanTrigger");
+    const optionsList   = document.getElementById("customBulanOptions");
+    const triggerLabel  = document.getElementById("triggerLabel");
+    const triggerBadge  = document.getElementById("triggerBadgeLunas");
+    const labelBadge    = document.getElementById("label_badge_lunas");
+    const hiddenVal     = document.getElementById("bulan_kewajiban_val");
+    const isLocked      = adaTunggakan;
 
-        // Jumlah bulan:
-        //   ada tunggakan → dikunci ke bulanWajib
-        //   tidak ada tunggakan → ambil dari input user
-        let bulan = adaTunggakan
-            ? bulanWajib
-            : parseInt(jumlahBulanInput.value || 1);
+    // State dropdown
+    let selectedValue       = hiddenVal.value;
+    let selectedSudahCicilan = false;
 
-        const maxBulan = angsuranPokok > 0 ? Math.ceil(tempSisa / angsuranPokok) : 1;
-        if (bulan > maxBulan) bulan = maxBulan;
-        if (bulan < 1)        bulan = 1;
-
-        if (tipeBayar.value === "cicilan") {
-
-            for (let i = 0; i < bulan; i++) {
-                if (tempSisa <= 0) break;
-                const jasa = kategoriJasa === "turunan"
-                    ? tempSisa      * jasaPersen
-                    : jumlahPinjaman * jasaPersen;
-                totalBayar += angsuranPokok + jasa;
-                tempSisa   -= angsuranPokok;
-            }
-
-            if (!adaTunggakan) {
-                const sisaSetelah      = Math.max(tempSisa, 0);
-                const sisaBulanSetelah = angsuranPokok > 0
-                    ? Math.ceil(sisaSetelah / angsuranPokok) : 0;
-                keteranganBulan.innerText = `Cicilan tersisa: ${sisaBulanSetelah} bulan`;
-            }
-
-        } else if (tipeBayar.value === "jasa") {
-
-            // Jasa saja: hitung dari sisa pinjaman saat ini, hanya 1 bulan
-            const jasa = kategoriJasa === "turunan"
-                ? sisaPinjamanAwal  * jasaPersen
-                : jumlahPinjaman     * jasaPersen;
-            totalBayar = jasa;
-
-            if (!adaTunggakan) {
-                keteranganBulan.innerText = "Mode jasa: pokok tidak berkurang";
-            }
+    // Init: set tampilan trigger dari option yang selected
+    function initTrigger() {
+        const selectedOpt = optionsList.querySelector('.custom-option.selected');
+        if (selectedOpt) {
+            triggerLabel.textContent      = selectedOpt.querySelector('.opt-label').textContent;
+            selectedSudahCicilan          = selectedOpt.dataset.sudahCicilan === 'true';
+            selectedValue                 = selectedOpt.dataset.value;
+            hiddenVal.value               = selectedValue;
+            triggerBadge.style.display    = selectedSudahCicilan ? 'inline-flex' : 'none';
+            labelBadge.style.display      = selectedSudahCicilan ? 'inline' : 'none';
         }
+    }
+    initTrigger();
 
-        // Sinkronkan input bulan
-        jumlahBulanInput.value = adaTunggakan ? bulanWajib : bulan;
+    // Toggle dropdown (hanya jika tidak locked)
+    trigger.addEventListener('click', function () {
+        if (isLocked) return;
+        const isOpen = optionsList.classList.contains('open');
+        optionsList.classList.toggle('open', !isOpen);
+        trigger.classList.toggle('open', !isOpen);
+    });
 
-        // Format rupiah
-        nominalInput.value = 'Rp ' + formatRupiahNumber(Math.round(totalBayar));
+    // Pilih option
+    optionsList.querySelectorAll('.custom-option').forEach(function (opt) {
+        opt.addEventListener('click', function () {
+            // Update selected state
+            optionsList.querySelectorAll('.custom-option').forEach(o => o.classList.remove('selected'));
+            opt.classList.add('selected');
+
+            // Update nilai & trigger
+            selectedValue                 = opt.dataset.value;
+            selectedSudahCicilan          = opt.dataset.sudahCicilan === 'true';
+            hiddenVal.value               = selectedValue;
+            triggerLabel.textContent      = opt.querySelector('.opt-label').textContent;
+            triggerBadge.style.display    = selectedSudahCicilan ? 'inline-flex' : 'none';
+            labelBadge.style.display      = selectedSudahCicilan ? 'inline' : 'none';
+
+            // Tutup dropdown
+            optionsList.classList.remove('open');
+            trigger.classList.remove('open');
+
+            // Recalc
+            hitungBayar();
+        });
+    });
+
+    // Tutup dropdown kalau klik di luar
+    document.addEventListener('click', function (e) {
+        if (!document.getElementById('customBulanWrapper').contains(e.target)) {
+            optionsList.classList.remove('open');
+            trigger.classList.remove('open');
+        }
+    });
+
+    // ── Helpers ───────────────────────────────────────────────────────────
+    function fmt(n) {
+        return 'Rp ' + Math.round(n).toLocaleString('id-ID');
     }
 
-    // ── Event listeners ───────────────────────────────────────────────────
-    tipeBayar.addEventListener("change", function () {
-        if (adaTunggakan) {
-            keteranganBulan.innerText = this.value === "jasa"
-                ? "Mode jasa saja: pokok tidak berkurang"
-                : `⚠️ Tunggakan ${bulanWajib} bulan — wajib dilunasi sekaligus`;
+    function parseFmt(str) {
+        return parseFloat((str || '0').replace(/Rp\s?/g, '').replace(/\./g, '').replace(',', '.').trim()) || 0;
+    }
+
+    function hitungJasaPenuh() {
+        return jasaPenuhVal;
+    }
+
+    function isSudahCicilan() {
+        if (adaTunggakan) return false;
+        return selectedSudahCicilan;
+    }
+
+    // ── Recalculate ───────────────────────────────────────────────────────
+    function hitungBayar() {
+        const tipe = tipeBayar.value;
+
+        if (tipe === 'cicilan') {
+            rowPokok.style.display     = '';
+            rowJasaInfo.style.display  = '';
+            rowBulanJasa.style.display = 'none';
+
+            let pokok = parseFmt(nominalPokokInput.value);
+            if (pokok < angsuranPokokStd) pokok = angsuranPokokStd;
+            if (pokok > sisaPinjamanAwal)  pokok = sisaPinjamanAwal;
+
+            const sudah = isSudahCicilan();
+            const jasa  = sudah ? 0 : hitungJasaPenuh();
+            const total = pokok + jasa;
+
+            if (sudah) {
+                jasaDisplay.value       = 'Rp 0 (jasa bulan ini sudah dibayar)';
+                jasaDisplay.style.color = '#2e7d32';
+            } else {
+                jasaDisplay.value       = fmt(jasa);
+                jasaDisplay.style.color = '';
+            }
+            nominalInput.value          = fmt(total);
+            keteranganNominal.innerText = sudah
+                ? `Pokok ${fmt(pokok)} + Jasa Rp 0 (sudah dibayar)`
+                : `Pokok ${fmt(pokok)} + Jasa ${fmt(jasa)}`;
+
+        } else if (tipe === 'jasa') {
+            rowPokok.style.display     = 'none';
+            rowJasaInfo.style.display  = 'none';
+            rowBulanJasa.style.display = '';
+
+            const bln       = parseInt(jumlahBulanJasa.value || 1);
+            const jasaBulan = hitungJasaPenuh();
+            const total     = jasaBulan * bln;
+
+            jasaPerBulanLabel.innerText = fmt(jasaBulan);
+            nominalInput.value          = fmt(total);
+            keteranganNominal.innerText = `${bln} bulan × ${fmt(jasaBulan)} jasa`;
         }
+    }
+
+    // ── Rupiah input formatting untuk pokok ──────────────────────────────
+    nominalPokokInput.addEventListener('input', function () {
+        const raw = this.value.replace(/[^0-9]/g, '');
+        this.value = raw ? 'Rp ' + parseInt(raw).toLocaleString('id-ID') : '';
+        hitungBayar();
+    });
+    nominalPokokInput.addEventListener('blur', function () {
+        let val = parseFmt(this.value);
+        if (val < angsuranPokokStd) val = angsuranPokokStd;
+        if (val > sisaPinjamanAwal)  val = sisaPinjamanAwal;
+        this.value = fmt(val);
         hitungBayar();
     });
 
-    if (!adaTunggakan) {
-        jumlahBulanInput.addEventListener("input", hitungBayar);
-    }
+    // ── Tombol +/- jumlah bulan jasa ─────────────────────────────────────
+    btnJasaMinus.addEventListener('click', function () {
+        let v = parseInt(jumlahBulanJasa.value || 1);
+        if (v > 1) { jumlahBulanJasa.value = v - 1; hitungBayar(); }
+    });
+    btnJasaPlus.addEventListener('click', function () {
+        jumlahBulanJasa.value = parseInt(jumlahBulanJasa.value || 1) + 1;
+        hitungBayar();
+    });
+    jumlahBulanJasa.addEventListener('input', hitungBayar);
 
+    // ── Tipe bayar change ─────────────────────────────────────────────────
+    tipeBayar.addEventListener('change', hitungBayar);
+
+    // ── Init ──────────────────────────────────────────────────────────────
     hitungBayar();
 
     // ── SweetAlert styles ─────────────────────────────────────────────────
@@ -311,43 +614,39 @@ document.addEventListener("DOMContentLoaded", function () {
     // ── Konfirmasi submit ─────────────────────────────────────────────────
     document.getElementById('btnBayarPinjaman').addEventListener('click', function () {
 
-        // Validasi tanggal — hanya saat tidak ada tunggakan (input bebas)
-        {% if not ada_tunggakan %}
         const tanggalInput = document.getElementById('id_tanggal');
         if (!tanggalInput || !tanggalInput.value) {
             Swal.fire({
                 title: 'Perhatian',
-                text: 'Silakan isi tanggal pembayaran terlebih dahulu.',
-                icon: 'warning',
-                iconColor: '#FFD700',
+                text: 'Silakan isi tanggal transaksi terlebih dahulu.',
+                icon: 'warning', iconColor: '#FFD700',
                 confirmButtonText: '<span style="color:#291B18; font-weight:600;">Oke</span>',
-                customClass: {
-                    popup: 'kopasmen-swal-popup', title: 'kopasmen-swal-title',
-                    confirmButton: 'kopasmen-confirm-btn',
-                },
+                customClass: { popup: 'kopasmen-swal-popup', title: 'kopasmen-swal-title', confirmButton: 'kopasmen-confirm-btn' },
             });
             return;
         }
-        {% endif %}
 
         const namaAnggota   = "{{ pinjaman.nomor_anggota.nomor_anggota }} - {{ pinjaman.nomor_anggota.nama }}";
         const jenisPinjaman = "{{ pinjaman.id_jenis_pinjaman.nama_jenis }}";
         const kategoriLabel = "{{ pinjaman.id_kategori_jasa.kategori_jasa }}";
         const tipeBayarText = tipeBayar.options[tipeBayar.selectedIndex].text;
-        const bulan         = jumlahBulanInput.value;
         const nominal       = nominalInput.value || "-";
+        const tanggalVal    = tanggalInput.value;
+        const bulanLabel    = triggerLabel.textContent + (selectedSudahCicilan ? ' (Jasa Lunas)' : '');
 
-        // Keterangan tanggal di popup konfirmasi
+        let detailTambahan = '';
+        if (tipeBayar.value === 'cicilan') {
+            detailTambahan = `<b>Pokok &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</b> ${nominalPokokInput.value}<br>
+                              <b>Jasa &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</b> ${jasaDisplay.value}<br>`;
+        } else {
+            detailTambahan = `<b>Bulan Jasa &nbsp;:</b> ${jumlahBulanJasa.value} bulan<br>`;
+        }
+
         {% if ada_tunggakan %}
-        const tanggalLabel = "{{ tanggal_cicilan_pertama|date:'d F Y' }} (otomatis)";
-        const tunggakanInfo = tipeBayar.value === "cicilan"
-            ? `<br><span style="color:#b8860b; font-size:12px;">
-                   <i class="ph ph-warning"></i> Melunasi ${bulan} bulan tunggakan sekaligus.
-                   Seluruh tanggal cicilan ditetapkan otomatis oleh sistem.
-               </span>`
-            : '';
+        const tunggakanInfo = `<br><span style="color:#b8860b; font-size:12px;">
+            <i class="ph ph-warning"></i> Terdapat tunggakan — pembayaran urut dari bulan tertunggak.
+        </span>`;
         {% else %}
-        const tanggalLabel  = document.getElementById('id_tanggal').value;
         const tunggakanInfo = '';
         {% endif %}
 
@@ -357,17 +656,17 @@ document.addEventListener("DOMContentLoaded", function () {
                 <div style="text-align:left; font-size:14px; line-height:2;
                             background:#f9f9f9; border-radius:12px;
                             padding:12px 16px; border-left:4px solid #FFD700;">
-                    <b>Anggota &nbsp;&nbsp;:</b> ${namaAnggota}<br>
-                    <b>Jenis &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; :</b> ${jenisPinjaman}<br>
-                    <b>Kategori &nbsp;&nbsp;:</b> ${kategoriLabel}<br>
-                    <b>Tipe &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; :</b> ${tipeBayarText}<br>
-                    <b>Bulan &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; :</b> ${bulan} bulan<br>
-                    <b>Tanggal &nbsp;&nbsp; :</b> ${tanggalLabel}<br>
-                    <b>Total &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; :</b> ${nominal}
+                    <b>Anggota &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</b> ${namaAnggota}<br>
+                    <b>Jenis &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</b> ${jenisPinjaman}<br>
+                    <b>Kategori &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</b> ${kategoriLabel}<br>
+                    <b>Tipe &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</b> ${tipeBayarText}<br>
+                    <b>Kewajiban &nbsp;&nbsp;:</b> ${bulanLabel}<br>
+                    <b>Tgl Transaksi:</b> ${tanggalVal}<br>
+                    ${detailTambahan}
+                    <b>Total &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</b> ${nominal}
                     ${tunggakanInfo}
                 </div>`,
-            icon: 'question',
-            iconColor: '#FFD700',
+            icon: 'question', iconColor: '#FFD700',
             showCancelButton: true,
             confirmButtonText: '<span style="color:#291B18; font-weight:600;">Ya, Bayar</span>',
             cancelButtonText:  '<span style="color:#291B18; font-weight:600;">Batal</span>',

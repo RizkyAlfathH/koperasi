@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
-from decouple import config
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -39,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
     'admin_koperasi',
     'anggota',
     'koperasi',
@@ -114,6 +114,11 @@ DATABASES = {
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': os.environ.get('MYSQL_DATABASE', 'railway'),
+#         'USER': os.environ.get('MYSQLUSER', 'root'),
+#         'PASSWORD': os.environ.get('MYSQLPASSWORD', ''),
+#         'HOST': os.environ.get('MYSQLHOST', 'localhost'),
+#         'PORT': os.environ.get('MYSQLPORT', '3306'),
 #         'NAME': config('MYSQL_DATABASE'),
 #         'USER': config('MYSQL_USER'),
 #         'PASSWORD': config('MYSQL_PASSWORD'),
