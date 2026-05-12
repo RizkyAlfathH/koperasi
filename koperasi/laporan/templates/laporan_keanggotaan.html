@@ -1,0 +1,465 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css\pages\laporan\laporan_keanggotaan.css' %}">
+{% endblock %}
+
+{% block title %}Laporan Keanggotaan{% endblock %}
+
+{% block content %}
+
+<h1>Laporan Keanggotaan KOPASMEN</h1>
+<p class="page-subtitle">Data tercatat sampai {{ akhir_bulan_dt|date:"d F Y" }}</p>
+
+<div class="laporan-wrapper">
+
+    {# ── Filter Periode ─────────────────────────────────────────── #}
+    <div class="content-card filter-card">
+        <form method="get" class="filter-form" id="filterForm">
+            <div class="filter-group">
+                <label>Bulan</label>
+                <select name="bulan">
+                    {% for value, label in bulan_choices %}
+                        <option value="{{ value }}" {% if value == bulan %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>Tahun</label>
+                <select name="tahun">
+                    {% for t in tahun_range %}
+                        <option value="{{ t }}" {% if t == tahun %}selected{% endif %}>{{ t }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="ph-bold ph-magnifying-glass"></i> Tampilkan
+            </button>
+
+            <a href="{% url 'laporan:laporan_keanggotaan' %}" class="reset-btn" title="Reset">
+                &#x21bb;
+            </a>
+
+            <a href="{% url 'laporan:export_laporan_keanggotaan' %}?bulan={{ bulan }}&tahun={{ tahun }}"
+               class="btn btn-success action-export-keanggotaan"
+               data-format="excel">
+                <i class="ph-bold ph-file-xls"></i> Excel
+            </a>
+
+            <a href="{% url 'laporan:export_laporan_keanggotaan_pdf' %}?bulan={{ bulan }}&tahun={{ tahun }}"
+               class="btn btn-pdf action-export-keanggotaan"
+               data-format="pdf">
+                <i class="ph-bold ph-file-pdf"></i> PDF
+            </a>
+        </form>
+    </div>
+
+    {# ── Kartu Statistik ────────────────────────────────────────── #}
+    <div class="stat-grid">
+
+        <div class="stat-card stat-total">
+            <div class="stat-icon"><i class="ph ph-users"></i></div>
+            <div class="stat-body">
+                <span class="stat-num">{{ total_anggota }}</span>
+                <span class="stat-label">Total Anggota</span>
+            </div>
+        </div>
+
+        <div class="stat-card stat-aktif">
+            <div class="stat-icon"><i class="ph ph-user-check"></i></div>
+            <div class="stat-body">
+                <span class="stat-num">{{ total_aktif }}</span>
+                <span class="stat-label">Anggota Aktif</span>
+            </div>
+        </div>
+
+        <div class="stat-card stat-nonaktif">
+            <div class="stat-icon"><i class="ph ph-user-minus"></i></div>
+            <div class="stat-body">
+                <span class="stat-num">{{ total_nonaktif }}</span>
+                <span class="stat-label">Anggota Nonaktif</span>
+            </div>
+        </div>
+
+        <div class="stat-card stat-masuk">
+            <div class="stat-icon"><i class="ph ph-user-plus"></i></div>
+            <div class="stat-body">
+                <span class="stat-num">{{ anggota_masuk|length }}</span>
+                <span class="stat-label">Masuk {{ nama_bulan }} {{ tahun }}</span>
+            </div>
+        </div>
+
+        <div class="stat-card stat-keluar">
+            <div class="stat-icon"><i class="ph ph-user-minus"></i></div>
+            <div class="stat-body">
+                <span class="stat-num">{{ anggota_keluar|length }}</span>
+                <span class="stat-label">Keluar {{ nama_bulan }} {{ tahun }}</span>
+            </div>
+        </div>
+
+        <div class="stat-card stat-gender">
+            <div class="stat-icon"><i class="ph ph-gender-intersex"></i></div>
+            <div class="stat-body">
+                <span class="stat-num">
+                    <span class="gender-lk">{{ total_laki }}L</span>
+                    <span class="gender-sep">/</span>
+                    <span class="gender-pr">{{ total_perempuan }}P</span>
+                </span>
+                <span class="stat-label">Jenis Kelamin</span>
+            </div>
+        </div>
+
+    </div>
+
+    {# ── Tabel Rekap Bulanan dalam Setahun ──────────────────────── #}
+    <div class="content-card">
+        <h2>Rekap Bulanan {{ tahun }}</h2>
+        <div class="table-wrapper">
+            <table class="data-table rekap-table">
+                <thead>
+                    <tr>
+                        <th>Bulan</th>
+                        <th>Anggota Masuk</th>
+                        <th>Anggota Keluar</th>
+                        <th>Total Aktif (s.d. akhir bulan)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in rekap_bulanan %}
+                    <tr class="{% if forloop.counter == bulan %}row-highlight{% endif %}">
+                        <td>
+                            {{ row.bulan }}
+                            {% if forloop.counter == bulan %}
+                            <span class="badge-bulan-ini">Bulan ini</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if row.masuk > 0 %}
+                            <span class="badge badge-masuk">+{{ row.masuk }}</span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if row.keluar > 0 %}
+                            <span class="badge badge-keluar">-{{ row.keluar }}</span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center"><strong>{{ row.aktif }}</strong></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {# ── Anggota Masuk & Keluar — satu card dengan tab ──────────── #}
+    <div class="content-card">
+
+        <div class="tab-nav">
+            <button class="tab-btn active-masuk" id="btn-tab-masuk" onclick="switchTab('masuk', this)">
+                <i class="ph ph-user-plus"></i>
+                Anggota Masuk – {{ nama_bulan }} {{ tahun }}
+                <span class="tab-badge tab-badge-masuk">{{ anggota_masuk|length }}</span>
+            </button>
+            <button class="tab-btn" id="btn-tab-keluar" onclick="switchTab('keluar', this)">
+                <i class="ph ph-user-minus"></i>
+                Anggota Keluar – {{ nama_bulan }} {{ tahun }}
+                <span class="tab-badge tab-badge-keluar">{{ anggota_keluar|length }}</span>
+            </button>
+        </div>
+
+        {# Tab Masuk #}
+        <div class="tab-pane active" id="tab-masuk">
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Nomor Anggota</th>
+                            <th>Nama</th>
+                            <th>Jenis Kelamin</th>
+                            <th>Pekerjaan</th>
+                            <th>Tanggal Daftar</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyMasuk">
+                        {% for ang in anggota_masuk %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ ang.nomor_anggota }}</td>
+                            <td>{{ ang.nama }}</td>
+                            <td>{{ ang.jenis_kelamin|default:"-" }}</td>
+                            <td>{{ ang.pekerjaan|default:"-" }}</td>
+                            <td>{{ ang.tanggal_daftar|date:"d M Y" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="empty-state">
+                                Tidak ada anggota baru masuk pada {{ nama_bulan }} {{ tahun }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {# Tab Keluar #}
+        <div class="tab-pane" id="tab-keluar">
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Nomor Anggota</th>
+                            <th>Nama</th>
+                            <th>Jenis Kelamin</th>
+                            <th>Tanggal Daftar</th>
+                            <th>Tanggal Nonaktif</th>
+                            <th>Alasan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyKeluar">
+                        {% for ang in anggota_keluar %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ ang.nomor_anggota }}</td>
+                            <td>{{ ang.nama }}</td>
+                            <td>{{ ang.jenis_kelamin|default:"-" }}</td>
+                            <td>{{ ang.tanggal_daftar|date:"d M Y" }}</td>
+                            <td>{{ ang.tanggal_nonaktif|date:"d M Y"|default:"-" }}</td>
+                            <td>{{ ang.alasan_nonaktif|default:"-" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="empty-state">
+                                Tidak ada anggota keluar pada {{ nama_bulan }} {{ tahun }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    {# ── Tabel Semua Anggota ─────────────────────────────────────── #}
+    <div class="content-card">
+        <h2>Daftar Semua Anggota</h2>
+
+        {# filter & search inline #}
+        <form method="get" class="filter-form sub-filter-form">
+            <input type="hidden" name="bulan" value="{{ bulan }}">
+            <input type="hidden" name="tahun" value="{{ tahun }}">
+
+            <div class="filter-group">
+                <label>Status</label>
+                <select name="status">
+                    <option value="semua" {% if status_filter == "semua" %}selected{% endif %}>Semua</option>
+                    <option value="aktif" {% if status_filter == "aktif" %}selected{% endif %}>Aktif</option>
+                    <option value="nonaktif" {% if status_filter == "nonaktif" %}selected{% endif %}>Nonaktif</option>
+                </select>
+            </div>
+
+            <div class="filter-group search-group">
+                <label>Cari</label>
+                <input type="text" name="cari" value="{{ cari }}" placeholder="Nama / Nomor anggota…">
+            </div>
+
+            <div class="filter-group">
+                <label>Per Halaman</label>
+                <select name="per_page" id="perPageAll">
+                    <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
+                    <option value="25" {% if per_page == 25 %}selected{% endif %}>25</option>
+                    <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+                    <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="ph-bold ph-funnel"></i> Filter
+            </button>
+
+            {% if cari or status_filter != "semua" %}
+            <a href="{% url 'laporan:laporan_keanggotaan' %}?bulan={{ bulan }}&tahun={{ tahun }}" class="reset-btn">
+                &#x21bb;
+            </a>
+            {% endif %}
+        </form>
+
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Nomor Anggota</th>
+                        <th>Nama</th>
+                        <th>Jenis Kelamin</th>
+                        <th>Pekerjaan</th>
+                        <th>No. Telp</th>
+                        <th>Tanggal Daftar</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="tbodyAll">
+                    {% for ang in tabel_anggota %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ ang.nomor_anggota }}</td>
+                        <td>{{ ang.nama }}</td>
+                        <td>{{ ang.jenis_kelamin|default:"-" }}</td>
+                        <td>{{ ang.pekerjaan|default:"-" }}</td>
+                        <td>{{ ang.no_telp|default:"-" }}</td>
+                        <td>{{ ang.tanggal_daftar|date:"d M Y" }}</td>
+                        <td>
+                            {% if ang.status == "aktif" %}
+                            <span class="status-badge status-aktif">Aktif</span>
+                            {% else %}
+                            <span class="status-badge status-nonaktif">Nonaktif</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="empty-state">Tidak ada data anggota</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% include "includes/pagination.html" with page_obj=tabel_anggota param="page" %}
+    </div>
+
+</div><!-- /laporan-wrapper -->
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ── Tab switcher ──────────────────────────────────────────────
+function switchTab(tab, clickedBtn) {
+    // sembunyiin semua pane
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    // aktifkan pane yang dipilih
+    document.getElementById('tab-' + tab).classList.add('active');
+
+    // reset semua tombol
+    document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('active-masuk', 'active-keluar');
+    });
+    // aktifkan tombol yang diklik
+    clickedBtn.classList.add('active-' + tab);
+}
+
+$(function () {
+
+    // ── SweetAlert style KOPASMEN ─────────────────────────────────
+    if (!document.getElementById('kopasmen-swal-style')) {
+        const style = document.createElement('style');
+        style.id = 'kopasmen-swal-style';
+        style.textContent = `
+            .kopasmen-swal-popup  { border-radius:20px!important; padding:24px!important; font-family:'Poppins',sans-serif!important; box-shadow:0 8px 32px rgba(0,0,0,.15)!important; }
+            .kopasmen-swal-title  { font-size:1.25rem!important; font-weight:700!important; color:#291B18!important; margin-bottom:6px!important; }
+            .kopasmen-confirm-btn { background:#FFD700!important; color:#291B18!important; border:none!important; border-radius:6px!important; padding:9px 22px!important; font-weight:700!important; font-size:.9rem!important; cursor:pointer!important; transition:all .2s!important; }
+            .kopasmen-cancel-btn  { background:#fff!important; color:#291B18!important; border:2px solid #FFD700!important; border-radius:6px!important; padding:9px 22px!important; font-weight:600!important; font-size:.9rem!important; cursor:pointer!important; transition:all .2s!important; }
+            .kopasmen-confirm-btn:hover { background:#e6c200!important; }
+            .kopasmen-cancel-btn:hover  { background:#fff8e1!important; }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // ── Export keanggotaan (Excel & PDF) ─────────────────────────
+    $(".action-export-keanggotaan").on("click", function (e) {
+        e.preventDefault();
+        const url    = $(this).attr("href");
+        const format = $(this).data("format");
+
+        const isExcel  = format === "excel";
+        const labelFmt = isExcel ? "Excel (.xlsx)" : "PDF (.pdf)";
+        const iconFmt  = isExcel ? "ph-file-xls"   : "ph-file-pdf";
+        const defFile  = isExcel ? "Laporan_Keanggotaan.xlsx" : "Laporan_Keanggotaan.pdf";
+        const descFmt  = isExcel
+            ? "File Excel berisi 4 sheet: <strong>Rekap Statistik, Daftar Anggota, Anggota Masuk, Anggota Keluar</strong>."
+            : "File PDF berisi: <strong>Ringkasan Statistik, Rekap Bulanan, Anggota Masuk, Anggota Keluar, dan Daftar Semua Anggota</strong>.";
+
+        const adaData = $("#tbodyAll tr:not(.empty-state-row)").length > 0 &&
+                        $("#tbodyAll td.empty-state").length === 0;
+
+        if (!adaData) {
+            Swal.fire({
+                icon: "warning", iconColor: "#FFD700",
+                title: "Tidak Ada Data",
+                html: `<div style="margin-top:12px;font-size:14px;color:#92400e;">Belum ada data keanggotaan yang bisa diekspor.</div>`,
+                confirmButtonText: "Oke",
+                customClass: { popup:'kopasmen-swal-popup', title:'kopasmen-swal-title', confirmButton:'kopasmen-confirm-btn' }
+            });
+            return;
+        }
+
+        Swal.fire({
+            icon: "question", iconColor: "#FFD700",
+            title: `Export Laporan Keanggotaan`,
+            showCancelButton: true,
+            confirmButtonText: '<span style="color:#291B18;font-weight:600;">Ya, Export Sekarang</span>',
+            cancelButtonText:  '<span style="color:#291B18;font-weight:600;">Batal</span>',
+            confirmButtonColor: "#FFD700",
+            cancelButtonColor:  "#ffffff",
+            customClass: { popup:'kopasmen-swal-popup', title:'kopasmen-swal-title', confirmButton:'kopasmen-confirm-btn', cancelButton:'kopasmen-cancel-btn' },
+            html: `
+                <div style="margin-top:10px;font-size:14px;">
+                    <p style="color:#92400e;margin-bottom:12px;">${descFmt}</p>
+                    <div style="display:inline-flex;align-items:center;gap:8px;background:#fefce8;border:1px solid #fcd34d;padding:10px 20px;border-radius:8px;font-weight:600;font-size:15px;color:#92400e;">
+                        <i class="ph-bold ${iconFmt}" style="font-size:20px;"></i> ${labelFmt}
+                    </div>
+                </div>`,
+        }).then(function (result) {
+            if (!result.isConfirmed) return;
+
+            Swal.fire({
+                title: 'Memproses…',
+                text: 'Mohon tunggu sebentar',
+                iconColor: '#FFD700',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            fetch(url)
+                .then(resp => resp.blob().then(blob => ({ blob, headers: resp.headers })))
+                .then(({ blob, headers }) => {
+                    let filename = defFile;
+                    const cd = headers.get('Content-Disposition');
+                    if (cd && cd.includes('filename=')) {
+                        filename = cd.split('filename=')[1].replace(/["']/g, '');
+                    }
+                    const a = document.createElement("a");
+                    a.href = URL.createObjectURL(blob);
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    Swal.close();
+                })
+                .catch(err => {
+                    Swal.fire({
+                        icon: "error", title: "Gagal mendownload file", text: err,
+                        confirmButtonText: "Oke",
+                        customClass: { popup:'kopasmen-swal-popup', title:'kopasmen-swal-title', confirmButton:'kopasmen-confirm-btn' }
+                    });
+                });
+        });
+    });
+
+});
+</script>
+{% endblock %}
