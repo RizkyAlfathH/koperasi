@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Import Simpanan{% endblock %}
+
+{% block content %}
+<div class="content-card">
+    <h2 style="margin-bottom: 15px;">Import Simpanan</h2>
+
+    <!-- info format file -->
+    <div class="alert alert-info" style="margin-bottom: 20px; padding: 12px 16px; background:#e8f4fd; border-left: 4px solid #3498db; border-radius: 4px;">
+        <strong>Format file yang didukung:</strong>
+        <ul style="margin: 8px 0 0 16px;">
+            <li><strong>File TPP</strong> — kolom: NO, NAMA, POKOK, WAJIB, SUKARELA, DANSOS (header 2 baris)</li>
+            <li><strong>File Laporan Aplikasi</strong> — sheet "Simpanan" dengan kolom: NO (nomor anggota), NAMA ANGGOTA, POKOK, WAJIB, SUKARELA</li>
+        </ul>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" id="formImport" novalidate>
+        {% csrf_token %}
+
+        <div class="row mb-3">
+
+            <!-- field upload file -->
+            <div class="col-md-6">
+                <label>File Excel (.xlsx)</label>
+                <input type="file" name="file_import" accept=".xlsx"
+                       class="form-control" required>
+            </div>
+
+            <!-- field tanggal -->
+            <div class="col-md-6">
+                <label>Tanggal Simpanan</label>
+                <input type="date" name="tanggal" class="form-control"
+                       value="{{ today }}" required>
+            </div>
+
+        </div>
+
+        <div class="form-actions" style="text-align:right; margin-top: 20px;">
+            <a href="{% url 'simpanan:daftar_simpanan' %}" class="btn-outline">Batal</a>
+            <button type="submit" class="btn-simpan">Upload & Preview</button>
+        </div>
+
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(function () {
+    // set default tanggal hari ini
+    const today = new Date().toISOString().split('T')[0];
+    $('input[name="tanggal"]').val(today);
+});
+</script>
+{% endblock %}

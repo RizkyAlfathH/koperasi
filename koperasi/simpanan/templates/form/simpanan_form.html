@@ -4,56 +4,92 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/pages/simpanan/form/simpanan_form.css' %}">
+<style>
+    .detail-grid-header {
+        display: grid;
+        grid-template-columns: 2fr 2fr 2fr 40px;
+        gap: 10px;
+        padding: 0 0 8px;
+        border-bottom: 1px solid #dee2e6;
+        margin-bottom: 4px;
+    }
+    .detail-grid-header span {
+        font-size: 13px;
+        font-weight: 600;
+        color: #6c757d;
+    }
+    .baris-simpanan {
+        display: grid;
+        grid-template-columns: 2fr 2fr 2fr 40px;
+        gap: 10px;
+        align-items: start;
+        padding: 8px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .baris-simpanan:last-child {
+        border-bottom: none;
+    }
+    .baris-simpanan .cell-dana {
+        visibility: hidden;
+    }
+    .baris-simpanan .cell-dana.show {
+        visibility: visible;
+    }
+    .baris-simpanan .cell-aksi {
+        display: flex;
+        align-items: flex-start;
+        padding-top: 2px;
+    }
+    .btn-hapus-baris {
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    /* sembunyikan header dana sosial saat tidak ada wajib */
+    .header-dana-sosial {
+        visibility: hidden;
+    }
+    .header-dana-sosial.show {
+        visibility: visible;
+    }
+</style>
 {% endblock %}
 
 {% block title %}Tambah Simpanan{% endblock %}
 
 {% block content %}
 
-<!-- container utama form tambah simpanan -->
 <div class="content-card">
     <h2 style="margin-bottom: 15px;">Form Tambah Simpanan</h2>
 
-    <!-- form simpanan -->
-    <!-- method post untuk kirim data -->
-    <!-- novalidate supaya validasi html dimatikan -->
     <form method="post" id="formSimpanan" novalidate>
         {% csrf_token %}
 
         <!-- row 1: anggota dan tanggal -->
         <div class="row mb-3">
 
-            <!-- field anggota (custom select, kemungkinan pakai select2/js) -->
             <div class="col-md-6">
                 <label>Nama Anggota</label>
-
                 {% if form.anggota.errors %}
-                    <!-- select manual karena kemungkinan diisi via javascript -->
                     <select id="id_anggota" name="anggota" class="form-control is-invalid"></select>
-
-                    <!-- pesan error -->
                     <div class="invalid-feedback">
-                        {% for error in form.anggota.errors %}
-                            {{ error }}
-                        {% endfor %}
+                        {% for error in form.anggota.errors %}{{ error }}{% endfor %}
                     </div>
                 {% else %}
-                    <!-- kondisi normal -->
                     <select id="id_anggota" name="anggota" class="form-control"></select>
                 {% endif %}
             </div>
 
-            <!-- field tanggal -->
             <div class="col-md-6">
                 <label>Tanggal Menyimpan</label>
-
                 {% if form.tanggal.errors %}
                     {{ form.tanggal|add_class:"form-control is-invalid" }}
-
                     <div class="invalid-feedback">
-                        {% for error in form.tanggal.errors %}
-                            {{ error }}
-                        {% endfor %}
+                        {% for error in form.tanggal.errors %}{{ error }}{% endfor %}
                     </div>
                 {% else %}
                     {{ form.tanggal|add_class:"form-control" }}
@@ -62,87 +98,61 @@
 
         </div>
 
-        <!-- row 2: jenis simpanan dan jumlah -->
-        <div class="row mb-3">
+        <!-- row 2: detail simpanan -->
+        <div class="row mb-2">
+            <div class="col-12">
+                <label>Detail Simpanan</label>
 
-            <!-- field jenis simpanan -->
-            <div class="col-md-6">
-                <label>Jenis Simpanan</label>
+                <!-- header kolom -->
+                <div class="detail-grid-header">
+                    <span>Jenis Simpanan</span>
+                    <span>Jumlah</span>
+                    <span class="header-dana-sosial" id="header-dana-sosial">Dana Sosial</span>
+                    <span></span>
+                </div>
 
-                {% if form.jenis_simpanan.errors %}
-                    {{ form.jenis_simpanan|add_class:"form-control is-invalid" }}
-
-                    <div class="invalid-feedback">
-                        {% for error in form.jenis_simpanan.errors %}
-                            {{ error }}
-                        {% endfor %}
+                <!-- baris-baris simpanan -->
+                <div id="tbody-simpanan">
+                    <!-- baris pertama: tidak bisa dihapus -->
+                    <div class="baris-simpanan" data-index="0">
+                        <div class="cell-jenis">
+                            <select name="jenis_simpanan_0" class="form-control select-jenis">
+                                <option value="">Pilih jenis simpanan</option>
+                                {% for val, label in form.jenis_simpanan.field.choices %}
+                                    {% if val %}<option value="{{ val }}">{{ label }}</option>{% endif %}
+                                {% endfor %}
+                            </select>
+                            <div class="invalid-feedback d-block error-jenis"></div>
+                        </div>
+                        <div class="cell-jumlah">
+                            <input type="text" name="jumlah_0" class="form-control rupiah-input" placeholder="Masukkan jumlah">
+                            <div class="invalid-feedback d-block error-jumlah"></div>
+                        </div>
+                        <div class="cell-dana">
+                            <input type="text" name="dana_sosial_0" class="form-control rupiah-input" placeholder="Dana sosial">
+                            <div class="invalid-feedback d-block error-dana"></div>
+                        </div>
+                        <!-- baris pertama tidak bisa dihapus, placeholder agar grid tetap rapi -->
+                        <div class="cell-aksi"></div>
                     </div>
-                {% else %}
-                    {{ form.jenis_simpanan|add_class:"form-control" }}
-                {% endif %}
+                </div>
+
             </div>
-
-            <!-- field jumlah simpanan -->
-            <div class="col-md-6">
-                <label>Jumlah Menyimpan</label>
-
-                {% if form.jumlah.errors %}
-                    <!-- rupiah-input biasanya untuk format angka -->
-                    {{ form.jumlah|add_class:"form-control rupiah-input is-invalid" }}
-
-                    <div class="invalid-feedback">
-                        {% for error in form.jumlah.errors %}
-                            {{ error }}
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    {{ form.jumlah|add_class:"form-control rupiah-input" }}
-                {% endif %}
-            </div>
-
         </div>
 
-        <!-- row 3: dana sosial (conditional field) -->
+        <!-- tombol tambah baris -->
         <div class="row mb-3">
-
-            <!-- field dana sosial -->
-            <!-- ditampilkan hanya jika diperlukan (misalnya jenis tertentu atau ada error) -->
-            <div class="col-md-6" id="field-dana-sosial"
-                {% if form.dana_sosial.errors %}
-                    style="display:block;"
-                {% else %}
-                    style="display:none;"
-                {% endif %}>
-
-                <label>Dana Sosial</label>
-
-                {% if form.dana_sosial.errors %}
-                    {{ form.dana_sosial|add_class:"form-control rupiah-input is-invalid" }}
-
-                    <div class="invalid-feedback">
-                        {% for error in form.dana_sosial.errors %}
-                            {{ error }}
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    {{ form.dana_sosial|add_class:"form-control rupiah-input" }}
-                {% endif %}
+            <div class="col-12">
+                <button type="button" id="btn-tambah-baris" class="btn btn-outline-secondary btn-sm">
+                    + Tambah Jenis Simpanan
+                </button>
             </div>
-
         </div>
 
         <!-- tombol aksi -->
         <div class="form-actions" style="text-align:right; margin-top:20px;">
-
-            <!-- kembali ke daftar simpanan -->
-            <a href="{% url 'simpanan:daftar_simpanan' %}" class="btn-outline">
-                Batal
-            </a>
-
-            <!-- submit form -->
-            <button type="submit" class="btn-simpan">
-                Simpan
-            </button>
+            <a href="{% url 'simpanan:daftar_simpanan' %}" class="btn-outline">Batal</a>
+            <button type="submit" class="btn-simpan">Simpan</button>
         </div>
 
     </form>
@@ -153,6 +163,16 @@
 {% block extra_js %}
 <script>
 $(function () {
+
+    // ===============================
+    // data semua opsi jenis simpanan dari Django
+    // ===============================
+    const semuaOpsi = [
+        {% for val, label in form.jenis_simpanan.field.choices %}
+            {% if val %}{ value: "{{ val }}", label: "{{ label }}" },{% endif %}
+        {% endfor %}
+    ];
+
 
     // ===============================
     // select2 anggota
@@ -170,7 +190,6 @@ $(function () {
         width: '100%'
     });
 
-    // tampilkan kembali value setelah error (biar ga kosong)
     {% if form.anggota.value and anggota_label %}
         $('#id_anggota').append(
             new Option("{{ anggota_label }}", "{{ form.anggota.value }}", true, true)
@@ -179,74 +198,243 @@ $(function () {
 
 
     // ===============================
-    // fungsi cek dana sosial
+    // counter index baris
     // ===============================
-    function cekDanaSosial() {
-        const anggota = $('#id_anggota').val();
-        const jenis = $('#id_jenis_simpanan').val();
-        const tanggal = $('#id_tanggal').val();
+    let indexCounter = 1;
 
-        // reset tampilan
-        $('#field-dana-sosial').hide();
 
-        // kalau bukan simpanan wajib → reset semua
-        if (jenis !== '2') {
-            $('#id_dana_sosial')
-                .removeClass('is-invalid')
-                .val('');
-
-            $('#field-dana-sosial .invalid-feedback').remove();
-            return;
-        }
-
-        if (!anggota || !tanggal) return;
-
-        // cek ke backend
-        $.getJSON(
-            "{% url 'simpanan:cek_dana_sosial' %}",
-            { anggota, jenis, tanggal },
-            function (res) {
-                if (res.wajib === true) {
-                    $('#field-dana-sosial').slideDown();
-                }
-            }
-        );
+    // ===============================
+    // fungsi: ambil semua jenis yang sudah dipilih (kecuali baris tertentu)
+    // ===============================
+    function getSelectedJenis(kecualiBaris) {
+        const selected = [];
+        $('#tbody-simpanan .baris-simpanan').each(function () {
+            if (kecualiBaris && $(this).is(kecualiBaris)) return;
+            const val = $(this).find('.select-jenis').val();
+            if (val) selected.push(val);
+        });
+        return selected;
     }
 
     // ===============================
-    // trigger perubahan
+    // fungsi: refresh opsi semua dropdown
     // ===============================
-    $('#id_anggota, #id_jenis_simpanan, #id_tanggal')
-        .on('change', cekDanaSosial);
+    function refreshSemuaDropdown() {
+        $('#tbody-simpanan .baris-simpanan').each(function () {
+            const $baris = $(this);
+            const $select = $baris.find('.select-jenis');
+            const currentVal = $select.val();
+            const selectedLain = getSelectedJenis($baris);
+
+            $select.empty();
+            $select.append('<option value="">Pilih jenis simpanan</option>');
+            semuaOpsi.forEach(function (opsi) {
+                if (!selectedLain.includes(opsi.value) || opsi.value === currentVal) {
+                    $select.append(`<option value="${opsi.value}">${opsi.label}</option>`);
+                }
+            });
+
+            $select.val(currentVal);
+        });
+    }
 
 
     // ===============================
-    // reset error saat user input dana sosial
+    // fungsi: sync header kolom dana sosial
     // ===============================
-    $(document).on('input', '#id_dana_sosial', function () {
-        $(this).removeClass('is-invalid');
-        $(this).closest('.col-md-6')
-               .find('.invalid-feedback')
-               .remove();
-    });
+    function syncHeaderDana() {
+        const adaWajib = $('#tbody-simpanan .select-jenis').toArray()
+            .some(el => $(el).val() === '2');
+
+        $('#header-dana-sosial').toggleClass('show', adaWajib);
+    }
 
 
     // ===============================
-    // reset saat ganti jenis
+    // fungsi: tampilkan/sembunyikan cell dana sosial per baris
     // ===============================
-    $('#id_jenis_simpanan').on('change', function () {
-        if ($(this).val() !== '2') {
-            $('#id_dana_sosial').val('');
+    async function cekDanaSosialBaris($baris) {
+        const jenis = $baris.find('.select-jenis').val();
+        const $cellDana = $baris.find('.cell-dana');
+        const $inputDana = $baris.find('[name^="dana_sosial_"]');
+
+        // bukan simpanan wajib → sembunyikan langsung
+        if (jenis !== '2') {
+            $cellDana.removeClass('show');
+            $inputDana.val('').removeClass('is-invalid');
+            $baris.find('.error-dana').text('');
+            syncHeaderDana();
+            return;
         }
+
+        const anggotaId = $('#id_anggota').val();
+        const tanggal   = $('#id_tanggal').val();
+
+        // anggota/tanggal belum diisi → tampilkan default
+        if (!anggotaId || !tanggal) {
+            $cellDana.addClass('show');
+            syncHeaderDana();
+            return;
+        }
+
+        try {
+            const res  = await fetch(
+                `{% url 'simpanan:cek_dana_sosial' %}?anggota=${anggotaId}&jenis=${jenis}&tanggal=${tanggal}`
+            );
+            const data = await res.json();
+
+            if (data.wajib) {
+                // belum bayar dansos bulan ini → tampilkan field
+                $cellDana.addClass('show');
+            } else {
+                // sudah bayar → sembunyikan & kosongkan
+                $cellDana.removeClass('show');
+                $inputDana.val('').removeClass('is-invalid');
+                $baris.find('.error-dana').text('');
+            }
+        } catch (_) {
+            // fallback jika fetch gagal
+            $cellDana.addClass('show');
+        }
+
+        syncHeaderDana();
+    }
+
+    // ===============================
+    // delegasi event: perubahan jenis simpanan
+    // ===============================
+    $('#tbody-simpanan').on('change', '.select-jenis', function () {
+        const $baris = $(this).closest('.baris-simpanan');
+        cekDanaSosialBaris($baris);
+        refreshSemuaDropdown();
     });
 
 
     // ===============================
-    // jalankan saat pertama load
+    // delegasi event: reset error saat input dana sosial
     // ===============================
-    cekDanaSosial();
+    $('#tbody-simpanan').on('input', '[name^="dana_sosial_"]', function () {
+        $(this).removeClass('is-invalid');
+        $(this).closest('.baris-simpanan').find('.error-dana').text('');
+    });
+
+
+    // ===============================
+    // tombol tambah baris
+    // ===============================
+    $('#btn-tambah-baris').on('click', function () {
+
+        const jumlahBaris = $('#tbody-simpanan .baris-simpanan').length;
+
+        // hard limit: maksimal sebanyak jumlah opsi yang tersedia
+        if (jumlahBaris >= semuaOpsi.length) {
+            alert('Semua jenis simpanan sudah dipilih.');
+            return;
+        }
+
+        const selectedAll = getSelectedJenis(null);
+        const sisaOpsi = semuaOpsi.filter(o => !selectedAll.includes(o.value));
+
+        if (sisaOpsi.length === 0) {
+            alert('Semua jenis simpanan sudah dipilih.');
+            return;
+        }
+
+        const idx = indexCounter++;
+
+        const $baris = $(`
+            <div class="baris-simpanan" data-index="${idx}">
+                <div class="cell-jenis">
+                    <select name="jenis_simpanan_${idx}" class="form-control select-jenis">
+                        <option value="">Pilih jenis simpanan</option>
+                    </select>
+                    <div class="invalid-feedback d-block error-jenis"></div>
+                </div>
+                <div class="cell-jumlah">
+                    <input type="text" name="jumlah_${idx}" class="form-control rupiah-input" placeholder="Masukkan jumlah">
+                    <div class="invalid-feedback d-block error-jumlah"></div>
+                </div>
+                <div class="cell-dana">
+                    <input type="text" name="dana_sosial_${idx}" class="form-control rupiah-input" placeholder="Dana sosial">
+                    <div class="invalid-feedback d-block error-dana"></div>
+                </div>
+                <div class="cell-aksi">
+                    <button type="button" class="btn btn-sm btn-danger btn-hapus-baris">✕</button>
+                </div>
+            </div>
+        `);
+
+        $('#tbody-simpanan').append($baris);
+        refreshSemuaDropdown();
+
+        $('#tbody-simpanan').append($baris);
+        refreshSemuaDropdown();
+
+        // FIX 1: init rupiah hanya untuk input di baris baru saja
+        $baris.find('.rupiah-input').each(function () {
+            this.addEventListener('input', function () {
+                let raw = getRawNumber(this.value);
+                this.value = raw > 0 ? 'Rp ' + formatRupiahNumber(raw) : '';
+            });
+            this.addEventListener('blur', function () {
+                if (this.value === 'Rp ') this.value = '';
+            });
+        });
+    });
+
+    // ===============================
+    // tombol hapus baris
+    // ===============================
+    $('#tbody-simpanan').on('click', '.btn-hapus-baris', function () {
+        $(this).closest('.baris-simpanan').remove();
+        syncHeaderDana();
+        refreshSemuaDropdown();
+    });
+
+
+    // ===============================
+    // validasi client-side sebelum submit
+    // ===============================
+    $('#formSimpanan').on('submit', function (e) {
+        let valid = true;
+
+        $('.error-jenis, .error-jumlah, .error-dana').text('');
+        $('.select-jenis, .rupiah-input').removeClass('is-invalid');
+
+        $('#tbody-simpanan .baris-simpanan').each(function () {
+            const $baris = $(this);
+            const jenis = $baris.find('.select-jenis').val();
+            const jumlahRaw = $baris.find('[name^="jumlah_"]').val() || '';
+            const jumlah = parseInt(jumlahRaw.replace(/\D/g, '')) || 0;
+
+            if (!jenis) {
+                $baris.find('.select-jenis').addClass('is-invalid');
+                $baris.find('.error-jenis').text('Jenis simpanan wajib dipilih.');
+                valid = false;
+            }
+
+            if (jumlah <= 0) {
+                $baris.find('[name^="jumlah_"]').addClass('is-invalid');
+                $baris.find('.error-jumlah').text('Jumlah harus lebih dari 0.');
+                valid = false;
+            } else if (jumlah < 1000) {
+                $baris.find('[name^="jumlah_"]').addClass('is-invalid');
+                $baris.find('.error-jumlah').text('Minimal simpanan Rp 1.000.');
+                valid = false;
+            }
+        });
+
+        $('[name="jumlah_baris"]').remove();
+        $('<input>').attr({
+            type: 'hidden',
+            name: 'jumlah_baris',
+            value: $('#tbody-simpanan .baris-simpanan').length
+        }).appendTo('#formSimpanan');
+
+        if (!valid) e.preventDefault();
+    });
 
 });
 </script>
-    <script src="{% static 'js/simpanan/form/form_simpanan.js' %}"></script>
+<script src="{% static 'js/simpanan/form/form_simpanan.js' %}"></script>
 {% endblock %}
