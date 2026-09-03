@@ -333,10 +333,9 @@
                 <label>Jumlah Pokok Dibayar</label>
                 <input type="text" name="nominal_pokok" id="id_nominal_pokok"
                        class="form-control rupiah-input rupiah-text"
-                       value="{{ angsuran_pokok|floatformat:0 }}"
-                       placeholder="Min: Rp {{ angsuran_pokok|floatformat:0|intcomma }}">
+                       value=""
+                       placeholder="Rp 0">
                 <small class="text-muted">
-                    Min: Rp {{ angsuran_pokok|floatformat:0|intcomma }} &nbsp;|&nbsp;
                     Lunas sekaligus: Rp {{ sisa_pokok_nominal|floatformat:0|intcomma }}
                 </small>
             </div>
@@ -365,7 +364,7 @@
                 <label>Jumlah Dibayar (Total)</label>
                 <input type="text" name="nominal" id="id_nominal"
                        class="form-control rupiah-text rupiah-input"
-                       value="{{ total_bayar_default|floatformat:0 }}" required>
+                       value="" required>
                 <small id="keterangan_nominal" class="text-muted"></small>
             </div>
             <div class="col-md-6">
@@ -503,6 +502,10 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // ── Recalculate ───────────────────────────────────────────────────────
+    // CATATAN PERUBAHAN: pokok tidak lagi otomatis dinaikkan ke angsuranPokokStd
+    // ketika kosong/kecil — user bebas isi berapa saja (min hanya divalidasi > 0
+    // di server saat submit). Yang tetap dijaga di sini cuma batas ATAS
+    // (tidak boleh melebihi sisa pinjaman).
     function hitungBayar() {
         const tipe = tipeBayar.value;
 
@@ -512,8 +515,7 @@ document.addEventListener("DOMContentLoaded", function () {
             rowBulanJasa.style.display = 'none';
 
             let pokok = parseFmt(nominalPokokInput.value);
-            if (pokok < angsuranPokokStd) pokok = angsuranPokokStd;
-            if (pokok > sisaPinjamanAwal)  pokok = sisaPinjamanAwal;
+            if (pokok > sisaPinjamanAwal) pokok = sisaPinjamanAwal;
 
             const sudah = isSudahCicilan();
             const jasa  = sudah ? 0 : hitungJasaPenuh();
@@ -553,10 +555,11 @@ document.addEventListener("DOMContentLoaded", function () {
         hitungBayar();
     });
     nominalPokokInput.addEventListener('blur', function () {
+        // Tidak lagi dipaksa naik ke angsuranPokokStd — biarkan sesuai isian user.
+        // Hanya dibatasi maksimal sebesar sisa pinjaman.
         let val = parseFmt(this.value);
-        if (val < angsuranPokokStd) val = angsuranPokokStd;
-        if (val > sisaPinjamanAwal)  val = sisaPinjamanAwal;
-        this.value = fmt(val);
+        if (val > sisaPinjamanAwal) val = sisaPinjamanAwal;
+        this.value = val > 0 ? fmt(val) : '';
         hitungBayar();
     });
 
@@ -619,6 +622,18 @@ document.addEventListener("DOMContentLoaded", function () {
             Swal.fire({
                 title: 'Perhatian',
                 text: 'Silakan isi tanggal transaksi terlebih dahulu.',
+                icon: 'warning', iconColor: '#FFD700',
+                confirmButtonText: '<span style="color:#291B18; font-weight:600;">Oke</span>',
+                customClass: { popup: 'kopasmen-swal-popup', title: 'kopasmen-swal-title', confirmButton: 'kopasmen-confirm-btn' },
+            });
+            return;
+        }
+
+        // ── Validasi pokok wajib diisi (>0) untuk tipe cicilan ────────────
+        if (tipeBayar.value === 'cicilan' && parseFmt(nominalPokokInput.value) <= 0) {
+            Swal.fire({
+                title: 'Perhatian',
+                text: 'Jumlah pokok dibayar harus diisi dan lebih dari Rp 0.',
                 icon: 'warning', iconColor: '#FFD700',
                 confirmButtonText: '<span style="color:#291B18; font-weight:600;">Oke</span>',
                 customClass: { popup: 'kopasmen-swal-popup', title: 'kopasmen-swal-title', confirmButton: 'kopasmen-confirm-btn' },
