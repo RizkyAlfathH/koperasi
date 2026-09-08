@@ -42,6 +42,12 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
+<div id="global-loader" class="hide">
+    <div class="loader-content">
+        <div class="spinner"></div>
+        <p>Memuat...</p>
+    </div>
+</div>
 
 {% if request.user.is_authenticated %}
     {% include "includes/sidebar.html" %}

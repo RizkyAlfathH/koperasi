@@ -28,112 +28,90 @@ from admin_koperasi.utils import has_page_permission
 @login_required
 def daftar_simpanan(request):
 
-    # validasi hak akses user (function helper)
     if not has_page_permission(request.user, "simpanan"):
         messages.error(request, "Anda tidak memiliki izin untuk mengakses halaman ini")
         return redirect("dashboard")
 
-    # variabel (objek list): menampung data yang akan ditampilkan ke template
-    data_list = []
-
-    # ambil parameter pencarian dan sorting dari request (objek request)
     search_query = request.GET.get('search', '')
     sort_by = request.GET.get('sort', 'nomor')
 
-    # blok: mengambil data anggota aktif dari database (queryset objek)
+    # ambil anggota aktif + filter search di level database
     try:
         anggotas = Anggota.objects.filter(status__iexact='aktif')
 
-        # filter jika ada pencarian
         if search_query:
             anggotas = anggotas.filter(
                 Q(nama__icontains=search_query) |
                 Q(nomor_anggota__icontains=search_query)
             )
 
+        # sorting tetap di level database, bukan di python
+        if sort_by == 'nama':
+            anggotas = anggotas.order_by('nama')
+        else:
+            anggotas = anggotas.order_by('nomor_anggota')
+
     except Exception as e:
-        # handling error jika query gagal
         messages.error(request, f"Gagal mengambil data anggota: {str(e)}")
         anggotas = Anggota.objects.none()
 
+    # ✅ PAGINATION DULU sebelum hitung saldo — ini kuncinya
+    paginator = Paginator(anggotas, 10)
+    page_simpanan = paginator.get_page(request.GET.get('page_simpanan', 1))
 
-    # function (nested function): menghitung saldo berdasarkan history tabungan
-    def get_saldo(anggota, jenis_id):
-        try:
-            # queryset (objek): ambil data history tabungan sesuai anggota dan jenis
-            qs = HistoryTabungan.objects.filter(
-                anggota=anggota,
-                jenis_simpanan_id=jenis_id
-            )
+    # anggota yang benar-benar perlu dihitung saldonya (hanya 10, bukan ratusan)
+    anggota_ids = [a.pk for a in page_simpanan.object_list]
 
-            # aggregate (method queryset): total setor
-            setor = qs.filter(
-                jenis_transaksi='SETOR'
-            ).aggregate(total=Sum('jumlah'))['total'] or 0
-
-            # aggregate: total tarik
-            tarik = qs.filter(
-                jenis_transaksi='TARIK'
-            ).aggregate(total=Sum('jumlah'))['total'] or 0
-
-            # aggregate: total koreksi (biasanya sudah negatif)
-            koreksi = qs.filter(
-                jenis_transaksi='KOREKSI'
-            ).aggregate(total=Sum('jumlah'))['total'] or 0
-
-            # return hasil perhitungan saldo
-            return setor - tarik + koreksi
-
-        except Exception:
-            # fallback jika terjadi error
-            return 0
-
-
-    # loop (iterasi queryset): proses setiap anggota
-    for anggota in anggotas:
-        try:
-            # append (method list): menambahkan data ke list
-            data_list.append({
-                'nomor_anggota': anggota.nomor_anggota,
-                'nama_anggota': anggota.nama,
-
-                # pemanggilan function get_saldo
-                'total_pokok': get_saldo(anggota, 1),
-                'total_wajib': get_saldo(anggota, 2),
-                'total_sukarela': get_saldo(anggota, 3),
-
-                # aggregate langsung dari model simpanan
-                'total_dana_sosial': (
-                    Simpanan.objects.filter(anggota=anggota)
-                    .aggregate(total=Sum('dana_sosial'))['total'] or 0
-                ),
-            })
-
-        except Exception as e:
-            # handling jika satu anggota gagal diproses
-            messages.warning(request, f"Gagal memuat data anggota {anggota.nama}: {str(e)}")
-            continue
-
-
-    # sorting data berdasarkan nama atau nomor anggota
-    if sort_by == 'nama':
-        data_list.sort(key=lambda x: x['nama_anggota'])
-    else:
-        data_list.sort(key=lambda x: x['nomor_anggota'])
-
-
-    # pagination (objek paginator)
-    paginator = Paginator(data_list, 10)
-
-    # ambil halaman aktif
-    page_simpanan = paginator.get_page(
-        request.GET.get('page_simpanan', 1)
+    # 1 query untuk semua saldo HistoryTabungan (pokok/wajib/sukarela)
+    history_totals = (
+        HistoryTabungan.objects
+        .filter(anggota_id__in=anggota_ids)
+        .values('anggota_id', 'jenis_simpanan_id', 'jenis_transaksi')
+        .annotate(total=Sum('jumlah'))
     )
 
+    # susun jadi dict: {anggota_id: {jenis_id: saldo}}
+    saldo_map = {}
+    for row in history_totals:
+        aid = row['anggota_id']
+        jid = row['jenis_simpanan_id']
+        jt = row['jenis_transaksi']
+        total = row['total'] or 0
 
-    # return response (render template)
+        saldo_map.setdefault(aid, {})
+        saldo_map[aid].setdefault(jid, 0)
+
+        if jt == 'SETOR':
+            saldo_map[aid][jid] += total
+        elif jt == 'TARIK':
+            saldo_map[aid][jid] -= total
+        elif jt == 'KOREKSI':
+            saldo_map[aid][jid] += total
+
+    # 1 query untuk semua dana_sosial (dari model Simpanan)
+    dana_sosial_totals = (
+        Simpanan.objects
+        .filter(anggota_id__in=anggota_ids)
+        .values('anggota_id')
+        .annotate(total=Sum('dana_sosial'))
+    )
+    dana_sosial_map = {row['anggota_id']: row['total'] or 0 for row in dana_sosial_totals}
+
+    # bangun data_list HANYA untuk anggota di halaman ini
+    data_list = []
+    for anggota in page_simpanan.object_list:
+        saldo_anggota = saldo_map.get(anggota.pk, {})
+        data_list.append({
+            'nomor_anggota': anggota.nomor_anggota,
+            'nama_anggota': anggota.nama,
+            'total_pokok': saldo_anggota.get(1, 0),
+            'total_wajib': saldo_anggota.get(2, 0),
+            'total_sukarela': saldo_anggota.get(3, 0),
+            'total_dana_sosial': dana_sosial_map.get(anggota.pk, 0),
+        })
+
     return render(request, "daftar_simpanan.html", {
-        'data': page_simpanan,
+        'data': data_list,
         'page_obj': page_simpanan,
         'param': 'page_simpanan',
         'search_query': search_query,
