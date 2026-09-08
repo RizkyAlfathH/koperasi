@@ -510,13 +510,29 @@ def bayar_pinjaman(request, id_pinjaman):
     def akhir_bulan(tgl):
         return tgl.replace(day=calendar.monthrange(tgl.year, tgl.month)[1])
 
-    # ── Set bulan yang sudah ada record cicilan ───────────────────────────
+    # ── Set bulan yang sudah ada record cicilan (berdasarkan tanggal_bayar) ─
     bulan_sudah_cicilan = set()
     for row in Angsuran.objects.filter(
         id_pinjaman=pinjaman, tipe_bayar="cicilan"
     ).values("tanggal_bayar"):
         tgl = row["tanggal_bayar"]
         bulan_sudah_cicilan.add((tgl.year, tgl.month))
+
+    # ── Set bulan yang jasa-nya sudah DIPRABAYAR lewat "Jasa Saja" ────────
+    # Ini dibedakan dari bulan_sudah_cicilan karena di sini pokok BELUM
+    # dibayar — hanya jasa-nya saja yang sudah lunas untuk bulan_kewajiban
+    # tertentu. Dipakai supaya saat user bayar pokok utk bulan tsb, jasa
+    # tidak ditagih lagi (dobel).
+    bulan_jasa_prabayar = set()
+    for row in Angsuran.objects.filter(
+        id_pinjaman=pinjaman, tipe_bayar="jasa", bulan_kewajiban__isnull=False
+    ).values("bulan_kewajiban"):
+        tgl = row["bulan_kewajiban"]
+        bulan_jasa_prabayar.add((tgl.year, tgl.month))
+
+    # Gabungan: bulan yang "jasa-nya sudah lunas" (baik karena sudah ada
+    # transaksi cicilan bulan ini, maupun karena sudah diprabayar jasa-saja).
+    bulan_jasa_lunas = bulan_sudah_cicilan | bulan_jasa_prabayar
 
     # ── Hitung total pokok terbayar & cicilan_terbayar ────────────────────
     cicilan_records = Angsuran.objects.filter(
@@ -585,7 +601,9 @@ def bayar_pinjaman(request, id_pinjaman):
 
     for idx in range(cicilan_terbayar, tenor):
         tgl = tanggal_cicilan_ke(idx)
-        sudah_ada_cicilan = (tgl.year, tgl.month) in bulan_sudah_cicilan
+        # Bulan ditandai "Jasa Lunas" kalau sudah ada transaksi cicilan bulan
+        # ini ATAU jasanya sudah diprabayar lewat pembayaran "Jasa Saja".
+        sudah_ada_cicilan = (tgl.year, tgl.month) in bulan_jasa_lunas
         pilihan_bulan.append({
             "value"            : idx,
             "label"            : format_bulan_indo(tgl),
@@ -596,7 +614,7 @@ def bayar_pinjaman(request, id_pinjaman):
 
     # ── Jasa default (untuk bulan default) ───────────────────────────────
     tgl_default         = tanggal_cicilan_ke(bulan_kewajiban_default)
-    sudah_bayar_default = (tgl_default.year, tgl_default.month) in bulan_sudah_cicilan
+    sudah_bayar_default = (tgl_default.year, tgl_default.month) in bulan_jasa_lunas
 
     jasa_bulan_ini      = Decimal("0") if sudah_bayar_default else hitung_jasa(sisa_pinjaman)
     jasa_penuh          = hitung_jasa(sisa_pinjaman)
@@ -660,9 +678,11 @@ def bayar_pinjaman(request, id_pinjaman):
 
         tgl_kewajiban = tanggal_cicilan_ke(bulan_kewajiban_idx)
 
+        # Bulan yang dipilih dianggap "jasa sudah lunas" kalau sudah ada
+        # transaksi cicilan bulan ini ATAU sudah diprabayar via "Jasa Saja".
         sudah_bayar_cicilan_bulan_dipilih = (
             tgl_kewajiban.year, tgl_kewajiban.month
-        ) in bulan_sudah_cicilan
+        ) in bulan_jasa_lunas
 
         # ── Tipe cicilan ──────────────────────────────────────────────────
         if tipe_bayar == "cicilan":
@@ -675,14 +695,19 @@ def bayar_pinjaman(request, id_pinjaman):
             except Exception:
                 pokok_dibayar = angsuran_pokok
 
-            pokok_minimal = min(angsuran_pokok, sisa_pinjaman)
-            if pokok_dibayar < pokok_minimal:
-                messages.error(request, f"Pokok minimal Rp {pokok_minimal:,.0f}.")
+            # ── CATATAN PERUBAHAN ───────────────────────────────────────
+            # Validasi "pokok minimal = min(angsuran_pokok, sisa_pinjaman)"
+            # DIHAPUS sesuai permintaan. User sekarang boleh bayar pokok
+            # berapa saja (bebas), selama > 0 dan tidak melebihi sisa pinjaman.
+            if pokok_dibayar <= 0:
+                messages.error(request, "Jumlah pokok harus lebih dari Rp 0.")
                 return redirect("pinjaman:bayar_pinjaman", id_pinjaman=id_pinjaman)
 
             if pokok_dibayar > sisa_pinjaman:
                 pokok_dibayar = sisa_pinjaman
 
+            # Kalau jasa bulan ini sudah lunas (baik dari cicilan bulan ini
+            # maupun dari prabayar "Jasa Saja"), user cukup bayar pokoknya.
             jasa_cicilan = Decimal("0") if sudah_bayar_cicilan_bulan_dipilih else hitung_jasa(sisa_pinjaman)
             total_wajib  = pokok_dibayar + jasa_cicilan
 
@@ -705,7 +730,7 @@ def bayar_pinjaman(request, id_pinjaman):
                 jumlah_bayar   = pokok_dibayar + jasa_cicilan,
                 jumlah_pokok   = pokok_dibayar,
                 tipe_bayar     = "cicilan",
-                bulan_kewajiban= bulan_kewajiban_date,   # ← field baru
+                bulan_kewajiban= bulan_kewajiban_date,
             )
 
             pinjaman.sisa_pinjaman = max(sisa_pinjaman - pokok_dibayar, Decimal("0"))
@@ -722,7 +747,7 @@ def bayar_pinjaman(request, id_pinjaman):
                     sumber_pinjaman = pinjaman,
                 )
 
-        # ── Tipe jasa saja ────────────────────────────────────────────────
+        # ── Tipe jasa saja (bisa untuk beberapa bulan sekaligus) ─────────────
         elif tipe_bayar == "jasa":
 
             if jumlah_bln_jasa < 1:
@@ -738,7 +763,31 @@ def bayar_pinjaman(request, id_pinjaman):
                 )
                 return redirect("pinjaman:bayar_pinjaman", id_pinjaman=id_pinjaman)
 
-            for i in range(jumlah_bln_jasa):
+            # ── Tentukan bulan-bulan yang di-prabayar jasa-nya ────────────
+            # Mulai dari bulan_kewajiban yang dipilih user di dropdown,
+            # lalu maju per bulan. Bulan yang jasanya SUDAH lunas (baik dari
+            # cicilan bulan ini maupun prabayar jasa sebelumnya) dilewati
+            # supaya tidak dobel bayar jasa untuk bulan yang sama.
+            bulan_target = []
+            idx_cursor = bulan_kewajiban_idx
+            while len(bulan_target) < jumlah_bln_jasa and idx_cursor < tenor:
+                tgl_cursor = tanggal_cicilan_ke(idx_cursor)
+                sudah_lunas_cursor = (
+                    (tgl_cursor.year, tgl_cursor.month) in bulan_jasa_lunas
+                    or tgl_cursor.replace(day=1) in bulan_target
+                )
+                if not sudah_lunas_cursor:
+                    bulan_target.append(tgl_cursor.replace(day=1))
+                idx_cursor += 1
+
+            if len(bulan_target) < jumlah_bln_jasa:
+                messages.error(
+                    request,
+                    "Jumlah bulan jasa melebihi sisa tenor pinjaman yang tersedia."
+                )
+                return redirect("pinjaman:bayar_pinjaman", id_pinjaman=id_pinjaman)
+
+            for bulan_kewajiban_jasa in bulan_target:
                 Angsuran.objects.create(
                     id_pinjaman    = pinjaman,
                     id_admin       = admin_login,
@@ -746,7 +795,9 @@ def bayar_pinjaman(request, id_pinjaman):
                     jumlah_bayar   = jasa_per_bulan,
                     jumlah_pokok   = Decimal("0"),
                     tipe_bayar     = "jasa",
-                    # jasa tidak punya bulan kewajiban spesifik → biarkan None
+                    # Bulan kewajiban DISIMPAN sekarang, supaya saat user nanti
+                    # bayar pokok untuk bulan ini, jasa tidak ditagih lagi.
+                    bulan_kewajiban= bulan_kewajiban_jasa,
                 )
 
         # ── Update status ─────────────────────────────────────────────────
