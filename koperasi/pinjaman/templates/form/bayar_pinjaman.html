@@ -99,6 +99,23 @@
         }
         .badge-jasa-lunas svg { width: 11px; height: 11px; }
 
+        /* ── Badge pokok lunas, jasa masih menunggu ──────────────────────── */
+        .badge-pokok-pending {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #fff3e0;
+            color: #e65100;
+            border: 1px solid #ffcc80;
+            border-radius: 20px;
+            padding: 2px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .badge-pokok-pending svg { width: 11px; height: 11px; }
+
         /* Badge di trigger (bulan terpilih yang jasanya sudah lunas) */
         .trigger-badge-lunas {
             display: inline-flex;
@@ -115,6 +132,23 @@
             flex-shrink: 0;
         }
         .trigger-badge-lunas svg { width: 10px; height: 10px; }
+
+        /* Badge di trigger (bulan terpilih yang pokoknya lunas, jasa pending) */
+        .trigger-badge-pokok-pending {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            background: #fff3e0;
+            color: #e65100;
+            border: 1px solid #ffcc80;
+            border-radius: 20px;
+            padding: 1px 7px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .trigger-badge-pokok-pending svg { width: 10px; height: 10px; }
 
         /* Badge di label field */
         .label-badge-lunas {
@@ -172,7 +206,8 @@
         <div>
             <strong>Jasa Bulan Ini Sudah Dibayar</strong><br>
             Sudah ada pembayaran di bulan ini — jasa tidak perlu dibayar lagi untuk transaksi berikutnya bulan ini.
-            Jika melakukan pelunasan, <strong>cukup bayar sisa pokok saja</strong>.
+            Jika melakukan pelunasan, gunakan tipe <strong>"Cicilan"</strong> — jasa otomatis
+            Rp 0 sehingga hasilnya sama seperti bayar pokok saja.
         </div>
     </div>
     {% endif %}
@@ -265,8 +300,12 @@
                 <label>Pilihan Pembayaran</label>
                 <select id="tipe_bayar" name="tipe_bayar" class="form-control">
                     <option value="cicilan">Cicilan (Pokok + Jasa)</option>
+                    <option value="pokok" id="optPokokSaja">Pokok Saja</option>
                     <option value="jasa">Jasa Saja</option>
                 </select>
+                <small class="text-muted" id="ketPokokSaja" style="display:none;">
+                    Jasa bulan ini <strong>belum</strong> dibayar — bisa dilunasi terpisah nanti lewat "Jasa Saja".
+                </small>
             </div>
             <div class="col-md-6">
 
@@ -274,6 +313,11 @@
                 <label id="label_bulan_kewajiban">
                     Bulan Kewajiban
                     <span id="label_badge_lunas" style="display:none;">
+                    </span>
+                    <span id="label_badge_pokok_pending" class="label-badge-lunas"
+                          style="display:none; background:#fff3e0; color:#e65100; border-color:#ffcc80;">
+                        <svg viewBox="0 0 16 16" fill="currentColor" width="11" height="11"><path d="M8 3.5a.5.5 0 0 1 .5.5v4.25l3.02 1.744a.5.5 0 1 1-.5.866l-3.27-1.888A.5.5 0 0 1 7.5 8.5V4a.5.5 0 0 1 .5-.5zM8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14z"/></svg>
+                        Pokok Lunas, Jasa Belum
                     </span>
                 </label>
 
@@ -289,6 +333,10 @@
                                 <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>
                                 Jasa Lunas
                             </span>
+                            <span id="triggerBadgePokokPending" class="trigger-badge-pokok-pending" style="display:none;">
+                                <svg viewBox="0 0 16 16" fill="currentColor" width="10" height="10"><path d="M8 3.5a.5.5 0 0 1 .5.5v4.25l3.02 1.744a.5.5 0 1 1-.5.866l-3.27-1.888A.5.5 0 0 1 7.5 8.5V4a.5.5 0 0 1 .5-.5zM8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14z"/></svg>
+                                Pokok Lunas
+                            </span>
                         </div>
                         <svg class="custom-select-chevron" viewBox="0 0 16 16" fill="currentColor" width="14" height="14">
                             <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
@@ -300,12 +348,18 @@
                         {% for b in pilihan_bulan %}
                         <div class="custom-option {% if b.value == bulan_kewajiban_default %}selected{% endif %}"
                              data-value="{{ b.value }}"
-                             data-sudah-cicilan="{{ b.sudah_ada_cicilan|yesno:'true,false' }}">
+                             data-sudah-cicilan="{{ b.sudah_ada_cicilan|yesno:'true,false' }}"
+                             data-pokok-pending="{{ b.pokok_lunas_jasa_pending|yesno:'true,false' }}">
                             <span class="opt-label">{{ b.label }}</span>
                             {% if b.sudah_ada_cicilan %}
                             <span class="badge-jasa-lunas">
                                 <svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>
                                 Jasa Lunas
+                            </span>
+                            {% elif b.pokok_lunas_jasa_pending %}
+                            <span class="badge-pokok-pending">
+                                <svg viewBox="0 0 16 16" fill="currentColor" width="11" height="11"><path d="M8 3.5a.5.5 0 0 1 .5.5v4.25l3.02 1.744a.5.5 0 1 1-.5.866l-3.27-1.888A.5.5 0 0 1 7.5 8.5V4a.5.5 0 0 1 .5-.5zM8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14z"/></svg>
+                                Pokok Lunas, Jasa Belum
                             </span>
                             {% endif %}
                         </div>
@@ -321,7 +375,7 @@
                         <svg viewBox="0 0 16 16" fill="currentColor" width="10" height="10"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>
                         Jasa Lunas
                     </span>
-                    = jasa bulan itu sudah dibayar, pelunasan cukup bayar pokok
+                    = jasa bulan itu sudah dibayar, pelunasan cukup bayar pokok lewat "Cicilan"
                 </small>
                 {% endif %}
             </div>
@@ -404,6 +458,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // ── Elemen DOM ────────────────────────────────────────────────────────
     const tipeBayar         = document.getElementById("tipe_bayar");
+    const optPokokSaja      = document.getElementById("optPokokSaja");
     const nominalInput      = document.getElementById("id_nominal");
     const nominalPokokInput = document.getElementById("id_nominal_pokok");
     const jasaDisplay       = document.getElementById("id_jasa_display");
@@ -415,31 +470,55 @@ document.addEventListener("DOMContentLoaded", function () {
     const jasaPerBulanLabel = document.getElementById("jasa_per_bulan_label");
     const btnJasaMinus      = document.getElementById("btnJasaMinus");
     const btnJasaPlus       = document.getElementById("btnJasaPlus");
+    const ketPokokSaja      = document.getElementById("ketPokokSaja");
 
     // ── Custom Dropdown ───────────────────────────────────────────────────
-    const trigger       = document.getElementById("customBulanTrigger");
-    const optionsList   = document.getElementById("customBulanOptions");
-    const triggerLabel  = document.getElementById("triggerLabel");
-    const triggerBadge  = document.getElementById("triggerBadgeLunas");
-    const labelBadge    = document.getElementById("label_badge_lunas");
-    const hiddenVal     = document.getElementById("bulan_kewajiban_val");
-    const isLocked      = adaTunggakan;
+    const trigger              = document.getElementById("customBulanTrigger");
+    const optionsList          = document.getElementById("customBulanOptions");
+    const triggerLabel         = document.getElementById("triggerLabel");
+    const triggerBadge         = document.getElementById("triggerBadgeLunas");
+    const triggerBadgePending  = document.getElementById("triggerBadgePokokPending");
+    const labelBadge           = document.getElementById("label_badge_lunas");
+    const labelBadgePending    = document.getElementById("label_badge_pokok_pending");
+    const hiddenVal            = document.getElementById("bulan_kewajiban_val");
+    const isLocked             = adaTunggakan;
 
     // State dropdown
-    let selectedValue       = hiddenVal.value;
+    let selectedValue        = hiddenVal.value;
     let selectedSudahCicilan = false;
+    let selectedPokokPending = false;
+
+    // Kunci/buka opsi "Pokok Saja" sesuai status jasa bulan yang dipilih
+    function updateTipeBayarAvailability() {
+        if (!optPokokSaja) return;
+
+        if (isSudahCicilan()) {
+            optPokokSaja.disabled   = true;
+            optPokokSaja.textContent = 'Pokok Saja (jasa sudah lunas — gunakan Cicilan)';
+            if (tipeBayar.value === 'pokok') {
+                tipeBayar.value = 'cicilan';
+            }
+        } else {
+            optPokokSaja.disabled   = false;
+            optPokokSaja.textContent = 'Pokok Saja';
+        }
+    }
 
     // Init: set tampilan trigger dari option yang selected
     function initTrigger() {
         const selectedOpt = optionsList.querySelector('.custom-option.selected');
         if (selectedOpt) {
-            triggerLabel.textContent      = selectedOpt.querySelector('.opt-label').textContent;
-            selectedSudahCicilan          = selectedOpt.dataset.sudahCicilan === 'true';
-            selectedValue                 = selectedOpt.dataset.value;
-            hiddenVal.value               = selectedValue;
-            triggerBadge.style.display    = selectedSudahCicilan ? 'inline-flex' : 'none';
-            labelBadge.style.display      = selectedSudahCicilan ? 'inline' : 'none';
+            triggerLabel.textContent          = selectedOpt.querySelector('.opt-label').textContent;
+            selectedSudahCicilan              = selectedOpt.dataset.sudahCicilan === 'true';
+            selectedPokokPending              = selectedOpt.dataset.pokokPending === 'true';
+            selectedValue                     = selectedOpt.dataset.value;
+            hiddenVal.value                   = selectedValue;
+            triggerBadge.style.display        = selectedSudahCicilan ? 'inline-flex' : 'none';
+            triggerBadgePending.style.display = (!selectedSudahCicilan && selectedPokokPending) ? 'inline-flex' : 'none';
+            labelBadge.style.display          = selectedSudahCicilan ? 'inline' : 'none';
+            labelBadgePending.style.display   = (!selectedSudahCicilan && selectedPokokPending) ? 'inline' : 'none';
         }
+        updateTipeBayarAvailability();
     }
     initTrigger();
 
@@ -459,16 +538,22 @@ document.addEventListener("DOMContentLoaded", function () {
             opt.classList.add('selected');
 
             // Update nilai & trigger
-            selectedValue                 = opt.dataset.value;
-            selectedSudahCicilan          = opt.dataset.sudahCicilan === 'true';
-            hiddenVal.value               = selectedValue;
-            triggerLabel.textContent      = opt.querySelector('.opt-label').textContent;
-            triggerBadge.style.display    = selectedSudahCicilan ? 'inline-flex' : 'none';
-            labelBadge.style.display      = selectedSudahCicilan ? 'inline' : 'none';
+            selectedValue                      = opt.dataset.value;
+            selectedSudahCicilan               = opt.dataset.sudahCicilan === 'true';
+            selectedPokokPending               = opt.dataset.pokokPending === 'true';
+            hiddenVal.value                    = selectedValue;
+            triggerLabel.textContent           = opt.querySelector('.opt-label').textContent;
+            triggerBadge.style.display         = selectedSudahCicilan ? 'inline-flex' : 'none';
+            triggerBadgePending.style.display  = (!selectedSudahCicilan && selectedPokokPending) ? 'inline-flex' : 'none';
+            labelBadge.style.display           = selectedSudahCicilan ? 'inline' : 'none';
+            labelBadgePending.style.display    = (!selectedSudahCicilan && selectedPokokPending) ? 'inline' : 'none';
 
             // Tutup dropdown
             optionsList.classList.remove('open');
             trigger.classList.remove('open');
+
+            // Update ketersediaan opsi "Pokok Saja" untuk bulan yang baru dipilih
+            updateTipeBayarAvailability();
 
             // Recalc
             hitungBayar();
@@ -502,10 +587,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // ── Recalculate ───────────────────────────────────────────────────────
-    // CATATAN PERUBAHAN: pokok tidak lagi otomatis dinaikkan ke angsuranPokokStd
-    // ketika kosong/kecil — user bebas isi berapa saja (min hanya divalidasi > 0
-    // di server saat submit). Yang tetap dijaga di sini cuma batas ATAS
-    // (tidak boleh melebihi sisa pinjaman).
     function hitungBayar() {
         const tipe = tipeBayar.value;
 
@@ -513,6 +594,7 @@ document.addEventListener("DOMContentLoaded", function () {
             rowPokok.style.display     = '';
             rowJasaInfo.style.display  = '';
             rowBulanJasa.style.display = 'none';
+            ketPokokSaja.style.display = 'none';
 
             let pokok = parseFmt(nominalPokokInput.value);
             if (pokok > sisaPinjamanAwal) pokok = sisaPinjamanAwal;
@@ -530,13 +612,29 @@ document.addEventListener("DOMContentLoaded", function () {
             }
             nominalInput.value          = fmt(total);
             keteranganNominal.innerText = sudah
-                ? `Pokok ${fmt(pokok)} + Jasa Rp 0 (sudah dibayar)`
+                ? `Pokok ${fmt(pokok)} + Jasa Rp 0 (sudah dibayar) — total = pokok saja`
                 : `Pokok ${fmt(pokok)} + Jasa ${fmt(jasa)}`;
+
+        } else if (tipe === 'pokok') {
+            rowPokok.style.display     = '';
+            rowJasaInfo.style.display  = 'none';
+            rowBulanJasa.style.display = 'none';
+
+            let pokok = parseFmt(nominalPokokInput.value);
+            if (pokok > sisaPinjamanAwal) pokok = sisaPinjamanAwal;
+
+            nominalInput.value          = fmt(pokok);
+            ketPokokSaja.style.display  = '';
+            ketPokokSaja.innerHTML =
+                'Jasa bulan ini <strong>belum</strong> dibayar — bisa dilunasi terpisah nanti lewat "Jasa Saja".';
+            ketPokokSaja.style.color = '';
+            keteranganNominal.innerText = `Pokok saja ${fmt(pokok)} — jasa menyusul dibayar terpisah`;
 
         } else if (tipe === 'jasa') {
             rowPokok.style.display     = 'none';
             rowJasaInfo.style.display  = 'none';
             rowBulanJasa.style.display = '';
+            ketPokokSaja.style.display = 'none';
 
             const bln       = parseInt(jumlahBulanJasa.value || 1);
             const jasaBulan = hitungJasaPenuh();
@@ -555,8 +653,6 @@ document.addEventListener("DOMContentLoaded", function () {
         hitungBayar();
     });
     nominalPokokInput.addEventListener('blur', function () {
-        // Tidak lagi dipaksa naik ke angsuranPokokStd — biarkan sesuai isian user.
-        // Hanya dibatasi maksimal sebesar sisa pinjaman.
         let val = parseFmt(this.value);
         if (val > sisaPinjamanAwal) val = sisaPinjamanAwal;
         this.value = val > 0 ? fmt(val) : '';
@@ -610,6 +706,66 @@ document.addEventListener("DOMContentLoaded", function () {
             }
             .kopasmen-confirm-btn:hover { background-color: #e6c200 !important; }
             .kopasmen-cancel-btn:hover  { background: #fff8e1 !important; }
+
+            /* ── PERBAIKAN: layout detail konfirmasi dirapikan ────────────
+               Dulu pakai &nbsp; berulang buat perataan label — sekarang
+               pakai baris flexbox label-kiri / nilai-kanan yang konsisten,
+               dan baris Total dibedakan (border atas + warna hijau). */
+            .kopasmen-confirm-detail {
+                text-align: left;
+                font-size: 14px;
+                background: #f9f9f9;
+                border-radius: 12px;
+                padding: 14px 16px;
+                border-left: 4px solid #FFD700;
+            }
+            .kopasmen-confirm-detail .cd-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                gap: 16px;
+                padding: 6px 0;
+                border-bottom: 1px dashed #e5e0d0;
+            }
+            .kopasmen-confirm-detail .cd-row:last-child {
+                border-bottom: none;
+            }
+            .kopasmen-confirm-detail .cd-label {
+                color: #8a7f6a;
+                font-weight: 500;
+                white-space: nowrap;
+            }
+            .kopasmen-confirm-detail .cd-value {
+                font-weight: 600;
+                color: #291B18;
+                text-align: right;
+            }
+            .kopasmen-confirm-detail .cd-total {
+                margin-top: 6px;
+                padding-top: 10px;
+                border-top: 2px solid #FFD700;
+                border-bottom: none;
+            }
+            .kopasmen-confirm-detail .cd-total .cd-label {
+                color: #291B18;
+                font-weight: 700;
+            }
+            .kopasmen-confirm-detail .cd-total .cd-value {
+                color: #2e7d32;
+                font-size: 16px;
+                font-weight: 700;
+            }
+            .kopasmen-confirm-tunggakan {
+                margin-top: 10px;
+                padding: 8px 12px;
+                background: #fff8e1;
+                border-radius: 8px;
+                font-size: 12.5px;
+                color: #8a6d00;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
         `;
         document.head.appendChild(style);
     }
@@ -629,8 +785,8 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        // ── Validasi pokok wajib diisi (>0) untuk tipe cicilan ────────────
-        if (tipeBayar.value === 'cicilan' && parseFmt(nominalPokokInput.value) <= 0) {
+        // ── Validasi pokok wajib diisi (>0) untuk tipe cicilan & pokok ────
+        if ((tipeBayar.value === 'cicilan' || tipeBayar.value === 'pokok') && parseFmt(nominalPokokInput.value) <= 0) {
             Swal.fire({
                 title: 'Perhatian',
                 text: 'Jumlah pokok dibayar harus diisi dan lebih dari Rp 0.',
@@ -649,38 +805,46 @@ document.addEventListener("DOMContentLoaded", function () {
         const tanggalVal    = tanggalInput.value;
         const bulanLabel    = triggerLabel.textContent + (selectedSudahCicilan ? ' (Jasa Lunas)' : '');
 
-        let detailTambahan = '';
-        if (tipeBayar.value === 'cicilan') {
-            detailTambahan = `<b>Pokok &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</b> ${nominalPokokInput.value}<br>
-                              <b>Jasa &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</b> ${jasaDisplay.value}<br>`;
-        } else {
-            detailTambahan = `<b>Bulan Jasa &nbsp;:</b> ${jumlahBulanJasa.value} bulan<br>`;
+        // ── PERBAIKAN: bangun detail konfirmasi sebagai baris label/nilai
+        // yang rapi, alih-alih string HTML manual dengan &nbsp; berulang ──
+        function cdRow(label, value, extraClass) {
+            return `<div class="cd-row ${extraClass || ''}">
+                        <span class="cd-label">${label}</span>
+                        <span class="cd-value">${value}</span>
+                    </div>`;
         }
 
+        let barisDetail = '';
+        barisDetail += cdRow('Anggota', namaAnggota);
+        barisDetail += cdRow('Jenis Pinjaman', jenisPinjaman);
+        barisDetail += cdRow('Kategori Jasa', kategoriLabel);
+        barisDetail += cdRow('Tipe Pembayaran', tipeBayarText);
+        barisDetail += cdRow('Bulan Kewajiban', bulanLabel);
+        barisDetail += cdRow('Tanggal Transaksi', tanggalVal);
+
+        if (tipeBayar.value === 'cicilan') {
+            barisDetail += cdRow('Pokok', nominalPokokInput.value);
+            barisDetail += cdRow('Jasa', jasaDisplay.value);
+        } else if (tipeBayar.value === 'pokok') {
+            barisDetail += cdRow('Pokok', nominalPokokInput.value);
+            barisDetail += cdRow('Jasa', 'Menyusul (dibayar terpisah)');
+        } else {
+            barisDetail += cdRow('Jumlah Bulan Jasa', `${jumlahBulanJasa.value} bulan`);
+        }
+
+        barisDetail += cdRow('Total Dibayar', nominal, 'cd-total');
+
         {% if ada_tunggakan %}
-        const tunggakanInfo = `<br><span style="color:#b8860b; font-size:12px;">
+        const tunggakanInfo = `<div class="kopasmen-confirm-tunggakan">
             <i class="ph ph-warning"></i> Terdapat tunggakan — pembayaran urut dari bulan tertunggak.
-        </span>`;
+        </div>`;
         {% else %}
         const tunggakanInfo = '';
         {% endif %}
 
         Swal.fire({
             title: 'Konfirmasi Pembayaran',
-            html: `
-                <div style="text-align:left; font-size:14px; line-height:2;
-                            background:#f9f9f9; border-radius:12px;
-                            padding:12px 16px; border-left:4px solid #FFD700;">
-                    <b>Anggota &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</b> ${namaAnggota}<br>
-                    <b>Jenis &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</b> ${jenisPinjaman}<br>
-                    <b>Kategori &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</b> ${kategoriLabel}<br>
-                    <b>Tipe &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</b> ${tipeBayarText}<br>
-                    <b>Kewajiban &nbsp;&nbsp;:</b> ${bulanLabel}<br>
-                    <b>Tgl Transaksi:</b> ${tanggalVal}<br>
-                    ${detailTambahan}
-                    <b>Total &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</b> ${nominal}
-                    ${tunggakanInfo}
-                </div>`,
+            html: `<div class="kopasmen-confirm-detail">${barisDetail}</div>${tunggakanInfo}`,
             icon: 'question', iconColor: '#FFD700',
             showCancelButton: true,
             confirmButtonText: '<span style="color:#291B18; font-weight:600;">Ya, Bayar</span>',

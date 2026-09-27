@@ -4,6 +4,40 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/pages/laporan/laporan.css' %}">
+<style>
+    /* ── Tab switch Bulanan / Tahunan ───────────────────────── */
+    .laporan-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+        border-bottom: 2px solid #eee;
+    }
+    .laporan-tab-btn {
+        background: none;
+        border: none;
+        padding: 10px 20px;
+        font-weight: 600;
+        font-size: 15px;
+        color: #6b7280;
+        cursor: pointer;
+        border-bottom: 3px solid transparent;
+        margin-bottom: -2px;
+        transition: all 0.15s ease;
+    }
+    .laporan-tab-btn:hover {
+        color: #291B18;
+    }
+    .laporan-tab-btn.active {
+        color: #291B18;
+        border-bottom-color: #FFD700;
+    }
+    .laporan-tab-content {
+        display: none;
+    }
+    .laporan-tab-content.active {
+        display: block;
+    }
+</style>
 {% endblock %}
 
 {% block title %}Laporan{% endblock %}
@@ -14,8 +48,22 @@
 
 <div class="laporan-wrapper">
 
-<!-- card laporan bulanan -->
-<div class="content-card">
+<!-- ── tab switcher ─────────────────────────────────────────── -->
+<div class="laporan-tabs">
+    <button type="button"
+            class="laporan-tab-btn {% if active_tab == 'bulanan' %}active{% endif %}"
+            data-tab="bulanan">
+        Laporan Bulanan
+    </button>
+    <button type="button"
+            class="laporan-tab-btn {% if active_tab == 'tahunan' %}active{% endif %}"
+            data-tab="tahunan">
+        Laporan Tahunan
+    </button>
+</div>
+
+<!-- ── tab: laporan bulanan ─────────────────────────────────── -->
+<div class="content-card laporan-tab-content {% if active_tab == 'bulanan' %}active{% endif %}" id="tab-bulanan">
 
     <h2>Laporan Bulanan</h2>
 
@@ -25,6 +73,9 @@
 
     <!-- form filter -->
     <form method="get" class="filter-form">
+
+        <!-- tab aktif ikut terkirim supaya setelah submit tetap di tab ini -->
+        <input type="hidden" name="tab" value="bulanan">
 
         <!-- dropdown bulan -->
         <select name="bulan">
@@ -51,7 +102,7 @@
 
         <!-- tombol reset -->
         {% if request.GET.bulan != None or request.GET.tahun != None %}
-        <a href="{% url 'laporan:laporan' %}" class="reset-btn">
+        <a href="{% url 'laporan:laporan' %}?tab=bulanan" class="reset-btn">
             &#x21bb;
         </a>
         {% endif %}
@@ -122,8 +173,8 @@
 </div>
 
 
-<!-- card laporan tahunan -->
-<div class="content-card">
+<!-- ── tab: laporan tahunan ─────────────────────────────────── -->
+<div class="content-card laporan-tab-content {% if active_tab == 'tahunan' %}active{% endif %}" id="tab-tahunan">
 
     <h2>Laporan Tahunan</h2>
 
@@ -132,6 +183,8 @@
     </p>
 
     <form method="get" class="filter-form">
+
+        <input type="hidden" name="tab" value="tahunan">
 
         <!-- dropdown tahun -->
         <select name="tahun_tahunan">
@@ -148,7 +201,7 @@
 
         <!-- reset -->
         {% if request.GET.tahun_tahunan != None %}
-        <a href="{% url 'laporan:laporan' %}" class="reset-btn">
+        <a href="{% url 'laporan:laporan' %}?tab=tahunan" class="reset-btn">
             &#x21bb;
         </a>
         {% endif %}
@@ -244,6 +297,19 @@ function handlePerPage(selectId, paramName, resetPages = []) {
 
 handlePerPage("perPageBulan", "per_page_bulan", ["page_bulan"]);
 handlePerPage("perPageTahun", "per_page_tahun", ["page_tahun"]);
+
+// ── Tab switch Laporan Bulanan / Tahunan ────────────────────────
+document.querySelectorAll(".laporan-tab-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+        const target = this.dataset.tab;
+
+        document.querySelectorAll(".laporan-tab-btn").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".laporan-tab-content").forEach(c => c.classList.remove("active"));
+
+        this.classList.add("active");
+        document.getElementById("tab-" + target).classList.add("active");
+    });
+});
 
 $(function () {
 
@@ -408,8 +474,8 @@ $(function () {
     }
 
     // ── Inisialisasi export laporan ─────────────────────────────
-    handleExportLaporan(".content-card:nth-child(1) .action-export", ".content-card:nth-child(1) tbody", "Bulanan");
-    handleExportLaporan(".content-card:nth-child(2) .action-export", ".content-card:nth-child(2) tbody", "Tahunan");
+    handleExportLaporan("#tab-bulanan .action-export", "#tab-bulanan tbody", "Bulanan");
+    handleExportLaporan("#tab-tahunan .action-export", "#tab-tahunan tbody", "Tahunan");
 
 });
 </script>

@@ -6,6 +6,26 @@
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/pages/pinjaman/detail/detail_pinjaman.css' %}">
+    <style>
+        /* ── Style tambahan untuk kartu riwayat tipe "Pokok Saja" ──────── */
+        .angsuran-card.pokok-only {
+            border-left: 3px solid #e65100;
+            background: #fff8f0;
+        }
+        .badge-jasa-menyusul {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #fff3e0;
+            color: #e65100;
+            border: 1px solid #ffcc80;
+            border-radius: 20px;
+            padding: 1px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
@@ -128,14 +148,44 @@
 
     {% if page_obj %}
         {% for angsuran in page_obj %}
-            <div class="angsuran-card {% if angsuran.tipe_bayar == 'jasa' %}jasa-only{% endif %}">
-                
+            <div class="angsuran-card
+                        {% if angsuran.tipe_bayar == 'jasa' %}jasa-only
+                        {% elif angsuran.tipe_bayar == 'pokok' %}pokok-only
+                        {% endif %}">
+
                 <div class="angsuran-info">
 
                     {% if angsuran.tipe_bayar == 'jasa' %}
                         <i class="ph-percent text-warning"></i>
                         <strong>Pembayaran Jasa</strong><br>
                         <small>{{ angsuran.tanggal_bayar|date:"d M Y" }}</small>
+                        {% if angsuran.bulan_kewajiban %}
+                            <br><small class="text-muted">
+                                Untuk kewajiban bulan {{ angsuran.bulan_kewajiban|date:"F Y" }}
+                            </small>
+                        {% endif %}
+
+                    <!-- ── CATATAN PERUBAHAN ────────────────────────────────
+                         Tipe "pokok" (Pokok Saja) DIPISAH dari "cicilan" —
+                         sebelumnya kedua tipe ini dianggap sama dan
+                         sama-sama dilabeli "Cicilan + Jasa", padahal pada
+                         tipe "pokok" jasa BELUM dibayar (menyusul terpisah). -->
+                    {% elif angsuran.tipe_bayar == 'pokok' %}
+                        <i class="ph-bold ph-hourglass text-warning"></i>
+
+                        <strong>
+                            Pembayaran Pokok Saja bulan
+                            {% if angsuran.bulan_kewajiban %}
+                                {{ angsuran.bulan_kewajiban|date:"F Y" }}
+                            {% else %}
+                                {{ angsuran.tanggal_bayar|date:"F Y" }}
+                            {% endif %}
+                        </strong><br>
+                        <small>Dibayar: {{ angsuran.tanggal_bayar|date:"d M Y" }}</small><br>
+                        <span class="badge-jasa-menyusul">
+                            <i class="ph-bold ph-clock-countdown"></i>
+                            Jasa bulan ini menyusul
+                        </span>
 
                     {% else %}
                         {% if angsuran.jumlah_bayar >= pinjaman.angsuran_per_bulan %}

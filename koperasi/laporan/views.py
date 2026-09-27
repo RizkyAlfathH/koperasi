@@ -25,7 +25,7 @@ from pinjaman.models import Pinjaman, Angsuran
 
 
 # ──────────────────────────────────────────────────────────────
-# LAPORAN KEUANGAN (existing, tidak diubah)
+# LAPORAN KEUANGAN
 # ──────────────────────────────────────────────────────────────
 
 def laporan(request):
@@ -37,6 +37,11 @@ def laporan(request):
 
     per_page_bulan = int(request.GET.get("per_page_bulan", 10))
     per_page_tahun = int(request.GET.get("per_page_tahun", 10))
+
+    # tab yang lagi aktif di UI: "bulanan" atau "tahunan" (default bulanan)
+    active_tab = request.GET.get("tab", "bulanan")
+    if active_tab not in ("bulanan", "tahunan"):
+        active_tab = "bulanan"
 
     bulan_choices = [
         (1, "Januari"), (2, "Februari"), (3, "Maret"),
@@ -80,6 +85,7 @@ def laporan(request):
         "akhir_tahun": akhir_tahun,
         "per_page_bulan": per_page_bulan,
         "per_page_tahun": per_page_tahun,
+        "active_tab": active_tab,
     })
 
 
@@ -173,6 +179,36 @@ def generate_laporan(anggota_qs, akhir=None):
     return laporan
 
 
+def hitung_total(laporan):
+    """
+    Menjumlahkan seluruh baris laporan (per anggota) menjadi satu baris
+    'TOTAL KESELURUHAN'. Sengaja dihitung dari data yang BELUM dipaging
+    (laporan_..._full), supaya totalnya tetap akurat walau tabelnya
+    ditampilkan bertahap per halaman (pagination).
+    """
+    total = {
+        "simpanan": {"pokok": 0, "wajib": 0, "sukarela": 0, "dana_sosial": 0, "total": 0},
+        "pinjaman": {"reguler": 0, "khusus": 0, "barang": 0, "total": 0},
+    }
+
+    for row in laporan:
+        s = row["simpanan"]
+        p = row["pinjaman"]
+
+        total["simpanan"]["pokok"] += s["pokok"]
+        total["simpanan"]["wajib"] += s["wajib"]
+        total["simpanan"]["sukarela"] += s["sukarela"]
+        total["simpanan"]["dana_sosial"] += s["dana_sosial"]
+        total["simpanan"]["total"] += s["total"]
+
+        total["pinjaman"]["reguler"] += p["reguler"]
+        total["pinjaman"]["khusus"] += p["khusus"]
+        total["pinjaman"]["barang"] += p["barang"]
+        total["pinjaman"]["total"] += p["total"]
+
+    return total
+
+
 def export_laporan(request):
     periode = request.GET.get("periode", "bulan")
     bulan = int(request.GET.get("bulan", now().month))
@@ -197,6 +233,7 @@ def export_laporan(request):
         nama_file = f"Laporan {nama_bulan} {tahun}.xlsx"
 
     laporan = generate_laporan(anggota_qs, akhir)
+    total = hitung_total(laporan)
 
     output = io.BytesIO()
     workbook = xlsxwriter.Workbook(output, {'in_memory': True})
@@ -205,6 +242,8 @@ def export_laporan(request):
     header_fmt = workbook.add_format({'bold': True, 'border': 1, 'align': 'center'})
     border_fmt = workbook.add_format({'border': 1})
     money_fmt = workbook.add_format({'border': 1, 'num_format': '#,##0'})
+    total_label_fmt = workbook.add_format({'bold': True, 'border': 1, 'align': 'right'})
+    total_money_fmt = workbook.add_format({'bold': True, 'border': 1, 'num_format': '#,##0', 'bg_color': '#FFF3C4'})
 
     ws1 = workbook.add_worksheet("Simpanan")
     # Header — dari 6 kolom jadi 7
@@ -212,9 +251,10 @@ def export_laporan(request):
     ws1.merge_range("A2:G2", "DAFTAR SIMPANAN POKOK, WAJIB DAN SUKARELA", bold_center)
     ws1.merge_range("A3:G3", f"PER {judul_periode}", bold_center)
 
-    for col, h in enumerate(["NO", "NAMA ANGGOTA", "POKOK", "WAJIB", "SUKARELA", "DANA SOSIAL", "TOTAL"]):
+    for col, h in enumerate(["NOMOR ANGGOTA", "NAMA ANGGOTA", "POKOK", "WAJIB", "SUKARELA", "DANA SOSIAL", "TOTAL"]):
         ws1.write(4, col, h, header_fmt)
 
+    r = 5
     for r, row in enumerate(laporan, start=5):
         s = row["simpanan"]
         ws1.write(r, 0, row["no"], border_fmt)
@@ -222,31 +262,50 @@ def export_laporan(request):
         ws1.write(r, 2, s["pokok"], money_fmt)
         ws1.write(r, 3, s["wajib"], money_fmt)
         ws1.write(r, 4, s["sukarela"], money_fmt)
-        ws1.write(r, 5, s["dana_sosial"], money_fmt)  # ← tambah
-        ws1.write(r, 6, s["total"], money_fmt)         # ← geser dari 5 → 6
+        ws1.write(r, 5, s["dana_sosial"], money_fmt)
+        ws1.write(r, 6, s["total"], money_fmt)
 
-    ws1.set_column("A:A", 5)
+    # baris total keseluruhan
+    r_total = r + 1 if laporan else 5
+    ts = total["simpanan"]
+    ws1.merge_range(r_total, 0, r_total, 1, "TOTAL KESELURUHAN", total_label_fmt)
+    ws1.write(r_total, 2, ts["pokok"], total_money_fmt)
+    ws1.write(r_total, 3, ts["wajib"], total_money_fmt)
+    ws1.write(r_total, 4, ts["sukarela"], total_money_fmt)
+    ws1.write(r_total, 5, ts["dana_sosial"], total_money_fmt)
+    ws1.write(r_total, 6, ts["total"], total_money_fmt)
+
+    ws1.set_column("A:A", 18)
     ws1.set_column("B:B", 30)
-    ws1.set_column("C:G", 15)  # ← diperluas sampai G
+    ws1.set_column("C:G", 15)
 
     ws2 = workbook.add_worksheet("Pinjaman")
     ws2.merge_range("A1:F1", "KOPASMEN", bold_center)
     ws2.merge_range("A2:F2", "DAFTAR SALDO PIUTANG", bold_center)
     ws2.merge_range("A3:F3", f"PER {judul_periode}", bold_center)
 
-    for col, h in enumerate(["NO", "NAMA ANGGOTA", "REGULER", "KHUSUS", "BARANG", "TOTAL"]):
+    for col, h in enumerate(["NOMOR ANGGOTA", "NAMA ANGGOTA", "REGULER", "KHUSUS", "BARANG", "TOTAL"]):
         ws2.write(4, col, h, header_fmt)
 
-    for r, row in enumerate(laporan, start=5):
+    r2 = 5
+    for r2, row in enumerate(laporan, start=5):
         p = row["pinjaman"]
-        ws2.write(r, 0, row["no"], border_fmt)
-        ws2.write(r, 1, row["nama"], border_fmt)
-        ws2.write(r, 2, p["reguler"], money_fmt)
-        ws2.write(r, 3, p["khusus"], money_fmt)
-        ws2.write(r, 4, p["barang"], money_fmt)
-        ws2.write(r, 5, p["total"], money_fmt)
+        ws2.write(r2, 0, row["no"], border_fmt)
+        ws2.write(r2, 1, row["nama"], border_fmt)
+        ws2.write(r2, 2, p["reguler"], money_fmt)
+        ws2.write(r2, 3, p["khusus"], money_fmt)
+        ws2.write(r2, 4, p["barang"], money_fmt)
+        ws2.write(r2, 5, p["total"], money_fmt)
 
-    ws2.set_column("A:A", 5)
+    r2_total = r2 + 1 if laporan else 5
+    tp = total["pinjaman"]
+    ws2.merge_range(r2_total, 0, r2_total, 1, "TOTAL KESELURUHAN", total_label_fmt)
+    ws2.write(r2_total, 2, tp["reguler"], total_money_fmt)
+    ws2.write(r2_total, 3, tp["khusus"], total_money_fmt)
+    ws2.write(r2_total, 4, tp["barang"], total_money_fmt)
+    ws2.write(r2_total, 5, tp["total"], total_money_fmt)
+
+    ws2.set_column("A:A", 18)
     ws2.set_column("B:B", 30)
     ws2.set_column("C:F", 15)
 
