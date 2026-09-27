@@ -6,6 +6,69 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/pages/pinjaman/detail/detail_pembayaran.css' %}">
+<style>
+    /* ── Badge tipe transaksi ─────────────────────────────────────────── */
+    .badge-tipe {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border-radius: 20px;
+        padding: 4px 12px;
+        font-size: 12.5px;
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+    .badge-tipe-cicilan {
+        background: #e3f2fd; color: #1565c0; border: 1px solid #90caf9;
+    }
+    .badge-tipe-pokok {
+        background: #fff3e0; color: #e65100; border: 1px solid #ffcc80;
+    }
+    .badge-tipe-jasa {
+        background: #f3e5f5; color: #6a1b9a; border: 1px solid #ce93d8;
+    }
+
+    /* ── Badge kecil "Jasa Saja" di label Jumlah Jasa ─────────────────── */
+    .badge-jasa-saja {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: #f3e5f5;
+        color: #6a1b9a;
+        border: 1px solid #ce93d8;
+        border-radius: 20px;
+        padding: 1px 8px;
+        font-size: 11px;
+        font-weight: 600;
+        margin-left: 6px;
+        vertical-align: middle;
+    }
+
+    /* ── Badge "Lunas" (untuk cicilan yang jasanya sudah lunas duluan) */
+    .badge-jasa-sudah-lunas {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: #e8f5e9;
+        color: #2e7d32;
+        border: 1px solid #a5d6a7;
+        border-radius: 20px;
+        padding: 1px 8px;
+        font-size: 11px;
+        font-weight: 600;
+        margin-left: 6px;
+        vertical-align: middle;
+    }
+
+    /* ── Catatan sisa pinjaman tidak berubah ──────────────────────────── */
+    .catatan-tidak-berubah {
+        display: block;
+        margin-top: 4px;
+        font-size: 12px;
+        color: #6a1b9a;
+        font-style: italic;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -13,6 +76,13 @@
 <!-- container utama untuk detail pembayaran -->
 <div class="content-card">
     <h2>Detail Pembayaran</h2>
+
+    <!-- badge tipe transaksi -->
+    <div class="mb-3">
+        <span class="badge-tipe badge-tipe-{{ pembayaran.tipe_bayar }}">
+            {{ tipe_bayar_label }}
+        </span>
+    </div>
 
     <!-- informasi anggota dan jenis pinjaman -->
     <div class="row mb-3">
@@ -33,14 +103,22 @@
         </div>
     </div>
 
-    <!-- informasi angsuran dan persen jasa -->
+    <!-- informasi angsuran / bulan kewajiban dan persen jasa -->
     <div class="row mb-3">
         <div class="col-md-6">
-
-            <!-- angsuran per bulan -->
-            <label>Jumlah Angsuran per Bulan</label>
-            <input type="text" class="form-control rupiah-text" readonly
-                   value="Rp {{ pembayaran.id_pinjaman.angsuran_per_bulan|floatformat:0 }}">
+            {% if hanya_jasa %}
+                <!-- Untuk transaksi Jasa Saja, angsuran per bulan tidak relevan
+                     (tidak ada pokok yang dibayar) — tampilkan Bulan Kewajiban
+                     yang jasanya dilunasi lewat transaksi ini. -->
+                <label>Bulan Kewajiban (Jasa)</label>
+                <input type="text" class="form-control" readonly
+                       value="{{ bulan_kewajiban_label }}">
+            {% else %}
+                <!-- angsuran per bulan -->
+                <label>Jumlah Angsuran per Bulan</label>
+                <input type="text" class="form-control rupiah-text" readonly
+                       value="Rp {{ pembayaran.id_pinjaman.angsuran_per_bulan|floatformat:0 }}">
+            {% endif %}
         </div>
 
         <div class="col-md-6">
@@ -57,9 +135,46 @@
         <div class="col-md-6">
 
             <!-- jumlah jasa dalam rupiah -->
-            <label>Jumlah Jasa</label>
-            <input type="text" class="form-control rupiah-text" readonly
-                   value="Rp {{ jasa_rupiah|floatformat:0 }}">
+            <label>
+                Jumlah Jasa
+                {% if jasa_menyusul %}
+                <span style="display:inline-flex; align-items:center; gap:4px;
+                             background:#fff3e0; color:#e65100; border:1px solid #ffcc80;
+                             border-radius:20px; padding:1px 8px; font-size:11px;
+                             font-weight:600; margin-left:6px; vertical-align:middle;">
+                    Menyusul
+                </span>
+                {% elif jasa_sudah_lunas_duluan %}
+                <span class="badge-jasa-sudah-lunas">Lunas</span>
+                {% elif hanya_jasa %}
+                <span class="badge-jasa-saja">Jasa Saja</span>
+                {% endif %}
+            </label>
+
+            {% if jasa_menyusul %}
+                <!-- Kondisi: tipe "Pokok Saja" — jasa BELUM dibayar, menyusul -->
+                <input type="text" class="form-control" readonly
+                       style="color:#e65100; font-style:italic;"
+                       value="Belum dibayar — menyusul terpisah">
+            {% elif jasa_sudah_lunas_duluan %}
+                <!-- ── PERBAIKAN ─────────────────────────────────────────
+                     Kondisi: tipe "Cicilan" tapi jasa bulan itu SUDAH lunas
+                     duluan sebelum transaksi ini dibuat (jasa_rupiah = 0
+                     bukan karena jasanya nol, tapi karena sudah dibayar).
+                     Dulu ini ditampilkan "Rp 0" polos — sekarang dikasih
+                     keterangan senada dengan "menyusul" tapi maknanya
+                     kebalikan. -->
+                <input type="text" class="form-control" readonly
+                       style="color:#2e7d32; font-style:italic;"
+                       value="Sudah dibayar sebelumnya — transaksi ini murni pelunasan pokok">
+            {% else %}
+                <input type="text" class="form-control rupiah-text" readonly
+                       value="Rp {{ jasa_rupiah|floatformat:0 }}">
+            {% endif %}
+
+            {% if hanya_jasa %}
+            <small class="text-muted">Untuk bulan kewajiban: {{ bulan_kewajiban_label }}</small>
+            {% endif %}
         </div>
 
         <div class="col-md-6">
@@ -107,6 +222,15 @@
             <input type="text" class="form-control rupiah-text" readonly
                    value="Rp {{ sisa_setelah|floatformat:0 }}">
         </div>
+
+        {% if hanya_jasa %}
+        <div class="col-12">
+            <small class="catatan-tidak-berubah">
+                <i class="ph ph-info"></i>
+                Sisa pinjaman tidak berubah — transaksi ini hanya membayar jasa, tidak mengurangi pokok pinjaman.
+            </small>
+        </div>
+        {% endif %}
     </div>
 </div>
 

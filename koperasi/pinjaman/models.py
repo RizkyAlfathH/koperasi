@@ -192,9 +192,14 @@ class Angsuran(models.Model):
         help_text="Tanggal pertama bulan kewajiban cicilan ini (YYYY-MM-01)"
     )
 
+    # ── CATATAN PERUBAHAN ───────────────────────────────────────────────
+    # Ditambahkan pilihan 'pokok' → anggota bisa bayar POKOK SAJA dulu untuk
+    # bulan_kewajiban tertentu, jasa-nya menyusul dibayar terpisah (beberapa
+    # hari/minggu kemudian) lewat transaksi 'jasa' untuk bulan_kewajiban yang sama.
     TIPE_BAYAR_CHOICES = (
         ('cicilan', 'Cicilan + Jasa'),
-        ('jasa', 'Jasa Saja'),
+        ('pokok',   'Pokok Saja'),
+        ('jasa',    'Jasa Saja'),
     )
 
     tipe_bayar = models.CharField(
